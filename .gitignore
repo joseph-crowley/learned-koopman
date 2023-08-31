@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# numpy and torch
+*.npy
+*.npz
+*.pt
+*.pth
+
 # Distribution / packaging
 .Python
 build/
