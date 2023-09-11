@@ -1,7 +1,3 @@
-Certainly! Here's a README styled similarly to the one you provided:
-
----
-
 # Nonlinear Harmonic Oscillator: Learning Koopman Operators with cVAE 🎉
 
 Welcome to this exciting repository! 🌟 This project aims to uncover the underlying dynamics of nonlinear harmonic oscillators using Conditional Variational Autoencoders (cVAE) to learn Koopman Operators. This topic is a treasure trove for anyone interested in leveraging machine learning for understanding nonlinear dynamical systems.
