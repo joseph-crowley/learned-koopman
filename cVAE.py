@@ -1,4 +1,4 @@
-from torch import nn
+from torch import nn  
 
 # Custom conditional Variational Autoencoder (cVAE) class for dynamical system 
 class cVAE(nn.Module):
@@ -22,7 +22,7 @@ class cVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.ReLU(),
-            nn.Linear(self.hidden_dim, 2*self.latent_dim), 
+            nn.Linear(self.hidden_dim, 2*self.latent_dim), # split into mean and log-variance
         )
 
     # Decoder network
@@ -50,6 +50,9 @@ class cVAE(nn.Module):
         z_next = self.koopman_layer(z)
 
         reconstructed = self.decoder(z_next)
+
+        #reconstructed = tanh(reconstructed) * 3.14  # Scale to (-pi, pi)
+
         return reconstructed, z_logits, z_log_var
 
 

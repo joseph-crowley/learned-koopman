@@ -106,3 +106,10 @@ if __name__ == "__main__":
     plt.ylabel('Loss')
     plt.title('Training Loss History')
     plt.show()
+
+    # plot log(difference(loss)) on the same plot with axis on the right
+    plt.plot(np.log(np.abs(np.diff(loss_history))))
+    plt.xlabel('Epoch')
+    plt.ylabel('Log(Difference(Loss))')
+    plt.title('Log(Difference(Loss)) History')
+    plt.show()
