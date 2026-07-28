@@ -18,9 +18,11 @@ jobs:
       - run: uv run pytest
       - run: uv run python scripts/check_portfolio_results.py
       - run: uv run python scripts/check_atlas_results.py
+      - run: uv run python scripts/check_research_lab.py
       - run: uv run learned-koopman demo --quick --output results/ci-smoke
       - run: uv run python scripts/check_run_health.py results/ci-smoke/metrics.json
       - run: uv run learned-koopman demo --quick --seed 17 --output results/ci-smoke-seed-17
       - run: uv run python scripts/check_run_health.py results/ci-smoke-seed-17/metrics.json
-      - run: uv run learned-koopman atlas --quick --output results/ci-atlas
-      - run: uv run python scripts/check_atlas_run_health.py results/ci-atlas/metrics.json
+      - run: uv run learned-koopman lab --quick --output results/ci-research-lab
+      - run: uv run python scripts/check_research_lab.py results/ci-research-lab/manifest.json
+      - run: uv run python scripts/check_atlas_run_health.py results/ci-research-lab/atlas/metrics.json

@@ -7,6 +7,8 @@ import json
 import math
 from pathlib import Path
 
+from learned_koopman.route_validation import validate_route_truth
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -33,6 +35,14 @@ def main() -> None:
     assert float(atlas["valid_time"]) > float(showcase["saddle_chart_only"]["valid_time"])
     assert float(atlas["max_energy_drift"]) < 1e-5
     assert int(atlas["route_switches"]) > 0
+
+    expected_steps = int(result["config"]["rollout_steps"])
+    for amplitude, models in result["metrics"].items():
+        validate_route_truth(
+            models["separatrix_atlas"],
+            expected_steps=expected_steps,
+            label=f"amplitude {amplitude}",
+        )
 
     for amplitude, models in result["metrics"].items():
         for model, metrics in models.items():

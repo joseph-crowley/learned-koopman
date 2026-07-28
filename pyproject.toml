@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learned-koopman"
-version = "2.0.0"
-description = "A reproducible PyTorch study of structured Koopman charts near the pendulum separatrix."
+version = "3.0.0"
+description = "A PyTorch lab for learned geometry, operator structure, stochastic transfer, and control in nonlinear dynamics."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

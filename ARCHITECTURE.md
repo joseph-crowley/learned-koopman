@@ -1,25 +1,26 @@
 # Architecture
 
-## Data flow
+## Research-lab flow
 
 ```text
-initial amplitude and conserved energy
-    ↓
-velocity-Verlet pendulum simulator
-    ↓
-(sin θ, cos θ, ω) trajectory
-    ↓
-complete-trajectory windows ─────────────────────────┐
-    ↓                                                │
-baseline / fixed KAE / conditioned model / atlas     │
-    ↓                                                │
-autonomous rollout                                   │
-    ↓                                                │
-angle · velocity · energy · frequency · chart use ◀──┘
+autonomous trajectories ──┬─> fixed / conditioned / atlas predictors
+                          │      └─> free rollout + route truth
+                          └─> grouped states
+                                 └─> learned invariant + anti-collapse
+
+damped stochastic trajectories ─> simplex memberships
+                                  └─> row-stochastic transfer + CK tests
+
+bounded torque sequences ─> controlled kick-drift-kick trajectories
+                           └─> actuator-gain identification + residual ablation
+
+all four result dictionaries ─> research-lab validator
+                              └─> manifest + overview figure
 ```
 
-Training and evaluation share the simulator and state contract but not
-trajectory instances. Evaluation holds out complete amplitudes.
+All cells use the circular state \((\sin\theta,\cos\theta,\dot\theta)\), but
+they do not pretend to share one objective. Each has its own data split,
+mathematical constraint, baseline, and falsifier.
 
 ## Fixed operator
 
@@ -80,7 +81,8 @@ Routing is an explicit validity rule:
 
 ```text
 regular chart: all ordinary energies and states away from the upright saddle
-saddle chart:  H > 0.8 and |q| < 1.4
+saddle entry:  H > 0.8 and |q| < 1.4
+saddle exit:   H <= 0.8 or |q| >= 1.5, after a 12-step minimum dwell
 ```
 
 When a predicted trajectory changes chart, the model converts through its own
@@ -101,6 +103,84 @@ that it exactly reproduced the predeclared validity region without changing
 decisions, so the final model removes those parameters and exposes the
 geometric rule directly.
 
+The evaluator stores the complete categorical route trace. Validators
+independently reconstruct switch locations, alternations, rapid reversals, and
+switch density, both globally and within the valid-prediction prefix. This
+turned a previously hidden two-seed chatter failure into an executable
+contract.
+
+## Label-free invariant
+
+`LearnedInvariant` is a small scalar encoder over the circular state. Training
+uses:
+
+- variance within each observed trajectory, minimized for constancy;
+- variance across trajectory means, fixed away from zero to prevent collapse;
+- centering to fix a gauge;
+- smoothness over a neighbor graph built from symmetric trajectory-set
+  distances.
+
+The model never receives an energy, amplitude, phase, frequency, trajectory
+time, or ordering label. Training segments begin at staggered phases, and
+evaluation uses complete interleaved shells. Exact physical energy is imported
+only in the post-training evaluator.
+
+## Simplex transfer operator
+
+`SimplexTransferOperator` maps physical state to soft categorical membership.
+Both memberships and rows of the transition matrix are softmax-normalized:
+
+```text
+state -> encoder logits -> simplex membership
+membership @ K -> future membership, with K positive and row stochastic
+future membership @ physical prototypes -> diagnostic state expectation
+```
+
+The simulator is a damped pendulum with Euler–Maruyama velocity noise.
+Train/validation splitting happens by complete stochastic path. The objective
+combines coarse-state classification with one- and two-lag categorical
+likelihoods. Independent stochastic branches from identical anchor states
+verify genuine process uncertainty.
+
+Evaluation always includes membership with no propagation, empirical Ulam,
+occupancy, direct two-lag, and branching-horizon counterfactuals. The current
+operator passes its simplex constraints but is mechanically labeled
+`falsified_by_current_profile`; valid stochastic structure did not make \(K\)
+useful on every required comparison.
+
+## Controlled crossing
+
+The controlled simulator uses a kick-drift-kick update for
+\(\ddot\theta=-\sin\theta+u\) with piecewise-constant bounded torque. An
+external-work calculation checks that energy change is attributable to the
+input.
+
+`GainOnlyControlledPendulum` supplies the conservative \(-\sin\theta\) term and
+identifies the one unknown actuator gain. `ExactUnitGainOracle` exposes the
+supplied simulator equation and numerical floor. The higher-capacity
+`ActionConditionedPendulum` adds a bounded neural residual but is retained as a
+worse ablation rather than promoted.
+
+Short windows train the identified model; every reported long-horizon result
+recursively feeds back its own prediction while receiving only the known
+control sequence. Comparisons include the oracle, neural residual, controlled
+small-angle physics, and the same identified model with its action channel
+zeroed.
+
+## Integrated manifest
+
+`run_research_lab` runs the four cells, validates their scientific contracts,
+and writes:
+
+- generated component outputs, with learned weights where available;
+- one self-contained `manifest.json`;
+- one four-panel `overview.png`.
+
+The validator checks mathematical constraints and anti-cheating boundaries,
+not a single composite score. A transfer experiment can therefore pass its
+probability contract while visibly losing its CK comparison; the failed edge
+is evidence, not a reason to erase the run.
+
 ## Design choices
 
 - Vanilla PyTorch keeps every model and objective visible.
@@ -113,7 +193,10 @@ geometric rule directly.
   minimum, and maximum for each core metric.
 - The atlas robustness command first averages the predeclared high-energy
   amplitudes within each seed, then compares those independent seeded runs.
-- Held-out local-chart residuals, switch disagreement, chart occupancy, and the
-  local operator determinant keep the mechanism inspectable.
-- The quick demo is CI-sized; the committed portfolio and atlas artifacts are
-  the promoted results.
+- Held-out local-chart residuals, the full route trace, probability constraints,
+  process-noise branches, crossing attribution, and component baselines keep
+  every mechanism inspectable.
+- Each research cell remains independently callable; the integrated command is
+  orchestration, not a monolithic model.
+- The quick demo is CI-sized; the committed lab, portfolio, and atlas evidence
+  comes from the full profiles.

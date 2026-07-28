@@ -192,11 +192,49 @@ def _atlas_local_residuals(
     return float(residual.mean()), float(residual.max())
 
 
+def _route_trace_metrics(
+    diagnostics: dict[str, torch.Tensor],
+    *,
+    valid_steps: int,
+) -> dict[str, int | list[int]]:
+    """Expose route truth and independently summarize the valid prefix."""
+
+    route_index = diagnostics["route_index"].to(dtype=torch.long)
+    switch_steps = diagnostics["route_switch_step"].to(dtype=torch.long)
+    valid_trace = route_index[: max(valid_steps, 0)]
+    valid_diagnostics = SeparatrixAtlas.summarize_route_trace(valid_trace)
+    return {
+        "route_trace": [int(value) for value in route_index.cpu().tolist()],
+        "route_switch_steps": [int(value) for value in switch_steps.cpu().tolist()],
+        "route_switches": int(diagnostics["total_route_switches"].item()),
+        "route_alternations": int(diagnostics["route_alternations"].item()),
+        "rapid_route_reversals": int(diagnostics["rapid_route_reversals"].item()),
+        "max_route_switches_in_window": int(
+            diagnostics["max_route_switches_in_window"].item()
+        ),
+        "switches_within_valid_horizon": int(
+            valid_diagnostics["total_route_switches"].item()
+        ),
+        "alternations_within_valid_horizon": int(
+            valid_diagnostics["route_alternations"].item()
+        ),
+        "rapid_reversals_within_valid_horizon": int(
+            valid_diagnostics["rapid_route_reversals"].item()
+        ),
+        "max_route_switches_in_window_within_valid_horizon": int(
+            valid_diagnostics["max_route_switches_in_window"].item()
+        ),
+    }
+
+
 def evaluate(
     models: TrainedModels,
     config: ExperimentConfig,
-) -> tuple[dict[str, dict[str, dict[str, float | int | None]]], dict[float, dict[str, np.ndarray]]]:
-    metrics: dict[str, dict[str, dict[str, float | int | None]]] = {}
+) -> tuple[
+    dict[str, dict[str, dict[str, float | int | None | list[int]]]],
+    dict[float, dict[str, np.ndarray]],
+]:
+    metrics: dict[str, dict[str, dict[str, float | int | None | list[int]]]] = {}
     all_rollouts: dict[float, dict[str, np.ndarray]] = {}
     sequences = training_dataset(config).tensors[0].numpy()
     dmd_input = sequences[:, :-1].reshape(-1, 3)
@@ -226,24 +264,25 @@ def evaluate(
                 )
             route_index = diagnostics["route_index"].cpu().numpy()
             switch_disagreement = diagnostics["switch_disagreement"].cpu().numpy()
-            route_switches = (
-                int(np.count_nonzero(route_index[1:] != route_index[:-1]))
-                if len(route_index) > 1
-                else 0
-            )
             mean_local_residual, max_local_residual = _atlas_local_residuals(
                 models.atlas,
                 trajectory,
             )
+            route_metrics = _route_trace_metrics(
+                diagnostics,
+                valid_steps=int(
+                    metrics[key]["separatrix_atlas"]["valid_steps"]  # type: ignore[arg-type]
+                ),
+            )
             metrics[key]["separatrix_atlas"].update(
                 {
                     "saddle_fraction": float(np.mean(route_index == 1)),
-                    "route_switches": route_switches,
                     "max_switch_disagreement": (
                         float(np.max(switch_disagreement)) if len(switch_disagreement) else 0.0
                     ),
                     "mean_local_chart_residual": mean_local_residual,
                     "max_local_chart_residual": max_local_residual,
+                    **route_metrics,
                 }
             )
     return metrics, all_rollouts

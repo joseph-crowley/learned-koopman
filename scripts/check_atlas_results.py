@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+from learned_koopman.route_validation import validate_route_truth
+
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results/atlas/metrics.json"
 ROBUSTNESS = ROOT / "results/atlas/robustness.json"
@@ -58,6 +60,32 @@ def main() -> None:
     assert abs(diagnostics["saddle_operator_determinant"] - 1.0) < 1e-5
     assert diagnostics["router"] == "explicit geometric validity rule"
 
+    checked_route_traces = 0
+    maximum_observed_switches = 0
+    for amplitude, model_metrics in result["metrics"].items():
+        maximum_observed_switches = max(
+            maximum_observed_switches,
+            validate_route_truth(
+                model_metrics["separatrix_atlas"],
+                expected_steps=int(config["rollout_steps"]),
+                label=f"representative amplitude {amplitude}",
+            ),
+        )
+        checked_route_traces += 1
+
+    for seed, run in robustness["runs"].items():
+        run_steps = int(run["config"]["rollout_steps"])
+        for amplitude, model_metrics in run["metrics"].items():
+            maximum_observed_switches = max(
+                maximum_observed_switches,
+                validate_route_truth(
+                    model_metrics["separatrix_atlas"],
+                    expected_steps=run_steps,
+                    label=f"seed {seed} amplitude {amplitude}",
+                ),
+            )
+            checked_route_traces += 1
+
     band = robustness["high_energy_band"]
     assert band["amplitudes"] == [2.95, 3.05, 3.1]
     comparisons = band["comparisons"]
@@ -89,7 +117,11 @@ def main() -> None:
     for claim in expected_claims:
         assert claim in readme, f"README atlas claim is stale or missing: {claim}"
 
-    print("Atlas claims match the committed five-seed and ablation evidence.")
+    print(
+        "Atlas claims and route truth match the committed evidence: "
+        f"{checked_route_traces} traces checked, "
+        f"maximum {maximum_observed_switches} switches."
+    )
 
 
 if __name__ == "__main__":

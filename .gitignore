@@ -147,6 +147,10 @@ results/atlas/*
 !results/atlas/metrics.json
 !results/atlas/comparison.png
 !results/atlas/robustness.json
+!results/research-lab/
+results/research-lab/*
+!results/research-lab/manifest.json
+!results/research-lab/overview.png
 
 # Spyder project settings
 .spyderproject

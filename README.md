@@ -5,42 +5,59 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.4%2B-EE4C2C)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**A reproducible PyTorch study of a simple question with a sharp edge: can
-learned linearizing coordinates remain useful when the pendulum approaches the
-separatrix, where one global action-angle chart becomes singular?**
+**Learn the invariants, local laws, and transitions that organize nonlinear
+dynamics—without assuming one global linearization exists.**
 
-The project compares transparent physics and data-driven baselines with three
-structured latent-dynamics models:
+Learned Koopman is a small, inspectable PyTorch research lab built around the
+nonlinear pendulum. Four connected experiments ask what kind of learned object
+is useful for a different scientific question:
 
-- a fixed, orthogonal Koopman autoencoder;
-- an energy-conditioned rotation model that learns a different latent frequency
-  on each invariant energy shell;
-- a two-chart separatrix atlas that retains the rotation away from the saddle
-  and switches to a learned hyperbolic chart near the unstable equilibrium.
+- a **local operator atlas** for autonomous motion near a coordinate
+  singularity;
+- a **learned invariant** trained without physical-energy labels;
+- a **simplex transfer operator** for probability flow under genuine process
+  noise;
+- an **actuator-gain identification experiment** for torque-driven separatrix
+  crossings.
 
-The v2 result is useful and deliberately bounded. Across five seeds and held-out
-amplitudes 2.95, 3.05, and 3.10, the atlas raises mean valid horizon to
-**3.94 ± 0.06**, versus **3.27 ± 1.00** for the residual MLP and
-**0.36 ± 0.12** for the single conditioned chart. It beats the MLP's
-per-seed band average in **4 / 5** runs and preserves the single chart exactly
-at ordinary energies. It still receives the analytic conserved energy, covers
-libration below the separatrix rather than full rotations, and is not a claim
-of a global finite-dimensional Koopman representation.
+Every cell is runnable on CPU, writes machine-readable evidence, and carries a
+direct physical check or matched falsifier. The point is not that pendulum
+prediction is itself an unsolved application. The pendulum is small enough that
+learned structure can be checked against known physics.
 
-![Near-separatrix rollout, valid prediction time, and chart use](results/atlas/comparison.png)
+![Four connected nonlinear-dynamics experiments](results/research-lab/overview.png)
 
 ## One-command demonstration
 
 Install [`uv`](https://docs.astral.sh/uv/), clone the repository, and run:
 
 ```bash
+git clone https://github.com/joseph-crowley/learned-koopman.git
+cd learned-koopman
 uv sync --extra dev
-uv run learned-koopman demo --quick
+uv run learned-koopman lab --quick
 ```
 
-The command generates deterministic trajectories, trains all learned models,
-runs autonomous rollouts, and writes a figure plus machine-readable metrics.
-It runs on CPU and does not require downloaded data.
+The command trains and evaluates all four experiment cells, writes an overview
+figure, and validates a single manifest at
+`results/research-lab-quick/manifest.json`. It needs no downloaded data and
+does not overwrite the committed full evidence.
+
+Run the full promoted experiment with:
+
+```bash
+uv run learned-koopman lab
+uv run python scripts/check_research_lab.py
+```
+
+Each cell is also independently useful:
+
+```bash
+uv run learned-koopman invariant --quick
+uv run learned-koopman transfer --quick
+uv run learned-koopman control --quick
+uv run learned-koopman atlas --quick
+```
 
 Run the longer portfolio experiment with:
 
@@ -61,18 +78,43 @@ uv run learned-koopman atlas
 uv run learned-koopman atlas-robustness
 ```
 
-## What v2 adds
+## The v3 research lab
+
+The committed full run makes the project's current evidence easy to inspect:
+
+| Experiment | What is learned | Full-run result | Honest boundary |
+|---|---|---|---|
+| Separatrix atlas | one local saddle rate; routing is explicit | [**3.98 ± 0.06** valid time](results/atlas/robustness.json) over the five-seed high-energy band; at most seven switches per rollout | energy, chart geometry, projection, hysteresis, and dwell are supplied |
+| Invariant discovery | one scalar from grouped state trajectories | held-out energy \(R^2=0.979\), rank correlation \(=1.000\), normalized drift \(=0.0053\) over five seeds | noiseless libration-shell interpolation only |
+| Stochastic transfer | soft memberships and a positive row-stochastic operator | constraints pass, but \(K\) is **falsified**: one-lag NLL **0.286** versus **0.276** with no operator; CK **0.320** versus Ulam **0.040** | one seed and train-only coarse states; valid probability structure is not useful dynamics |
+| Controlled crossing | one scalar actuator gain | gain **0.35 → 1.000**; **9 / 12** real crossings; crossing-window error \(8.1\times10^{-13}\), at the supplied oracle floor | system identification under known controls, not policy learning or control novelty |
+
+These are connected but deliberately not collapsed into one architecture. An
+invariant, a deterministic local flow, a stochastic transfer operator, and a
+controlled flow map obey different mathematics. The shared contribution is the
+experiment discipline: simple learned objects, structural constraints, held-out
+tests, and failure modes that remain visible.
+
+The full single-run lab evidence is embedded in
+[`results/research-lab/manifest.json`](results/research-lab/manifest.json).
+The five-seed atlas evidence remains in
+[`results/atlas/robustness.json`](results/atlas/robustness.json).
+The scientific continuation and adjacent research fields are mapped in
+[`RESEARCH_ROADMAP.md`](RESEARCH_ROADMAP.md).
+
+## Separatrix atlas study
 
 The atlas experiment trains every learned baseline on the same denser amplitude
 grid ending at 3.12, then evaluates complete held-out trajectories. Its
 predeclared high-energy summary averages each seed over amplitudes 2.95, 3.05,
-and 3.10 before comparing seeds:
+and 3.10 before comparing seeds. The atlas reaches **3.98 ± 0.06**, versus
+**3.27 ± 1.00** for the residual MLP and **0.36 ± 0.12** for the single chart:
 
 | Model | Mean valid time over high-energy band | Variation across seeds | Band wins over MLP |
 |---|---:|---:|---:|
 | Residual MLP on atlas data | 3.27 | ± 1.00 | — |
 | Single energy-conditioned chart | 0.36 | ± 0.12 | 0 / 5 |
-| **Two-chart separatrix atlas** | **3.94** | **± 0.06** | **4 / 5** |
+| **Two-chart separatrix atlas** | **3.98** | **± 0.06** | **4 / 5** |
 
 At the representative seed and amplitude 3.05, four ablations separate the
 sources of improvement:
@@ -83,12 +125,14 @@ sources of improvement:
 | Single conditioned chart | 0.54 | 1.580 | 0.337 |
 | Energy projection only | 0.02 | 1.580 | < 0.000001 |
 | Saddle chart only | 3.48 | 1.348 | 3.876 |
-| **Full atlas** | **3.82** | **0.817** | **< 0.000001** |
+| **Full atlas** | **3.88** | **0.788** | **< 0.000001** |
 
 Projection alone does not repair the single chart, and the saddle chart alone
 drifts badly. The result comes from using each simple dynamics law only where
 its coordinates are appropriate, with transitions through the model's own
-predicted physical state.
+predicted physical state. Exit hysteresis and a 12-step minimum dwell now remove
+the severe boundary chatter found in two earlier seeded runs: the worst cases
+fell from hundreds of switches to at most seven, with no rapid reversals.
 
 The original portfolio benchmark remains useful away from this targeted
 high-energy experiment.
@@ -138,6 +182,67 @@ Four conclusions survive the stronger test:
 
 ## Models
 
+### Label-free invariant discovery
+
+`LearnedInvariant` maps the circular physical state to one scalar. Its training
+objective only sees grouped trajectory states. It reduces variation along each
+trajectory, fixes the variance across trajectory means to prevent a constant
+solution, and uses a trajectory-set neighbor graph for smoothness. Energy,
+amplitude ordering, phase, and frequency never enter training.
+
+The exact Hamiltonian is used only after optimization to ask whether the
+learned quotient coordinate organizes held-out shells. The coordinate is
+identified only up to orientation and scale, so the evaluation reports rank
+and post-hoc affine alignment as well as within-trajectory drift.
+
+### Stochastic simplex transfer operator
+
+`SimplexTransferOperator` encodes state as non-negative memberships that sum to
+one. A row-wise softmax makes its transition matrix positive and
+mass-preserving by construction:
+
+\[
+\chi(x_{t+\tau}) \approx \chi(x_t)K,\qquad
+K_{ij}>0,\quad \sum_j K_{ij}=1.
+\]
+
+The training objective is categorically coherent: coarse-state
+classification, one-lag negative log likelihood, and two-lag negative log
+likelihood. The data come from a damped pendulum with Gaussian process noise in
+the velocity equation. Independent stochastic branches from identical states
+verify that the uncertainty is physical, not decoder noise.
+
+The probability constraints work; the learned propagation does not. At one lag,
+\(\chi(x_t)K\) has NLL 0.286 versus 0.276 for the learned membership with no
+propagation. At two lags \(K^2\) improves over both no propagation and a direct
+Ulam estimate. At the stochastic branching horizon, however, it loses to Ulam
+and occupancy, and its Chapman–Kolmogorov residual is 0.320 versus Ulam's 0.040.
+A mechanically derived `operator_verdict` therefore marks this profile
+`falsified_by_current_profile`.
+
+This is still a useful result: it recovers the original simplex idea with valid
+mathematics and shows that positivity and mass preservation are necessary but
+not sufficient for a useful transfer operator.
+
+### Torque-conditioned crossing model
+
+`GainOnlyControlledPendulum` uses the known conservative force as a grey-box
+backbone and identifies one scalar actuator gain from 0.35 to 0.9999999. Its
+recursive rollout receives the known torque at each step but no future true
+states. The controlled kick-drift-kick simulator audits external work and
+contains genuine \(H<1\) to \(H\ge1\) events; replaying the same initial states
+with zero torque produces none.
+
+An `ExactUnitGainOracle` exposes the numerical floor. The identified model
+matches it on all crossing events. A higher-capacity
+`ActionConditionedPendulum` with a neural residual is retained as an ablation
+and is substantially worse, as are controlled small-angle physics and the same
+identified model with its action channel zeroed.
+
+This is a clean PyTorch system-identification exercise and forced-crossing
+dataset, not a new control method. The next result must infer richer unknown
+physics or close the loop against energy shaping, EDMDc, and nonlinear MPC.
+
 ### Two-chart separatrix atlas
 
 `SeparatrixAtlas` carries the learned energy-conditioned rotation as its regular
@@ -161,11 +266,17 @@ and advances them with a learned symplectic hyperbolic operator:
 \]
 
 The chart index is an explicit geometric rule, not a black-box classifier:
-use the saddle chart only for \(H>0.8\) and \(|q|<1.4\). The operator rate
-\(\lambda\) is learned from the same training trajectories as the other
-models. At high energy, predictions are projected back to the known invariant
-energy shell. The projected single-chart and saddle-only ablations show that
-neither ingredient is sufficient by itself.
+enter the saddle chart for \(H>0.8\) and \(|q|<1.4\), remain there until
+\(|q|\ge1.5\), and require a 12-step dwell after switching. The operator rate
+\(\lambda\) is learned from the same training trajectories as the other models.
+At high energy, predictions are projected back to the known invariant energy
+shell. The projected single-chart and saddle-only ablations show that neither
+ingredient is sufficient by itself.
+
+The current ablations do not establish that the fitted scalar rate is necessary
+or optimal; an analytic saddle rate is a strong alternative. The demonstrated
+gain is therefore attributed to the hand-structured atlas as a whole, not to
+learning \(\lambda\) in isolation.
 
 An early neural-router variant was rejected during development because it
 merely rediscovered this validity region and changed no routing decisions. The
@@ -220,52 +331,73 @@ state-independent Koopman matrix. That boundary is important.
   model receives an independent, identically seeded data-loader shuffle so
   training order cannot change another model's result.
 - Outputs: environment versions, parameter counts, final losses, and every
-  per-amplitude metric are written to JSON. Atlas results additionally report
-  chart use, transitions, boundary disagreement, and held-out local-chart
-  residuals.
+  per-amplitude metric are written to JSON. Atlas results additionally retain
+  the full route trace, switch locations, chatter diagnostics, chart use,
+  boundary disagreement, and held-out local-chart residuals. The integrated lab
+  manifest carries every component result plus a compact summary and claim
+  boundary.
 - Checks:
 
   ```bash
   uv run ruff check .
   uv run pytest
+  uv run python scripts/check_research_lab.py
   uv run python scripts/check_portfolio_results.py
   uv run python scripts/check_atlas_results.py
   uv run python scripts/check_run_health.py results/portfolio/metrics.json
   uv run python scripts/check_atlas_run_health.py results/atlas/metrics.json
   ```
 
-The committed figure and metrics were produced by the repository's
-`benchmark` command. See [Scientific scope](SCIENTIFIC_SCOPE.md) for the exact
-claim boundary and [Architecture](ARCHITECTURE.md) for the implementation map.
+The committed v3 overview and manifest were produced by the repository's `lab`
+command. See [Scientific scope](SCIENTIFIC_SCOPE.md) for the exact claim
+boundary and [Architecture](ARCHITECTURE.md) for the implementation map.
 
 ## Project structure
 
 ```text
 src/learned_koopman/
-├── physics.py              # symplectic simulator and analytic frequency
-├── data.py                 # trajectory windows and held-out amplitudes
+├── physics.py               # autonomous simulator and physical metrics
+├── control.py               # controlled simulator and action model
+├── data.py                  # deterministic trajectory windows
 ├── models/
-│   ├── baselines.py
-│   ├── fixed_koopman.py
+│   ├── baselines.py         # transparent prediction baselines
+│   ├── fixed_koopman.py     # one fixed latent operator
 │   ├── energy_conditioned.py
-│   └── separatrix_atlas.py
-├── training.py             # explicit, model-specific objectives
-├── evaluation.py           # autonomous rollouts and physical metrics
-├── experiment.py           # reproducible artifacts
-└── cli.py                  # one-command entrypoint
+│   ├── separatrix_atlas.py  # stateful local-chart routing
+│   ├── invariant.py         # label-free scalar coordinate
+│   └── transfer.py          # simplex transfer operator
+├── invariant_experiment.py
+├── transfer_experiment.py
+├── control_experiment.py
+├── research_lab.py          # integrated run, figure, and validator
+├── training.py
+├── evaluation.py
+├── experiment.py
+└── cli.py
 ```
 
-## Project history
+## Project lineage and research program
 
-This project began as a compact 2023 experiment around an encoder, learned
-linear latent evolution, and decoder for pendulum dynamics. The original
-prototype is preserved in
+Learned Koopman began in 2023 with a broad question: can a learned latent
+representation turn nonlinear pendulum motion into simple evolution under a
+learned operator? The first prototype combined an encoder, a Gumbel-simplex
+latent state, linear latent evolution, and a decoder across many initial
+conditions. It was an exploratory implementation, but it established the
+research direction that still drives this repository.
+
+The current edition turns that question into a sequence of falsifiable
+experiments. The fixed model tests whether one global operator is enough.
+Energy conditioning shows that an invariant can index a family of simple local
+flows. The atlas demonstrates why a coordinate singularity needs a second local
+law. The invariant, transfer, and controlled-crossing cells now recover the
+prototype's broader discovery, probabilistic, and full-phase-space ambitions
+with explicit mathematical contracts.
+
+The untouched snapshot is preserved in
 [`legacy/2023-prototype`](legacy/2023-prototype) and at the Git tag
-`prototype-2023`.
-
-The current edition returns to that idea with physics-grounded simulation,
-autonomous rollout evaluation, reproducible benchmarks, and explicit
-scientific scope.
+`prototype-2023`. It records the original question; the active package supplies
+the physics, autonomous evaluation, reproducibility, and claim boundaries
+needed to answer it.
 
 ## Prior art and context
 
@@ -289,8 +421,16 @@ project's claim discipline: continuous-frequency dynamics require more than
 plausible eigenvalues, and finite learned representations need explicit
 residuals and falsifiers.
 
-This repository is a polished educational and experimental PyTorch project,
-not a claim of a new universal Koopman theorem or state-of-the-art forecasting
+Multi-chart autoencoders, Hamiltonian neural models, conservation-law
+discovery, stochastic transfer operators, and Koopman control also predate this
+repository. The project does not claim those templates as new. Its useful
+research direction is their combination around failure modes: invariant-indexed
+dynamics, local structure near singular transitions, conservative probability
+flow, and controlled crossings. The prior-art map and concrete novelty ladder
+are in [`RESEARCH_ROADMAP.md`](RESEARCH_ROADMAP.md).
+
+This is a polished experimental PyTorch project with several promising research
+continuations, not a claim of a new theorem or state-of-the-art forecasting
 system.
 
 ## License

@@ -1,5 +1,43 @@
 # Changelog
 
+## 3.0.0 — 2026-07-28
+
+This release recovers the original project's broader idea and turns it into a
+connected nonlinear-dynamics research lab.
+
+### Added
+
+- a label-free scalar-invariant experiment trained without physical energy,
+  phase, amplitude, or frequency targets;
+- a categorical simplex transfer model with a positive, row-stochastic
+  operator, genuine stochastic-process branching evidence, and matched
+  no-operator, Ulam, occupancy, and Chapman–Kolmogorov falsifiers;
+- a torque-controlled pendulum simulator, a predeclared scalar actuator-gain
+  identification model, an exact supplied-equation oracle, and a
+  higher-capacity residual ablation for real below-to-above separatrix
+  crossings;
+- an integrated `lab` command, four experiment-specific commands, an overview
+  figure, one machine-readable manifest, and a scientific-coherence validator;
+- a research roadmap connecting the working experiments to symplectic atlases,
+  residual certification, invariant discovery, stochastic transfer, hybrid
+  dynamics, and control.
+
+### Changed
+
+- reframed the project around learning geometry, local laws, and transitions
+  rather than one global linearization;
+- added stateful hysteresis and a minimum dwell time to autonomous atlas
+  routing;
+- promoted full route traces, switch locations, rapid reversals, alternations,
+  and valid-horizon switching metrics into the atlas evidence;
+- made the atlas validators independently reconstruct route truth and reject
+  pathological chattering;
+- preserved negative results in the promoted evidence: the current stochastic
+  transfer profile is falsified by stronger baselines, while the minimal
+  controlled model reaches the supplied simulator floor;
+- replaced dismissive prototype framing with a project-lineage account that
+  preserves the original simplex and latent-operator intuition.
+
 ## 2.0.0 — 2026-07-28
 
 This release turns the single-chart separatrix failure into a falsifiable

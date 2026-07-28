@@ -72,6 +72,10 @@ def test_atlas_experiment_adds_chart_metrics(tmp_path: Path) -> None:
     atlas_metrics = result["metrics"]["3.05"]["separatrix_atlas"]
     assert "saddle_fraction" in atlas_metrics
     assert "route_switches" in atlas_metrics
+    assert len(atlas_metrics["route_trace"]) == config.rollout_steps
+    assert atlas_metrics["route_switches"] == len(atlas_metrics["route_switch_steps"])
+    assert atlas_metrics["rapid_route_reversals"] == 0
+    assert atlas_metrics["switches_within_valid_horizon"] <= atlas_metrics["route_switches"]
     assert "mean_local_chart_residual" in atlas_metrics
     assert "separatrix_atlas" in result["parameter_counts"]
     assert result["model_diagnostics"]["separatrix_atlas"]["router"].startswith("explicit")

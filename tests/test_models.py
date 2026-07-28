@@ -1,3 +1,5 @@
+import math
+
 import torch
 
 from learned_koopman.models import (
@@ -71,9 +73,75 @@ def test_atlas_rollout_records_categorical_routes() -> None:
     states, diagnostics = atlas.rollout(initial, steps=5)
     assert states.shape == (6, 3)
     assert diagnostics["route_index"].shape == (5,)
+    assert diagnostics["route_switch_step"].ndim == 1
+    assert int(diagnostics["total_route_switches"]) == len(
+        diagnostics["route_switch_step"]
+    )
+    assert int(diagnostics["rapid_route_reversals"]) == 0
     torch.testing.assert_close(
         states[:, :2].norm(dim=-1),
         torch.ones(6),
         atol=1e-6,
         rtol=1e-6,
     )
+
+
+def test_stateful_atlas_router_uses_hysteresis_and_minimum_dwell() -> None:
+    regular = EnergyConditionedRotation(16, 0.02)
+    atlas = SeparatrixAtlas(regular, 0.02)
+    condition = torch.tensor([0.95])
+
+    def state_at_saddle_distance(distance: float) -> torch.Tensor:
+        return torch.tensor(
+            [-math.sin(distance), -math.cos(distance), 0.0],
+            dtype=torch.float32,
+        )
+
+    overlap = state_at_saddle_distance(1.45)
+    assert int(atlas.route_index(overlap, condition)) == 0
+    assert (
+        int(
+            atlas.route_index(
+                overlap,
+                condition,
+                previous_route=1,
+                steps_since_switch=atlas.minimum_route_dwell_steps,
+            )
+        )
+        == 1
+    )
+
+    outside_exit = state_at_saddle_distance(1.55)
+    assert (
+        int(
+            atlas.route_index(
+                outside_exit,
+                condition,
+                previous_route=1,
+                steps_since_switch=atlas.minimum_route_dwell_steps - 1,
+            )
+        )
+        == 1
+    )
+    assert (
+        int(
+            atlas.route_index(
+                outside_exit,
+                condition,
+                previous_route=1,
+                steps_since_switch=atlas.minimum_route_dwell_steps,
+            )
+        )
+        == 0
+    )
+
+
+def test_route_trace_summary_detects_rapid_reversals_and_alternations() -> None:
+    route_trace = torch.tensor([0, 0, 1, 0, 1, 1, 0], dtype=torch.long)
+    diagnostics = SeparatrixAtlas.summarize_route_trace(route_trace)
+
+    assert diagnostics["route_switch_step"].tolist() == [2, 3, 4, 6]
+    assert int(diagnostics["total_route_switches"]) == 4
+    assert int(diagnostics["route_alternations"]) == 2
+    assert int(diagnostics["rapid_route_reversals"]) == 3
+    assert int(diagnostics["max_route_switches_in_window"]) == 4
