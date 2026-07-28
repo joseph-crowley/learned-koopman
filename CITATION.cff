@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If this project helped your work, please cite the repository."
+title: "Learned Koopman: Structured Latent Dynamics for the Nonlinear Pendulum"
+authors:
+  - family-names: Crowley
+    given-names: Joseph
+version: 1.0.0
+date-released: 2026-07-28
+url: "https://github.com/joseph-crowley/learned-koopman"
+license: MIT

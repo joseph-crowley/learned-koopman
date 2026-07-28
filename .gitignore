@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.DS_Store
 
 # C extensions
 *.so
@@ -133,6 +134,13 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Local experiment outputs; only the verified portfolio figure and metrics are committed.
+results/*
+!results/portfolio/
+results/portfolio/*
+!results/portfolio/metrics.json
+!results/portfolio/comparison.png
 
 # Spyder project settings
 .spyderproject

@@ -1,0 +1,327 @@
+{
+  "config": {
+    "seed": 7,
+    "dt": 0.02,
+    "train_steps": 900,
+    "rollout_steps": 1200,
+    "horizon": 8,
+    "window_stride": 12,
+    "train_amplitudes": 28,
+    "hidden_dim": 48,
+    "latent_dim": 8,
+    "batch_size": 256,
+    "epochs_mlp": 100,
+    "epochs_fixed": 140,
+    "epochs_conditioned": 120,
+    "learning_rate": 0.002,
+    "output_dir": "results/portfolio"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "torch": "2.13.0",
+    "numpy": "2.5.1",
+    "platform": "macOS-26.6-arm64-arm-64bit"
+  },
+  "parameter_counts": {
+    "mlp": 2691,
+    "fixed_koopman": 1227,
+    "energy_conditioned": 3054
+  },
+  "training_loss_final": {
+    "mlp": 3.254732170413869e-05,
+    "fixed_koopman": 0.0016727648908272386,
+    "energy_conditioned": 0.007219488215115335
+  },
+  "metrics": {
+    "0.25": {
+      "persistence": {
+        "angle_rmse": 0.3133797297225794,
+        "omega_rmse": 0.1772977274392308,
+        "max_energy_drift": 0.0,
+        "valid_steps": 49,
+        "valid_time": 0.98,
+        "angular_frequency": null
+      },
+      "dmd": {
+        "angle_rmse": 0.2834124052086278,
+        "omega_rmse": 0.3348970067234585,
+        "max_energy_drift": 0.07103548779879332,
+        "valid_steps": 218,
+        "valid_time": 4.36,
+        "angular_frequency": 0.771890086877099
+      },
+      "small_angle": {
+        "angle_rmse": 0.009791816554954513,
+        "omega_rmse": 0.009365306655513076,
+        "max_energy_drift": 0.00015932321548461914,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.9994462312586829
+      },
+      "mlp": {
+        "angle_rmse": 0.1000124582763045,
+        "omega_rmse": 0.08362508815414611,
+        "max_energy_drift": 0.01654994487762451,
+        "valid_steps": 811,
+        "valid_time": 16.22,
+        "angular_frequency": 1.0402624680760904
+      },
+      "fixed_koopman": {
+        "angle_rmse": 0.38233067990652136,
+        "omega_rmse": 0.11367920063994728,
+        "max_energy_drift": 0.5211598873138428,
+        "valid_steps": 212,
+        "valid_time": 4.24,
+        "angular_frequency": 1.0589638158167842
+      },
+      "energy_conditioned": {
+        "angle_rmse": 0.08642263853682172,
+        "omega_rmse": 0.1135799972081958,
+        "max_energy_drift": 0.060388922691345215,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.9879222181099978
+      },
+      "reference": {
+        "angle_rmse": 0.0,
+        "omega_rmse": 0.0,
+        "max_energy_drift": 3.0926505426576156e-06,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.9952247054666715
+      }
+    },
+    "1.00": {
+      "persistence": {
+        "angle_rmse": 1.2486454648764502,
+        "omega_rmse": 0.660132261673216,
+        "max_energy_drift": 0.0,
+        "valid_steps": 18,
+        "valid_time": 0.36,
+        "angular_frequency": null
+      },
+      "dmd": {
+        "angle_rmse": 1.0285407568564675,
+        "omega_rmse": 1.1881258760963551,
+        "max_energy_drift": 1.0258493087522143,
+        "valid_steps": 47,
+        "valid_time": 0.9400000000000001,
+        "angular_frequency": 0.6606924613227746
+      },
+      "small_angle": {
+        "angle_rmse": 0.5687252324432318,
+        "omega_rmse": 0.5708338077247788,
+        "max_energy_drift": 0.04025334119796753,
+        "valid_steps": 184,
+        "valid_time": 3.68,
+        "angular_frequency": 0.9994462312586829
+      },
+      "mlp": {
+        "angle_rmse": 0.2891656687298875,
+        "omega_rmse": 0.2715686237627269,
+        "max_energy_drift": 0.1908203363418579,
+        "valid_steps": 364,
+        "valid_time": 7.28,
+        "angular_frequency": 0.9736340868563408
+      },
+      "fixed_koopman": {
+        "angle_rmse": 0.8918569118126763,
+        "omega_rmse": 0.7236585329703595,
+        "max_energy_drift": 0.2503128945827484,
+        "valid_steps": 84,
+        "valid_time": 1.68,
+        "angular_frequency": 1.0368292586104928
+      },
+      "energy_conditioned": {
+        "angle_rmse": 0.10375511491910255,
+        "omega_rmse": 0.1331021257004422,
+        "max_energy_drift": 0.0976334810256958,
+        "valid_steps": 436,
+        "valid_time": 8.72,
+        "angular_frequency": 0.9481667968580866
+      },
+      "reference": {
+        "angle_rmse": 0.0,
+        "omega_rmse": 0.0,
+        "max_energy_drift": 4.2446494455394834e-05,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.9377888518178487
+      }
+    },
+    "2.00": {
+      "persistence": {
+        "angle_rmse": 1.9838473805093968,
+        "omega_rmse": 1.1135662360278311,
+        "max_energy_drift": 0.0,
+        "valid_steps": 16,
+        "valid_time": 0.32,
+        "angular_frequency": null
+      },
+      "dmd": {
+        "angle_rmse": 1.996205697762622,
+        "omega_rmse": 1.7607968578306077,
+        "max_energy_drift": 2.732029048859015,
+        "valid_steps": 30,
+        "valid_time": 0.6,
+        "angular_frequency": 0.6227141037839035
+      },
+      "small_angle": {
+        "angle_rmse": 1.8533664223635586,
+        "omega_rmse": 1.8349579095078647,
+        "max_energy_drift": 0.5836596488952637,
+        "valid_steps": 14,
+        "valid_time": 0.28,
+        "angular_frequency": 0.9994462312586829
+      },
+      "mlp": {
+        "angle_rmse": 0.5345712374131417,
+        "omega_rmse": 0.37306726962973835,
+        "max_energy_drift": 0.20239314436912537,
+        "valid_steps": 165,
+        "valid_time": 3.3000000000000003,
+        "angular_frequency": 0.7776219439578695
+      },
+      "fixed_koopman": {
+        "angle_rmse": 1.7578032320432053,
+        "omega_rmse": 1.2668800729179477,
+        "max_energy_drift": 1.178567886352539,
+        "valid_steps": 36,
+        "valid_time": 0.72,
+        "angular_frequency": 1.0266642658790173
+      },
+      "energy_conditioned": {
+        "angle_rmse": 0.2635634346388401,
+        "omega_rmse": 0.20361824339071244,
+        "max_energy_drift": 0.1426444947719574,
+        "valid_steps": 314,
+        "valid_time": 6.28,
+        "angular_frequency": 0.7383296483172251
+      },
+      "reference": {
+        "angle_rmse": 0.0,
+        "omega_rmse": 0.0,
+        "max_energy_drift": 0.0001081913106931176,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.7524772822969564
+      }
+    },
+    "2.80": {
+      "persistence": {
+        "angle_rmse": 1.4790732201319627,
+        "omega_rmse": 1.120612872301012,
+        "max_energy_drift": 0.0,
+        "valid_steps": 35,
+        "valid_time": 0.7000000000000001,
+        "angular_frequency": null
+      },
+      "dmd": {
+        "angle_rmse": 1.4570156169131667,
+        "omega_rmse": 1.1509646396280384,
+        "max_energy_drift": 0.22686641273249109,
+        "valid_steps": 42,
+        "valid_time": 0.84,
+        "angular_frequency": 0.7653088072082321
+      },
+      "small_angle": {
+        "angle_rmse": 1.999604663789161,
+        "omega_rmse": 2.2813747212545197,
+        "max_energy_drift": 1.9773898124694824,
+        "valid_steps": 7,
+        "valid_time": 0.14,
+        "angular_frequency": 0.9994462312586829
+      },
+      "mlp": {
+        "angle_rmse": 1.2377541867630568,
+        "omega_rmse": 1.3468816438541698,
+        "max_energy_drift": 0.9197020530700684,
+        "valid_steps": 67,
+        "valid_time": 1.34,
+        "angular_frequency": null
+      },
+      "fixed_koopman": {
+        "angle_rmse": 1.9940576817648168,
+        "omega_rmse": 1.2488829455005472,
+        "max_energy_drift": 1.9148029088974,
+        "valid_steps": 36,
+        "valid_time": 0.72,
+        "angular_frequency": 1.0005072145190423
+      },
+      "energy_conditioned": {
+        "angle_rmse": 1.5003246552061007,
+        "omega_rmse": 0.8794450757933934,
+        "max_energy_drift": 0.4101966619491577,
+        "valid_steps": 28,
+        "valid_time": 0.56,
+        "angular_frequency": 0.5463639397547466
+      },
+      "reference": {
+        "angle_rmse": 0.0,
+        "omega_rmse": 0.0,
+        "max_energy_drift": 0.00013135665618702053,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.4947390005653217
+      }
+    },
+    "3.05": {
+      "persistence": {
+        "angle_rmse": 1.2402266695645523,
+        "omega_rmse": 0.9912423124229754,
+        "max_energy_drift": 0.0,
+        "valid_steps": 74,
+        "valid_time": 1.48,
+        "angular_frequency": null
+      },
+      "dmd": {
+        "angle_rmse": 1.2438878605880632,
+        "omega_rmse": 0.9902853388886217,
+        "max_energy_drift": 0.028734569296398726,
+        "valid_steps": 79,
+        "valid_time": 1.58,
+        "angular_frequency": 0.7776219439578695
+      },
+      "small_angle": {
+        "angle_rmse": 1.7902842620780184,
+        "omega_rmse": 2.643192541157397,
+        "max_energy_drift": 2.6549785137176514,
+        "valid_steps": 6,
+        "valid_time": 0.12,
+        "angular_frequency": 0.9994462312586829
+      },
+      "mlp": {
+        "angle_rmse": 1.144365266331747,
+        "omega_rmse": 1.3514616760039104,
+        "max_energy_drift": 2.324915647506714,
+        "valid_steps": 91,
+        "valid_time": 1.82,
+        "angular_frequency": null
+      },
+      "fixed_koopman": {
+        "angle_rmse": 2.1795624383026775,
+        "omega_rmse": 1.045308894380288,
+        "max_energy_drift": 1.9937762022018433,
+        "valid_steps": 47,
+        "valid_time": 0.9400000000000001,
+        "angular_frequency": 0.6424524853966858
+      },
+      "energy_conditioned": {
+        "angle_rmse": 1.7676108845062048,
+        "omega_rmse": 1.7106399856551642,
+        "max_energy_drift": 0.4781283736228943,
+        "valid_steps": 1,
+        "valid_time": 0.02,
+        "angular_frequency": 0.526229925224421
+      },
+      "reference": {
+        "angle_rmse": 0.0,
+        "omega_rmse": 0.0,
+        "max_energy_drift": 0.000133198600285378,
+        "valid_steps": 1200,
+        "valid_time": 24.0,
+        "angular_frequency": 0.3510159389485802
+      }
+    }
+  }
+}
