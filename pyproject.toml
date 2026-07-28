@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learned-koopman"
-version = "1.1.0"
-description = "A reproducible PyTorch study of structured latent dynamics for the nonlinear pendulum."
+version = "2.0.0"
+description = "A reproducible PyTorch study of structured Koopman charts near the pendulum separatrix."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

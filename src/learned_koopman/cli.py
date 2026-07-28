@@ -13,16 +13,13 @@ from learned_koopman.experiment import run_experiment, run_robustness_sweep
 def _summary(result: dict[str, object]) -> str:
     metrics = result["metrics"]
     assert isinstance(metrics, dict)
-    showcase = metrics["2.00"]
+    config = result["config"]
+    assert isinstance(config, dict)
+    showcase = metrics[f"{float(config['showcase_amplitude']):.2f}"]
     rows = []
-    for name in [
-        "persistence",
-        "dmd",
-        "small_angle",
-        "mlp",
-        "fixed_koopman",
-        "energy_conditioned",
-    ]:
+    for name in showcase:
+        if name == "reference":
+            continue
         values = showcase[name]
         rows.append(
             {
@@ -56,30 +53,83 @@ def build_parser() -> argparse.ArgumentParser:
     robustness.add_argument("--output", type=Path, default=Path("results/robustness"))
     robustness.add_argument("--seeds", type=int, nargs="+", default=[7, 17, 29])
     robustness.add_argument("--quick", action="store_true", help="Use shorter evaluation rollouts.")
+    atlas = subparsers.add_parser(
+        "atlas",
+        help="Run the two-chart near-separatrix experiment.",
+    )
+    atlas.add_argument("--output", type=Path, default=Path("results/atlas"))
+    atlas.add_argument("--seed", type=int, default=7, help="Training seed (default: 7).")
+    atlas.add_argument("--quick", action="store_true", help="Use a shorter evaluation rollout.")
+    atlas_robustness = subparsers.add_parser(
+        "atlas-robustness",
+        help="Run the atlas experiment across five independent seeds.",
+    )
+    atlas_robustness.add_argument("--output", type=Path, default=Path("results/atlas"))
+    atlas_robustness.add_argument(
+        "--seeds",
+        type=int,
+        nargs="+",
+        default=[7, 17, 29, 41, 53],
+    )
+    atlas_robustness.add_argument(
+        "--quick",
+        action="store_true",
+        help="Use shorter evaluation rollouts.",
+    )
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
-    if args.command == "robustness":
+    if args.command in {"robustness", "atlas-robustness"}:
+        include_atlas = args.command == "atlas-robustness"
         config = (
-            ExperimentConfig.quick(output_dir=args.output)
+            (
+                ExperimentConfig.quick_atlas(output_dir=args.output)
+                if include_atlas
+                else ExperimentConfig.quick(output_dir=args.output)
+            )
             if args.quick
-            else ExperimentConfig(output_dir=args.output)
+            else (
+                ExperimentConfig.atlas(output_dir=args.output)
+                if include_atlas
+                else ExperimentConfig(output_dir=args.output)
+            )
         )
         print(f"Training and evaluating {len(args.seeds)} independent seeds…")
-        result = run_robustness_sweep(config, args.seeds)
-        aggregate = result["aggregate"]["2.00"]  # type: ignore[index]
+        result = run_robustness_sweep(
+            config,
+            args.seeds,
+            include_atlas=include_atlas,
+        )
+        aggregate = result["aggregate"][f"{config.showcase_amplitude:.2f}"]  # type: ignore[index]
+        promoted_models = {
+            "mlp",
+            "fixed_koopman",
+            "energy_conditioned",
+            "separatrix_atlas",
+        }
         summary = {
             name: {
                 metric: values[metric]
                 for metric in ("valid_time", "angle_rmse", "max_energy_drift")
             }
             for name, values in aggregate.items()
-            if name in {"mlp", "fixed_koopman", "energy_conditioned"}
+            if name in promoted_models
         }
         print(json.dumps(summary, indent=2))
         print(f"Robustness metrics: {config.output_dir / 'robustness.json'}")
+        return
+    if args.command == "atlas":
+        config = ExperimentConfig.atlas(output_dir=args.output)
+        if args.quick:
+            config = replace(config, rollout_steps=500)
+        config = replace(config, seed=args.seed)
+        print("Training and evaluating the separatrix atlas…")
+        result = run_experiment(config, include_atlas=True)
+        print(_summary(result))
+        print(f"Figure: {config.output_dir / 'comparison.png'}")
+        print(f"Metrics: {config.output_dir / 'metrics.json'}")
         return
     if args.command == "demo" and args.quick:
         base = ExperimentConfig.quick(args.output or Path("results/quick"))

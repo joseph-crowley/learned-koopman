@@ -3,19 +3,19 @@
 ## Data flow
 
 ```text
-initial amplitude
+initial amplitude and conserved energy
     ↓
 velocity-Verlet pendulum simulator
     ↓
 (sin θ, cos θ, ω) trajectory
     ↓
-complete-trajectory windows ───────────────┐
-    ↓                                      │
-baseline / fixed KAE / conditioned model   │
-    ↓                                      │
-autonomous rollout                         │
-    ↓                                      │
-angle · velocity · energy · frequency ◀────┘
+complete-trajectory windows ─────────────────────────┐
+    ↓                                                │
+baseline / fixed KAE / conditioned model / atlas     │
+    ↓                                                │
+autonomous rollout                                   │
+    ↓                                                │
+angle · velocity · energy · frequency · chart use ◀──┘
 ```
 
 Training and evaluation share the simulator and state contract but not
@@ -54,6 +54,53 @@ output.
 The decoder is still learned, so physical energy preservation is measured and
 penalized rather than assumed.
 
+## Near-separatrix atlas
+
+`SeparatrixAtlas` freezes a trained `EnergyConditionedRotation` as its regular
+chart and learns one scalar rate for a local hyperbolic chart around the
+unstable upright equilibrium. In local canonical coordinates \(q,p\), its
+operator is
+
+\[
+\exp\left(
+\Delta t
+\begin{bmatrix}
+0 & 1\\
+\lambda^2 & 0
+\end{bmatrix}
+\right).
+\]
+
+The determinant is one for every learned \(\lambda\), so the local update is
+symplectic in \(q,p\) by construction. That statement does not extend through
+the arbitrary neural decoder to a claim of globally symplectic physical
+dynamics.
+
+Routing is an explicit validity rule:
+
+```text
+regular chart: all ordinary energies and states away from the upright saddle
+saddle chart:  H > 0.8 and |q| < 1.4
+```
+
+When a predicted trajectory changes chart, the model converts through its own
+predicted physical state and initializes the destination chart there. No
+reference state is consulted during rollout. High-energy predictions are
+projected onto the known initial energy shell; projection is separately tested
+on the single chart, where it does not fix the coordinate failure.
+
+The promoted evidence includes two destructive ablations:
+
+- the saddle chart alone, which initially tracks the slow departure but
+  accumulates large energy drift away from its local validity region;
+- energy projection on the single chart, which preserves the invariant but
+  does not repair its near-separatrix phase representation.
+
+The first implementation used a neural categorical router. A critic run showed
+that it exactly reproduced the predeclared validity region without changing
+decisions, so the final model removes those parameters and exposes the
+geometric rule directly.
+
 ## Design choices
 
 - Vanilla PyTorch keeps every model and objective visible.
@@ -64,4 +111,9 @@ penalized rather than assumed.
   changing another model's minibatch order.
 - The robustness command records every seed plus mean, standard deviation,
   minimum, and maximum for each core metric.
-- The quick demo is CI-sized; the portfolio benchmark is the promoted result.
+- The atlas robustness command first averages the predeclared high-energy
+  amplitudes within each seed, then compares those independent seeded runs.
+- Held-out local-chart residuals, switch disagreement, chart occupancy, and the
+  local operator determinant keep the mechanism inspectable.
+- The quick demo is CI-sized; the committed portfolio and atlas artifacts are
+  the promoted results.

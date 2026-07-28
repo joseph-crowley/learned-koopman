@@ -11,7 +11,12 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.data import training_dataset
-from learned_koopman.models import EnergyConditionedRotation, FixedKoopmanAE, ResidualMLP
+from learned_koopman.models import (
+    EnergyConditionedRotation,
+    FixedKoopmanAE,
+    ResidualMLP,
+    SeparatrixAtlas,
+)
 from learned_koopman.physics import circular_state_error, torch_energy
 
 
@@ -20,6 +25,7 @@ class TrainedModels:
     mlp: ResidualMLP
     fixed: FixedKoopmanAE
     conditioned: EnergyConditionedRotation
+    atlas: SeparatrixAtlas | None
     histories: dict[str, list[float]]
 
 
@@ -173,7 +179,44 @@ def _training_loader(
     )
 
 
-def train_models(config: ExperimentConfig) -> TrainedModels:
+def _train_atlas_saddle(
+    atlas: SeparatrixAtlas,
+    loader: DataLoader,
+    *,
+    epochs: int,
+    learning_rate: float,
+) -> list[float]:
+    optimizer = torch.optim.Adam([atlas.raw_saddle_rate], lr=learning_rate)
+    history: list[float] = []
+    atlas.train()
+    for _ in range(epochs):
+        total = 0.0
+        batches = 0
+        for sequence, _, _ in loader:
+            state = sequence[:, :-1].flatten(0, 1)
+            target = sequence[:, 1:].flatten(0, 1)
+            displacement, _ = atlas.saddle_coordinates(state)
+            physical_energy = torch_energy(state)
+            selected = (physical_energy > atlas.minimum_saddle_energy) & (displacement.abs() < 1.0)
+            if not torch.any(selected):
+                continue
+            optimizer.zero_grad()
+            prediction = atlas.saddle_step(state[selected])
+            loss = circular_state_error(prediction, target[selected]).mean()
+            loss.backward()
+            optimizer.step()
+            total += float(loss.detach())
+            batches += 1
+        history.append(total / max(batches, 1))
+    atlas.eval()
+    return history
+
+
+def train_models(
+    config: ExperimentConfig,
+    *,
+    include_atlas: bool = False,
+) -> TrainedModels:
     set_seed(config.seed)
     dataset = training_dataset(config)
 
@@ -211,4 +254,22 @@ def train_models(config: ExperimentConfig) -> TrainedModels:
             loss_function=_conditioned_loss,
         ),
     }
-    return TrainedModels(mlp=mlp, fixed=fixed, conditioned=conditioned, histories=histories)
+    atlas = None
+    if include_atlas:
+        atlas = SeparatrixAtlas(
+            conditioned,
+            config.dt,
+        )
+        histories["atlas_saddle"] = _train_atlas_saddle(
+            atlas,
+            _training_loader(config, dataset),
+            epochs=config.epochs_atlas_saddle,
+            learning_rate=config.learning_rate,
+        )
+    return TrainedModels(
+        mlp=mlp,
+        fixed=fixed,
+        conditioned=conditioned,
+        atlas=atlas,
+        histories=histories,
+    )

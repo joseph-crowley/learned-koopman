@@ -20,7 +20,11 @@ class EvaluationTrajectory:
 def training_dataset(config: ExperimentConfig) -> TensorDataset:
     """Create state and action-angle windows from complete trajectories."""
 
-    amplitude_edges = np.linspace(0.15, 2.85, config.train_amplitudes + 1)
+    amplitude_edges = np.linspace(
+        config.train_min_amplitude,
+        config.train_max_amplitude,
+        config.train_amplitudes + 1,
+    )
     amplitudes = 0.5 * (amplitude_edges[:-1] + amplitude_edges[1:])
     frequencies = pendulum_frequency(amplitudes)
     states, _, _ = simulate(
@@ -50,7 +54,7 @@ def training_dataset(config: ExperimentConfig) -> TensorDataset:
 
 
 def evaluation_trajectories(config: ExperimentConfig) -> list[EvaluationTrajectory]:
-    amplitudes = np.array([0.25, 1.0, 2.0, 2.8, 3.05], dtype=np.float64)
+    amplitudes = np.array(config.evaluation_amplitudes, dtype=np.float64)
     states, _, _ = simulate(
         amplitudes,
         np.zeros_like(amplitudes),

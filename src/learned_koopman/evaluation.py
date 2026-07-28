@@ -8,9 +8,13 @@ import torch
 
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.data import EvaluationTrajectory, evaluation_trajectories, training_dataset
-from learned_koopman.models import EnergyConditionedRotation, FixedKoopmanAE
+from learned_koopman.models import (
+    EnergyConditionedRotation,
+    FixedKoopmanAE,
+    SeparatrixAtlas,
+)
 from learned_koopman.models.baselines import small_angle_step
-from learned_koopman.physics import pendulum_energy_from_state
+from learned_koopman.physics import circular_state_error, pendulum_energy_from_state
 from learned_koopman.training import TrainedModels
 
 
@@ -53,6 +57,36 @@ def _rollout_conditioned(
     return torch.stack(states)
 
 
+def _rollout_saddle_only(
+    model: SeparatrixAtlas,
+    initial: torch.Tensor,
+    steps: int,
+) -> torch.Tensor:
+    states = [initial]
+    state = initial
+    with torch.no_grad():
+        for _ in range(steps):
+            state = model.saddle_step(state)
+            states.append(state)
+    return torch.stack(states)
+
+
+def _rollout_projected_conditioned(
+    atlas: SeparatrixAtlas,
+    initial: torch.Tensor,
+    steps: int,
+) -> torch.Tensor:
+    states = [initial]
+    with torch.no_grad():
+        condition = atlas.regular.normalized_energy(initial)
+        phase = atlas.regular.encode_phase(initial)
+        for _ in range(steps):
+            phase = atlas.regular.rotate(phase, condition)
+            prediction = atlas.regular.decode(phase, condition)
+            states.append(atlas.project_to_energy_shell(prediction, condition))
+    return torch.stack(states)
+
+
 def model_rollouts(
     models: TrainedModels,
     trajectory: EvaluationTrajectory,
@@ -66,7 +100,7 @@ def model_rollouts(
         next_state = dmd_states[-1] @ dmd_operator
         next_state[:2] /= max(float(np.linalg.norm(next_state[:2])), 1e-12)
         dmd_states.append(next_state)
-    return {
+    rollouts = {
         "persistence": initial.unsqueeze(0).repeat(steps + 1, 1).numpy(),
         "dmd": np.stack(dmd_states),
         "small_angle": _rollout_step(
@@ -82,6 +116,21 @@ def model_rollouts(
             steps,
         ).numpy(),
     }
+    if models.atlas is not None:
+        with torch.no_grad():
+            atlas_states, _ = models.atlas.rollout(initial, steps)
+        rollouts["energy_projected_conditioned"] = _rollout_projected_conditioned(
+            models.atlas,
+            initial,
+            steps,
+        ).numpy()
+        rollouts["saddle_chart_only"] = _rollout_saddle_only(
+            models.atlas,
+            initial,
+            steps,
+        ).numpy()
+        rollouts["separatrix_atlas"] = atlas_states.numpy()
+    return rollouts
 
 
 def _angular_frequency(states: np.ndarray, dt: float) -> float | None:
@@ -121,6 +170,28 @@ def rollout_metrics(
     }
 
 
+def _atlas_local_residuals(
+    model: SeparatrixAtlas,
+    trajectory: EvaluationTrajectory,
+) -> tuple[float, float]:
+    """Measure selected-chart transition error on a held-out reference trajectory."""
+
+    state = torch.tensor(trajectory.states[:-1], dtype=torch.float32)
+    target = torch.tensor(trajectory.states[1:], dtype=torch.float32)
+    initial = state[0]
+    condition = model.regular.normalized_energy(initial).expand(len(state), -1)
+    with torch.no_grad():
+        route = model.route_index(state, condition)
+        regular = model.project_to_energy_shell(
+            model.regular_step(state, condition),
+            condition,
+        )
+        saddle = model.project_to_energy_shell(model.saddle_step(state), condition)
+        prediction = torch.where(route.unsqueeze(-1).bool(), saddle, regular)
+        residual = torch.sqrt(circular_state_error(prediction, target))
+    return float(residual.mean()), float(residual.max())
+
+
 def evaluate(
     models: TrainedModels,
     config: ExperimentConfig,
@@ -146,4 +217,33 @@ def evaluate(
             trajectory.states,
             dt=config.dt,
         )
+        if models.atlas is not None:
+            initial = torch.tensor(trajectory.states[0], dtype=torch.float32)
+            with torch.no_grad():
+                _, diagnostics = models.atlas.rollout(
+                    initial,
+                    len(trajectory.states) - 1,
+                )
+            route_index = diagnostics["route_index"].cpu().numpy()
+            switch_disagreement = diagnostics["switch_disagreement"].cpu().numpy()
+            route_switches = (
+                int(np.count_nonzero(route_index[1:] != route_index[:-1]))
+                if len(route_index) > 1
+                else 0
+            )
+            mean_local_residual, max_local_residual = _atlas_local_residuals(
+                models.atlas,
+                trajectory,
+            )
+            metrics[key]["separatrix_atlas"].update(
+                {
+                    "saddle_fraction": float(np.mean(route_index == 1)),
+                    "route_switches": route_switches,
+                    "max_switch_disagreement": (
+                        float(np.max(switch_disagreement)) if len(switch_disagreement) else 0.0
+                    ),
+                    "mean_local_chart_residual": mean_local_residual,
+                    "max_local_chart_residual": max_local_residual,
+                }
+            )
     return metrics, all_rollouts

@@ -3,4 +3,4 @@
 from learned_koopman.config import ExperimentConfig
 
 __all__ = ["ExperimentConfig"]
-__version__ = "1.1.0"
+__version__ = "2.0.0"

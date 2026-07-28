@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.0.0 — 2026-07-28
+
+This release turns the single-chart separatrix failure into a falsifiable
+two-chart experiment.
+
+### Added
+
+- a symplectic hyperbolic chart with a learned local saddle rate;
+- explicit autonomous chart transitions through predicted physical state;
+- high-energy invariant-shell projection plus projection-only and
+  saddle-only ablations;
+- denser equal-data training for every learned baseline and held-out
+  near-separatrix trajectories;
+- a five-seed high-energy-band comparison;
+- chart occupancy, transition disagreement, local residual, and operator
+  determinant diagnostics;
+- `atlas` and `atlas-robustness` commands;
+- a validator tying public claims to committed atlas evidence.
+
+### Changed
+
+- promoted the near-separatrix atlas as the primary research result while
+  preserving the v1.1 portfolio evidence;
+- generalized training and evaluation amplitudes into the experiment config;
+- replaced an uninformative neural router with the explicit geometric validity
+  rule it had rediscovered.
+
 ## 1.1.0 — 2026-07-28
 
 This release turns initialization sensitivity into visible, executable

@@ -1,6 +1,11 @@
 import torch
 
-from learned_koopman.models import EnergyConditionedRotation, FixedKoopmanAE, ResidualMLP
+from learned_koopman.models import (
+    EnergyConditionedRotation,
+    FixedKoopmanAE,
+    ResidualMLP,
+    SeparatrixAtlas,
+)
 
 
 def _states(batch: int = 8) -> torch.Tensor:
@@ -44,4 +49,31 @@ def test_fixed_operator_is_orthogonal_by_construction() -> None:
         torch.eye(4),
         atol=1e-5,
         rtol=1e-5,
+    )
+
+
+def test_saddle_chart_is_symplectic_by_construction() -> None:
+    regular = EnergyConditionedRotation(16, 0.02)
+    atlas = SeparatrixAtlas(regular, 0.02)
+    operator = atlas.saddle_operator_matrix()
+    torch.testing.assert_close(
+        torch.linalg.det(operator),
+        torch.ones(()),
+        atol=1e-6,
+        rtol=1e-6,
+    )
+
+
+def test_atlas_rollout_records_categorical_routes() -> None:
+    regular = EnergyConditionedRotation(16, 0.02)
+    atlas = SeparatrixAtlas(regular, 0.02)
+    initial = _states(batch=1)[0]
+    states, diagnostics = atlas.rollout(initial, steps=5)
+    assert states.shape == (6, 3)
+    assert diagnostics["route_index"].shape == (5,)
+    torch.testing.assert_close(
+        states[:, :2].norm(dim=-1),
+        torch.ones(6),
+        atol=1e-6,
+        rtol=1e-6,
     )
