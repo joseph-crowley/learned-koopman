@@ -146,17 +146,17 @@ src/learned_koopman/
 └── cli.py                  # one-command entrypoint
 ```
 
-## Where this came from
+## Project history
 
-The repository began as a compact 2023 experiment combining an encoder, a
-linear latent layer, and a decoder. That version contained a broken filename
-contract, an inconsistent categorical/Gaussian latent objective, and a
-teacher-forced small-angle test.
+This project began as a compact 2023 experiment around an encoder, learned
+linear latent evolution, and decoder for pendulum dynamics. The original
+prototype is preserved in
+[`legacy/2023-prototype`](legacy/2023-prototype) and at the Git tag
+`prototype-2023`.
 
-It is preserved in [`legacy/2023-prototype`](legacy/2023-prototype) and at the
-Git tag `prototype-2023`. The portfolio edition keeps the original creative
-instinct while making the software, objective, evaluation, and claims
-defensible.
+The current edition returns to that idea with physics-grounded simulation,
+autonomous rollout evaluation, reproducible benchmarks, and explicit
+scientific scope.
 
 ## Prior art and context
 
