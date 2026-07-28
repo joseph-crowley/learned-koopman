@@ -16,12 +16,13 @@ latent-dynamics models:
 - an energy-conditioned rotation model that learns a different latent frequency
   on each invariant energy shell.
 
-The result is intentionally honest. Energy conditioning helps in the nonlinear
-libration regime, one fixed latent operator cannot represent the
-amplitude-dependent frequency, and every learned model deteriorates near the
-separatrix. The failure is part of the demonstration.
+The result is useful but bounded. After a short coordinate-pretraining
+curriculum, the energy-conditioned model improves mean valid horizon and angle
+error over the residual MLP in a three-seed sensitivity check, but it does not
+win every seed. The tested fixed operator underfits the amplitude-dependent
+frequency continuum, and every learned model deteriorates near the separatrix.
 
-![Autonomous rollout, valid prediction time, and recovered frequency law](results/portfolio/comparison.png)
+![Autonomous rollout, valid prediction time, and rollout frequencies](results/portfolio/comparison.png)
 
 ## One-command demonstration
 
@@ -42,10 +43,16 @@ Run the longer portfolio experiment with:
 uv run learned-koopman benchmark
 ```
 
+Probe sensitivity to initialization with three independent trained runs:
+
+```bash
+uv run learned-koopman robustness
+```
+
 ## What the benchmark shows
 
-At initial amplitude \(\theta_0=2.0\), evaluated over a 24-unit autonomous
-rollout:
+The representative seed-7 run at initial amplitude \(\theta_0=2.0\), evaluated
+over a 24-unit autonomous rollout:
 
 | Model | Parameters | Valid prediction time | Angle RMSE | Maximum energy drift |
 |---|---:|---:|---:|---:|
@@ -53,23 +60,38 @@ rollout:
 | Global DMD | 9 | 0.60 | 1.996 | 2.732 |
 | Small-angle physics | 0 | 0.28 | 1.853 | 0.584 |
 | Residual MLP | 2,691 | 3.30 | 0.535 | 0.202 |
-| Fixed Koopman AE | 1,227 | 0.72 | 1.758 | 1.179 |
-| **Energy-conditioned rotation** | **3,054** | **6.28** | **0.264** | **0.143** |
+| Fixed Koopman AE | 1,227 | 0.74 | 1.755 | 1.179 |
+| **Energy-conditioned rotation** | **3,054** | **6.04** | **0.211** | **0.153** |
 
 The exact parameter counts are recorded in
 [`results/portfolio/metrics.json`](results/portfolio/metrics.json). The table
 uses a valid-horizon threshold of
 \(\sqrt{\Delta\theta^2 + 0.25\,\Delta\omega^2} > 0.15\).
 
-Three conclusions survive the test:
+The same comparison across seeds 7, 17, and 29 gives:
+
+| Model | Mean valid time | Mean angle RMSE | Mean energy drift | Wins over the other neural model |
+|---|---:|---:|---:|---:|
+| Residual MLP | 5.74 ± 2.50 | 0.338 ± 0.158 | 0.170 ± 0.033 | 1 / 3 |
+| Fixed Koopman AE | 0.72 ± 0.04 | 1.937 ± 0.134 | 1.293 ± 0.117 | — |
+| **Energy-conditioned rotation** | **7.23 ± 1.86** | **0.218 ± 0.026** | 0.170 ± 0.028 | **2 / 3** |
+
+These are means and population standard deviations over three runs, not
+confidence intervals. Per-seed results and the aggregation contract are in
+[`results/portfolio/robustness.json`](results/portfolio/robustness.json).
+
+Four conclusions survive the stronger test:
 
 1. Small-angle physics is superb where its assumptions hold and fails quickly
    at large amplitude.
-2. A single fixed latent frequency is the wrong global model for the nonlinear
-   pendulum.
-3. Energy conditioning recovers the amplitude–frequency curve through the
-   nonlinear libration regime, but its single phase chart breaks down near the
-   separatrix. A multi-chart model is the natural next experiment.
+2. The tested eight-dimensional fixed operator consistently underfits the
+   continuum of nonlinear pendulum frequencies; this experiment does not prove
+   that every fixed finite approximation must perform poorly.
+3. Coordinate pretraining keeps the conditioned fit stable across all three
+   runs. It improves the three-seed averages but does not beat a strong
+   residual MLP on every initialization.
+4. The single conditioned phase chart still breaks down near the separatrix. A
+   multi-chart model is the natural next experiment.
 
 ## Models
 
@@ -83,9 +105,9 @@ by a learned skew-symmetric matrix:
 z_{t+\Delta t} = \exp\!\left(\Delta t(G-G^\top)\right)z_t.
 \]
 
-This is a deliberately strong fixed-operator baseline. Orthogonality prevents
-spectral-radius blow-up; it does not solve the continuum of pendulum
-frequencies.
+This is a deliberately structured fixed-operator baseline. Orthogonality
+prevents spectral-radius blow-up, while its finite fixed spectrum remains a
+restrictive approximation to a continuum of pendulum frequencies.
 
 ### Energy-conditioned rotation
 
@@ -97,10 +119,11 @@ law conditioned on the conserved energy:
 =R\!\left(\omega(H)\Delta t\right)\phi_t.
 \]
 
-Training uses the pendulum's exact elliptic-integral frequency law as phase and
-frequency supervision. Globally this is a **fibered family of linear
-operators**, not one finite state-independent Koopman matrix. That boundary is
-important.
+Training first anchors the phase encoder and frequency network, then fits the
+decoder and multistep physical rollout jointly. It uses the pendulum's exact
+elliptic-integral frequency law as direct phase and frequency supervision.
+Globally this is a **fibered family of linear operators**, not one finite
+state-independent Koopman matrix. That boundary is important.
 
 ### Baselines
 
@@ -113,9 +136,12 @@ important.
 
 - State: \((\sin\theta,\cos\theta,\dot\theta)\), respecting angle periodicity.
 - Simulator: reversible, symplectic velocity Verlet.
-- Split: complete held-out amplitude trajectories, never shuffled adjacent
-  state pairs.
-- Seed: fixed in the experiment configuration.
+- Split: complete evaluation trajectories at amplitudes absent from the
+  training grid, never shuffled adjacent state pairs. The 3.05 case is also
+  outside the training range and close to the separatrix.
+- Seeds: 7 for the representative artifact; 7, 17, and 29 for the committed
+  sensitivity check. Each model receives an independent, identically seeded
+  data-loader shuffle so training order cannot change another model's result.
 - Outputs: environment versions, parameter counts, final losses, and every
   per-amplitude metric are written to JSON.
 - Checks:
@@ -124,6 +150,7 @@ important.
   uv run ruff check .
   uv run pytest
   uv run python scripts/check_portfolio_results.py
+  uv run python scripts/check_run_health.py results/portfolio/metrics.json
   ```
 
 The committed figure and metrics were produced by the repository's
@@ -163,12 +190,15 @@ scientific scope.
 Learned Koopman observables and linearly recurrent autoencoders predate this
 project. Particularly relevant references are:
 
-- Takeishi et al., *Learning Koopman Invariant Subspaces for Dynamic Mode
-  Decomposition* (NeurIPS 2017);
-- Lusch, Kutz, and Brunton, *Deep learning for universal linear embeddings of
-  nonlinear dynamics* (Nature Communications 2018);
-- Otto and Rowley, *Linearly Recurrent Autoencoder Networks* (SIAM JADS 2019);
-- Azencot et al., *Consistent Koopman Autoencoders* (ICML 2020).
+- [Takeishi et al.](https://arxiv.org/abs/1710.04340), *Learning Koopman
+  Invariant Subspaces for Dynamic Mode Decomposition* (NeurIPS 2017);
+- [Lusch, Kutz, and Brunton](https://doi.org/10.1038/s41467-018-07210-0),
+  *Deep learning for universal linear embeddings of nonlinear dynamics*
+  (Nature Communications 2018);
+- [Otto and Rowley](https://doi.org/10.1137/18M1177846), *Linearly Recurrent
+  Autoencoder Networks* (SIAM JADS 2019);
+- [Azencot et al.](https://proceedings.mlr.press/v119/azencot20a.html),
+  *Consistent Koopman Autoencoders* (ICML 2020).
 
 This repository is a polished educational and experimental PyTorch project, not
 a claim of a new universal Koopman theorem or state-of-the-art forecasting

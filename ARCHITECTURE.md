@@ -40,10 +40,16 @@ It is the fair version of the original repository's stated model.
 `EnergyConditionedRotation` encodes state to a two-dimensional unit phase,
 learns \(\omega(H)\), rotates phase exactly, and decodes phase plus energy.
 
-The model is supervised with the exact libration frequency derived from the
-arithmetic-geometric mean expression for the complete elliptic integral. That
-choice makes the learned coordinate consistent across amplitudes and turns the
-frequency curve into an inspectable output.
+Training uses a short coordinate curriculum before the joint physical loss.
+The first stage anchors the phase encoder and frequency network to the exact
+libration phase; the second fits reconstruction, rollout, latent consistency,
+and energy losses. This prevents a measured phase-collapse failure without
+changing the model or selecting a favorable seed.
+
+The frequency target comes from the arithmetic-geometric mean expression for
+the complete elliptic integral. That choice makes the learned coordinate
+consistent across amplitudes and turns the frequency curve into an inspectable
+output.
 
 The decoder is still learned, so physical energy preservation is measured and
 penalized rather than assumed.
@@ -54,4 +60,8 @@ penalized rather than assumed.
 - `uv.lock` fixes the executable environment.
 - Generated datasets stay in memory; no large binary files are required.
 - JSON results are the source for README claims.
+- Independent seeded data loaders keep one model's training schedule from
+  changing another model's minibatch order.
+- The robustness command records every seed plus mean, standard deviation,
+  minimum, and maximum for each core metric.
 - The quick demo is CI-sized; the portfolio benchmark is the promoted result.

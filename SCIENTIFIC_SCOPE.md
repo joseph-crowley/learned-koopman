@@ -2,15 +2,19 @@
 
 ## What is demonstrated
 
-The committed benchmark is an actual run of the repository at seed 7. It
-demonstrates that:
+The committed benchmark is an actual run of the repository at seed 7, paired
+with a sensitivity sweep at seeds 7, 17, and 29. Together they demonstrate
+that:
 
 - a compact PyTorch project can learn and evaluate structured latent dynamics
   end to end;
-- one fixed orthogonal latent operator is a poor global description of
-  pendulum trajectories spanning different amplitudes;
-- an explicitly energy-conditioned rotation model better tracks the nonlinear
-  amplitude–frequency relationship through the ordinary libration regime;
+- the tested eight-dimensional fixed orthogonal operator is a poor global
+  approximation for pendulum trajectories spanning different amplitudes;
+- coordinate pretraining prevents the conditioned phase encoder from
+  collapsing under an unlucky initialization;
+- the explicitly energy-conditioned rotation has better mean valid horizon and
+  mean angle RMSE than the residual MLP in this three-seed check, while the MLP
+  still wins one seed;
 - the same single-chart conditioned model degrades sharply near the
   separatrix.
 
@@ -29,10 +33,16 @@ This project does not claim:
 - calibrated probabilistic uncertainty;
 - correctness for rotational, forced, damped, noisy, or controlled regimes;
 - publication novelty for encoder–operator–decoder architectures.
+- a statistically powered estimate from only three seeds;
+- that the conditioned model beats a residual MLP on every initialization.
 
 The energy-conditioned model receives the conserved energy and supervision from
 the known elliptic frequency law. It is therefore physics-guided, not a claim
 of fully unsupervised discovery.
+
+The evaluation amplitudes are excluded exactly from the training grid, but they
+remain interpolation tests except for the 3.05 near-separatrix case, which is
+outside the training range.
 
 ## Why “Koopman” remains in the name
 
@@ -52,6 +62,7 @@ Every promoted learned model is judged by:
 - energy drift;
 - recovered oscillation frequency;
 - held-out complete trajectories across amplitude.
+- a three-seed sensitivity check for the learned-model comparison.
 
 One-step teacher forcing is not used as the headline metric. The exact simulator
 is the reference and is never presented as a learned competitor.

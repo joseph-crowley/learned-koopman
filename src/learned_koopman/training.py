@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.data import training_dataset
@@ -140,38 +140,72 @@ def _conditioned_loss(
     )
 
 
-def train_models(config: ExperimentConfig) -> TrainedModels:
-    set_seed(config.seed)
-    dataset = training_dataset(config)
+def _conditioned_coordinate_loss(
+    module: nn.Module,
+    sequence: torch.Tensor,
+    phase_targets: torch.Tensor,
+    frequency_targets: torch.Tensor,
+) -> torch.Tensor:
+    """Anchor the supervised coordinates before fitting the physical decoder."""
+
+    model = module
+    assert isinstance(model, EnergyConditionedRotation)
+    flat_sequence = sequence.flatten(0, 1)
+    phase = model.encode_phase(flat_sequence)
+    phase_supervision = (phase - phase_targets.flatten(0, 1)).square().mean()
+    condition = model.normalized_energy(sequence[:, 0])
+    frequency_supervision = (model.angular_frequency(condition) - frequency_targets).square().mean()
+    return phase_supervision + frequency_supervision
+
+
+def _training_loader(
+    config: ExperimentConfig,
+    dataset: TensorDataset,
+) -> DataLoader:
+    """Give each model the same deterministic shuffle, independent of training order."""
+
     generator = torch.Generator().manual_seed(config.seed)
-    loader = DataLoader(
+    return DataLoader(
         dataset,
         batch_size=config.batch_size,
         shuffle=True,
         generator=generator,
     )
 
+
+def train_models(config: ExperimentConfig) -> TrainedModels:
+    set_seed(config.seed)
+    dataset = training_dataset(config)
+
     mlp = ResidualMLP(config.hidden_dim)
     fixed = FixedKoopmanAE(config.hidden_dim, config.latent_dim, config.dt)
     conditioned = EnergyConditionedRotation(config.hidden_dim, config.dt)
+    conditioned_pretraining = _train(
+        conditioned,
+        _training_loader(config, dataset),
+        epochs=config.epochs_conditioned_pretrain,
+        learning_rate=config.learning_rate,
+        loss_function=_conditioned_coordinate_loss,
+    )
     histories = {
         "mlp": _train(
             mlp,
-            loader,
+            _training_loader(config, dataset),
             epochs=config.epochs_mlp,
             learning_rate=config.learning_rate,
             loss_function=_mlp_loss,
         ),
         "fixed_koopman": _train(
             fixed,
-            loader,
+            _training_loader(config, dataset),
             epochs=config.epochs_fixed,
             learning_rate=config.learning_rate,
             loss_function=_fixed_loss,
         ),
-        "energy_conditioned": _train(
+        "energy_conditioned": conditioned_pretraining
+        + _train(
             conditioned,
-            loader,
+            _training_loader(config, dataset),
             epochs=config.epochs_conditioned,
             learning_rate=config.learning_rate,
             loss_function=_conditioned_loss,

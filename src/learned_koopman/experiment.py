@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import json
 import platform
+from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
+from learned_koopman import __version__
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.evaluation import evaluate
 from learned_koopman.training import TrainedModels, train_models
@@ -15,6 +18,9 @@ from learned_koopman.training import TrainedModels, train_models
 
 def _parameter_counts(models: TrainedModels) -> dict[str, int]:
     return {
+        "persistence": 0,
+        "dmd": 9,
+        "small_angle": 0,
         "mlp": sum(parameter.numel() for parameter in models.mlp.parameters()),
         "fixed_koopman": sum(parameter.numel() for parameter in models.fixed.parameters()),
         "energy_conditioned": sum(
@@ -93,12 +99,12 @@ def _plot_rollouts(
             label=name.replace("_", " "),
             color=colors[name],
         )
-    axes[2].set_title("Recovered amplitude–frequency law")
+    axes[2].set_title("Rollout frequency vs reference")
     axes[2].set_xlabel("initial amplitude")
     axes[2].set_ylabel("angular frequency")
     axes[2].legend(frameon=False, fontsize=8)
 
-    figure.suptitle("Learned Koopman — honest long-horizon comparison", fontweight="bold")
+    figure.suptitle("Structured latent dynamics for the nonlinear pendulum", fontweight="bold")
     figure.tight_layout()
     figure.savefig(output, dpi=180, bbox_inches="tight")
     plt.close(figure)
@@ -120,6 +126,7 @@ def run_experiment(config: ExperimentConfig) -> dict[str, object]:
     result: dict[str, object] = {
         "config": config.to_dict(),
         "environment": {
+            "learned_koopman": __version__,
             "python": platform.python_version(),
             "torch": torch.__version__,
             "numpy": np.__version__,
@@ -130,4 +137,83 @@ def run_experiment(config: ExperimentConfig) -> dict[str, object]:
         "metrics": metrics,
     }
     (output_dir / "metrics.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
+
+
+def _aggregate_seed_metrics(
+    runs: dict[str, dict[str, object]],
+) -> dict[str, dict[str, dict[str, dict[str, float]]]]:
+    metric_names = ("valid_time", "angle_rmse", "omega_rmse", "max_energy_drift")
+    first_run = next(iter(runs.values()))
+    first_metrics = first_run["metrics"]
+    assert isinstance(first_metrics, dict)
+    aggregate: dict[str, dict[str, dict[str, dict[str, float]]]] = {}
+    for amplitude, model_metrics in first_metrics.items():
+        assert isinstance(model_metrics, dict)
+        aggregate[amplitude] = {}
+        for model_name in model_metrics:
+            aggregate[amplitude][model_name] = {}
+            for metric_name in metric_names:
+                values = np.array(
+                    [
+                        run["metrics"][amplitude][model_name][metric_name]  # type: ignore[index]
+                        for run in runs.values()
+                    ],
+                    dtype=np.float64,
+                )
+                aggregate[amplitude][model_name][metric_name] = {
+                    "mean": float(values.mean()),
+                    "std": float(values.std()),
+                    "min": float(values.min()),
+                    "max": float(values.max()),
+                }
+    return aggregate
+
+
+def run_robustness_sweep(
+    config: ExperimentConfig,
+    seeds: Sequence[int],
+) -> dict[str, object]:
+    """Train independent seeded runs and summarize variation in every core metric."""
+
+    unique_seeds = list(dict.fromkeys(seeds))
+    if len(unique_seeds) < 2:
+        raise ValueError("A robustness sweep requires at least two distinct seeds.")
+    output_dir = config.output_dir
+    output_dir.mkdir(parents=True, exist_ok=True)
+    runs: dict[str, dict[str, object]] = {}
+    for seed in unique_seeds:
+        seed_config = replace(config, seed=seed, output_dir=output_dir / f"seed-{seed}")
+        run = run_experiment(seed_config)
+        runs[str(seed)] = {
+            "config": run["config"],
+            "environment": run["environment"],
+            "parameter_counts": run["parameter_counts"],
+            "training_loss_final": run["training_loss_final"],
+            "metrics": run["metrics"],
+        }
+
+    aggregate = _aggregate_seed_metrics(runs)
+    comparisons = {
+        "showcase_amplitude": 2.0,
+        "conditioned_valid_time_wins_over_mlp": sum(
+            run["metrics"]["2.00"]["energy_conditioned"]["valid_time"]  # type: ignore[index]
+            > run["metrics"]["2.00"]["mlp"]["valid_time"]  # type: ignore[index]
+            for run in runs.values()
+        ),
+        "conditioned_angle_rmse_wins_over_mlp": sum(
+            run["metrics"]["2.00"]["energy_conditioned"]["angle_rmse"]  # type: ignore[index]
+            < run["metrics"]["2.00"]["mlp"]["angle_rmse"]  # type: ignore[index]
+            for run in runs.values()
+        ),
+        "seed_count": len(unique_seeds),
+    }
+    result: dict[str, object] = {
+        "seeds": unique_seeds,
+        "base_config": config.to_dict(),
+        "runs": runs,
+        "aggregate": aggregate,
+        "comparisons": comparisons,
+    }
+    (output_dir / "robustness.json").write_text(json.dumps(result, indent=2) + "\n")
     return result

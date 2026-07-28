@@ -1,0 +1,1951 @@
+{
+  "seeds": [
+    7,
+    17,
+    29
+  ],
+  "base_config": {
+    "seed": 7,
+    "dt": 0.02,
+    "train_steps": 900,
+    "rollout_steps": 1200,
+    "horizon": 8,
+    "window_stride": 12,
+    "train_amplitudes": 28,
+    "hidden_dim": 48,
+    "latent_dim": 8,
+    "batch_size": 256,
+    "epochs_mlp": 100,
+    "epochs_fixed": 140,
+    "epochs_conditioned_pretrain": 40,
+    "epochs_conditioned": 120,
+    "learning_rate": 0.002,
+    "output_dir": "results/portfolio"
+  },
+  "runs": {
+    "7": {
+      "config": {
+        "seed": 7,
+        "dt": 0.02,
+        "train_steps": 900,
+        "rollout_steps": 1200,
+        "horizon": 8,
+        "window_stride": 12,
+        "train_amplitudes": 28,
+        "hidden_dim": 48,
+        "latent_dim": 8,
+        "batch_size": 256,
+        "epochs_mlp": 100,
+        "epochs_fixed": 140,
+        "epochs_conditioned_pretrain": 40,
+        "epochs_conditioned": 120,
+        "learning_rate": 0.002,
+        "output_dir": "results/portfolio/seed-7"
+      },
+      "environment": {
+        "learned_koopman": "1.1.0",
+        "python": "3.12.13",
+        "torch": "2.13.0",
+        "numpy": "2.5.1",
+        "platform": "macOS-26.6-arm64-arm-64bit"
+      },
+      "parameter_counts": {
+        "persistence": 0,
+        "dmd": 9,
+        "small_angle": 0,
+        "mlp": 2691,
+        "fixed_koopman": 1227,
+        "energy_conditioned": 3054
+      },
+      "training_loss_final": {
+        "mlp": 3.254732170413869e-05,
+        "fixed_koopman": 0.0017032445822325018,
+        "energy_conditioned": 0.008494928065273497
+      },
+      "metrics": {
+        "0.25": {
+          "persistence": {
+            "angle_rmse": 0.3133797297225794,
+            "omega_rmse": 0.1772977274392308,
+            "max_energy_drift": 0.0,
+            "valid_steps": 49,
+            "valid_time": 0.98,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 0.2834124052086278,
+            "omega_rmse": 0.3348970067234585,
+            "max_energy_drift": 0.07103548779879332,
+            "valid_steps": 218,
+            "valid_time": 4.36,
+            "angular_frequency": 0.771890086877099
+          },
+          "small_angle": {
+            "angle_rmse": 0.009791816554954513,
+            "omega_rmse": 0.009365306655513076,
+            "max_energy_drift": 0.00015932321548461914,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.1000124582763045,
+            "omega_rmse": 0.08362508815414611,
+            "max_energy_drift": 0.01654994487762451,
+            "valid_steps": 811,
+            "valid_time": 16.22,
+            "angular_frequency": 1.0402624680760904
+          },
+          "fixed_koopman": {
+            "angle_rmse": 0.36446871434438644,
+            "omega_rmse": 0.10929973418065714,
+            "max_energy_drift": 0.556032657623291,
+            "valid_steps": 215,
+            "valid_time": 4.3,
+            "angular_frequency": 1.0601550012114038
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.07394538483701851,
+            "omega_rmse": 0.13871364531946093,
+            "max_energy_drift": 0.09427553415298462,
+            "valid_steps": 100,
+            "valid_time": 2.0,
+            "angular_frequency": 0.9858554352269224
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 3.0926505426576156e-06,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9952247054666715
+          }
+        },
+        "1.00": {
+          "persistence": {
+            "angle_rmse": 1.2486454648764502,
+            "omega_rmse": 0.660132261673216,
+            "max_energy_drift": 0.0,
+            "valid_steps": 18,
+            "valid_time": 0.36,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.0285407568564675,
+            "omega_rmse": 1.1881258760963551,
+            "max_energy_drift": 1.0258493087522143,
+            "valid_steps": 47,
+            "valid_time": 0.9400000000000001,
+            "angular_frequency": 0.6606924613227746
+          },
+          "small_angle": {
+            "angle_rmse": 0.5687252324432318,
+            "omega_rmse": 0.5708338077247788,
+            "max_energy_drift": 0.04025334119796753,
+            "valid_steps": 184,
+            "valid_time": 3.68,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.2891656687298875,
+            "omega_rmse": 0.2715686237627269,
+            "max_energy_drift": 0.1908203363418579,
+            "valid_steps": 364,
+            "valid_time": 7.28,
+            "angular_frequency": 0.9736340868563408
+          },
+          "fixed_koopman": {
+            "angle_rmse": 0.8645841424624933,
+            "omega_rmse": 0.7267283153065317,
+            "max_energy_drift": 0.12470012903213501,
+            "valid_steps": 84,
+            "valid_time": 1.68,
+            "angular_frequency": 1.033418636049274
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.10769497622172701,
+            "omega_rmse": 0.13829012159694146,
+            "max_energy_drift": 0.10848063230514526,
+            "valid_steps": 547,
+            "valid_time": 10.94,
+            "angular_frequency": 0.9472138654039577
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 4.2446494455394834e-05,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9377888518178487
+          }
+        },
+        "2.00": {
+          "persistence": {
+            "angle_rmse": 1.9838473805093968,
+            "omega_rmse": 1.1135662360278311,
+            "max_energy_drift": 0.0,
+            "valid_steps": 16,
+            "valid_time": 0.32,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.996205697762622,
+            "omega_rmse": 1.7607968578306077,
+            "max_energy_drift": 2.732029048859015,
+            "valid_steps": 30,
+            "valid_time": 0.6,
+            "angular_frequency": 0.6227141037839035
+          },
+          "small_angle": {
+            "angle_rmse": 1.8533664223635586,
+            "omega_rmse": 1.8349579095078647,
+            "max_energy_drift": 0.5836596488952637,
+            "valid_steps": 14,
+            "valid_time": 0.28,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.5345712374131417,
+            "omega_rmse": 0.37306726962973835,
+            "max_energy_drift": 0.20239314436912537,
+            "valid_steps": 165,
+            "valid_time": 3.3000000000000003,
+            "angular_frequency": 0.7776219439578695
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.7553199129727892,
+            "omega_rmse": 1.2558831608852135,
+            "max_energy_drift": 1.17872953414917,
+            "valid_steps": 37,
+            "valid_time": 0.74,
+            "angular_frequency": 1.0177945961953974
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.21119633589158324,
+            "omega_rmse": 0.16664149155015112,
+            "max_energy_drift": 0.1528930366039276,
+            "valid_steps": 302,
+            "valid_time": 6.04,
+            "angular_frequency": 0.7418164471286406
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.0001081913106931176,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.7524772822969564
+          }
+        },
+        "2.80": {
+          "persistence": {
+            "angle_rmse": 1.4790732201319627,
+            "omega_rmse": 1.120612872301012,
+            "max_energy_drift": 0.0,
+            "valid_steps": 35,
+            "valid_time": 0.7000000000000001,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.4570156169131667,
+            "omega_rmse": 1.1509646396280384,
+            "max_energy_drift": 0.22686641273249109,
+            "valid_steps": 42,
+            "valid_time": 0.84,
+            "angular_frequency": 0.7653088072082321
+          },
+          "small_angle": {
+            "angle_rmse": 1.999604663789161,
+            "omega_rmse": 2.2813747212545197,
+            "max_energy_drift": 1.9773898124694824,
+            "valid_steps": 7,
+            "valid_time": 0.14,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.2377541867630568,
+            "omega_rmse": 1.3468816438541698,
+            "max_energy_drift": 0.9197020530700684,
+            "valid_steps": 67,
+            "valid_time": 1.34,
+            "angular_frequency": null
+          },
+          "fixed_koopman": {
+            "angle_rmse": 2.040846310237342,
+            "omega_rmse": 1.239628811059073,
+            "max_energy_drift": 1.8986444473266602,
+            "valid_steps": 36,
+            "valid_time": 0.72,
+            "angular_frequency": 0.9837972819174717
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.37180748549598,
+            "omega_rmse": 0.7798406843629688,
+            "max_energy_drift": 0.4839698076248169,
+            "valid_steps": 31,
+            "valid_time": 0.62,
+            "angular_frequency": 0.545415391248228
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.00013135665618702053,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.4947390005653217
+          }
+        },
+        "3.05": {
+          "persistence": {
+            "angle_rmse": 1.2402266695645523,
+            "omega_rmse": 0.9912423124229754,
+            "max_energy_drift": 0.0,
+            "valid_steps": 74,
+            "valid_time": 1.48,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.2438878605880632,
+            "omega_rmse": 0.9902853388886217,
+            "max_energy_drift": 0.028734569296398726,
+            "valid_steps": 79,
+            "valid_time": 1.58,
+            "angular_frequency": 0.7776219439578695
+          },
+          "small_angle": {
+            "angle_rmse": 1.7902842620780184,
+            "omega_rmse": 2.643192541157397,
+            "max_energy_drift": 2.6549785137176514,
+            "valid_steps": 6,
+            "valid_time": 0.12,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.144365266331747,
+            "omega_rmse": 1.3514616760039104,
+            "max_energy_drift": 2.324915647506714,
+            "valid_steps": 91,
+            "valid_time": 1.82,
+            "angular_frequency": null
+          },
+          "fixed_koopman": {
+            "angle_rmse": 2.0708493751984336,
+            "omega_rmse": 1.0512264991697642,
+            "max_energy_drift": 1.9819636344909668,
+            "valid_steps": 46,
+            "valid_time": 0.92,
+            "angular_frequency": 0.6276908398780806
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.6913662732199328,
+            "omega_rmse": 1.6548787327187873,
+            "max_energy_drift": 0.5719258785247803,
+            "valid_steps": 1,
+            "valid_time": 0.02,
+            "angular_frequency": 0.5235987755982988
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.000133198600285378,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.3510159389485802
+          }
+        }
+      }
+    },
+    "17": {
+      "config": {
+        "seed": 17,
+        "dt": 0.02,
+        "train_steps": 900,
+        "rollout_steps": 1200,
+        "horizon": 8,
+        "window_stride": 12,
+        "train_amplitudes": 28,
+        "hidden_dim": 48,
+        "latent_dim": 8,
+        "batch_size": 256,
+        "epochs_mlp": 100,
+        "epochs_fixed": 140,
+        "epochs_conditioned_pretrain": 40,
+        "epochs_conditioned": 120,
+        "learning_rate": 0.002,
+        "output_dir": "results/portfolio/seed-17"
+      },
+      "environment": {
+        "learned_koopman": "1.1.0",
+        "python": "3.12.13",
+        "torch": "2.13.0",
+        "numpy": "2.5.1",
+        "platform": "macOS-26.6-arm64-arm-64bit"
+      },
+      "parameter_counts": {
+        "persistence": 0,
+        "dmd": 9,
+        "small_angle": 0,
+        "mlp": 2691,
+        "fixed_koopman": 1227,
+        "energy_conditioned": 3054
+      },
+      "training_loss_final": {
+        "mlp": 2.763084052680319e-05,
+        "fixed_koopman": 0.0018570722572298513,
+        "energy_conditioned": 0.007798735052347183
+      },
+      "metrics": {
+        "0.25": {
+          "persistence": {
+            "angle_rmse": 0.3133797297225794,
+            "omega_rmse": 0.1772977274392308,
+            "max_energy_drift": 0.0,
+            "valid_steps": 49,
+            "valid_time": 0.98,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 0.2834124052086278,
+            "omega_rmse": 0.3348970067234585,
+            "max_energy_drift": 0.07103548779879332,
+            "valid_steps": 218,
+            "valid_time": 4.36,
+            "angular_frequency": 0.771890086877099
+          },
+          "small_angle": {
+            "angle_rmse": 0.009791816554954513,
+            "omega_rmse": 0.009365306655513076,
+            "max_energy_drift": 0.00015932321548461914,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.08486948438716453,
+            "omega_rmse": 0.09912536209749012,
+            "max_energy_drift": 0.03085416555404663,
+            "valid_steps": 898,
+            "valid_time": 17.96,
+            "angular_frequency": 1.0233200826025384
+          },
+          "fixed_koopman": {
+            "angle_rmse": 0.4067331669488475,
+            "omega_rmse": 0.12231370303526569,
+            "max_energy_drift": 1.024610161781311,
+            "valid_steps": 137,
+            "valid_time": 2.74,
+            "angular_frequency": 0.9973310011396169
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.06971977881278943,
+            "omega_rmse": 0.14063455731171132,
+            "max_energy_drift": 0.06552058458328247,
+            "valid_steps": 996,
+            "valid_time": 19.92,
+            "angular_frequency": 0.9817477042468103
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 3.0926505426576156e-06,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9952247054666715
+          }
+        },
+        "1.00": {
+          "persistence": {
+            "angle_rmse": 1.2486454648764502,
+            "omega_rmse": 0.660132261673216,
+            "max_energy_drift": 0.0,
+            "valid_steps": 18,
+            "valid_time": 0.36,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.0285407568564675,
+            "omega_rmse": 1.1881258760963551,
+            "max_energy_drift": 1.0258493087522143,
+            "valid_steps": 47,
+            "valid_time": 0.9400000000000001,
+            "angular_frequency": 0.6606924613227746
+          },
+          "small_angle": {
+            "angle_rmse": 0.5687252324432318,
+            "omega_rmse": 0.5708338077247788,
+            "max_energy_drift": 0.04025334119796753,
+            "valid_steps": 184,
+            "valid_time": 3.68,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.1542621704017214,
+            "omega_rmse": 0.1461510584186291,
+            "max_energy_drift": 0.2309674322605133,
+            "valid_steps": 596,
+            "valid_time": 11.92,
+            "angular_frequency": 0.9539248948147147
+          },
+          "fixed_koopman": {
+            "angle_rmse": 0.4293769765462555,
+            "omega_rmse": 0.18337716170373947,
+            "max_energy_drift": 0.7885874509811401,
+            "valid_steps": 238,
+            "valid_time": 4.76,
+            "angular_frequency": 0.9434212172942321
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.09743790071255491,
+            "omega_rmse": 0.11537125234490053,
+            "max_energy_drift": 0.09695476293563843,
+            "valid_steps": 557,
+            "valid_time": 11.14,
+            "angular_frequency": 0.9443665291352082
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 4.2446494455394834e-05,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9377888518178487
+          }
+        },
+        "2.00": {
+          "persistence": {
+            "angle_rmse": 1.9838473805093968,
+            "omega_rmse": 1.1135662360278311,
+            "max_energy_drift": 0.0,
+            "valid_steps": 16,
+            "valid_time": 0.32,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.996205697762622,
+            "omega_rmse": 1.7607968578306077,
+            "max_energy_drift": 2.732029048859015,
+            "valid_steps": 30,
+            "valid_time": 0.6,
+            "angular_frequency": 0.6227141037839035
+          },
+          "small_angle": {
+            "angle_rmse": 1.8533664223635586,
+            "omega_rmse": 1.8349579095078647,
+            "max_energy_drift": 0.5836596488952637,
+            "valid_steps": 14,
+            "valid_time": 0.28,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.14792668367533204,
+            "omega_rmse": 0.09290529379656999,
+            "max_energy_drift": 0.18175700306892395,
+            "valid_steps": 459,
+            "valid_time": 9.18,
+            "angular_frequency": 0.7570102779734441
+          },
+          "fixed_koopman": {
+            "angle_rmse": 2.075140679380873,
+            "omega_rmse": 1.473007700815764,
+            "max_energy_drift": 1.4540106058120728,
+            "valid_steps": 33,
+            "valid_time": 0.66,
+            "angular_frequency": 0.9529603600373487
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.25282943721528844,
+            "omega_rmse": 0.19176177206261727,
+            "max_energy_drift": 0.20938125252723694,
+            "valid_steps": 290,
+            "valid_time": 5.8,
+            "angular_frequency": 0.7391982714328925
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.0001081913106931176,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.7524772822969564
+          }
+        },
+        "2.80": {
+          "persistence": {
+            "angle_rmse": 1.4790732201319627,
+            "omega_rmse": 1.120612872301012,
+            "max_energy_drift": 0.0,
+            "valid_steps": 35,
+            "valid_time": 0.7000000000000001,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.4570156169131667,
+            "omega_rmse": 1.1509646396280384,
+            "max_energy_drift": 0.22686641273249109,
+            "valid_steps": 42,
+            "valid_time": 0.84,
+            "angular_frequency": 0.7653088072082321
+          },
+          "small_angle": {
+            "angle_rmse": 1.999604663789161,
+            "omega_rmse": 2.2813747212545197,
+            "max_energy_drift": 1.9773898124694824,
+            "valid_steps": 7,
+            "valid_time": 0.14,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.312810600990206,
+            "omega_rmse": 0.7196683376905556,
+            "max_energy_drift": 0.3065119981765747,
+            "valid_steps": 84,
+            "valid_time": 1.68,
+            "angular_frequency": 0.4606440841040752
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.526722758433966,
+            "omega_rmse": 1.1705178485630274,
+            "max_energy_drift": 0.9740321040153503,
+            "valid_steps": 40,
+            "valid_time": 0.8,
+            "angular_frequency": 0.966643893412244
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.0783912524150194,
+            "omega_rmse": 0.623648114180825,
+            "max_energy_drift": 0.5056642889976501,
+            "valid_steps": 46,
+            "valid_time": 0.92,
+            "angular_frequency": 0.5361079613634459
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.00013135665618702053,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.4947390005653217
+          }
+        },
+        "3.05": {
+          "persistence": {
+            "angle_rmse": 1.2402266695645523,
+            "omega_rmse": 0.9912423124229754,
+            "max_energy_drift": 0.0,
+            "valid_steps": 74,
+            "valid_time": 1.48,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.2438878605880632,
+            "omega_rmse": 0.9902853388886217,
+            "max_energy_drift": 0.028734569296398726,
+            "valid_steps": 79,
+            "valid_time": 1.58,
+            "angular_frequency": 0.7776219439578695
+          },
+          "small_angle": {
+            "angle_rmse": 1.7902842620780184,
+            "omega_rmse": 2.643192541157397,
+            "max_energy_drift": 2.6549785137176514,
+            "valid_steps": 6,
+            "valid_time": 0.12,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.2470085953302303,
+            "omega_rmse": 1.3158859936429654,
+            "max_energy_drift": 0.4101312756538391,
+            "valid_steps": 87,
+            "valid_time": 1.74,
+            "angular_frequency": 0.8045051609704975
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.275824629843862,
+            "omega_rmse": 1.077096155184197,
+            "max_energy_drift": 1.1061230897903442,
+            "valid_steps": 58,
+            "valid_time": 1.16,
+            "angular_frequency": 0.8912319584651895
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.5613277522979854,
+            "omega_rmse": 1.5728337041943783,
+            "max_energy_drift": 0.5901628136634827,
+            "valid_steps": 1,
+            "valid_time": 0.02,
+            "angular_frequency": 0.514172283729917
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.000133198600285378,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.3510159389485802
+          }
+        }
+      }
+    },
+    "29": {
+      "config": {
+        "seed": 29,
+        "dt": 0.02,
+        "train_steps": 900,
+        "rollout_steps": 1200,
+        "horizon": 8,
+        "window_stride": 12,
+        "train_amplitudes": 28,
+        "hidden_dim": 48,
+        "latent_dim": 8,
+        "batch_size": 256,
+        "epochs_mlp": 100,
+        "epochs_fixed": 140,
+        "epochs_conditioned_pretrain": 40,
+        "epochs_conditioned": 120,
+        "learning_rate": 0.002,
+        "output_dir": "results/portfolio/seed-29"
+      },
+      "environment": {
+        "learned_koopman": "1.1.0",
+        "python": "3.12.13",
+        "torch": "2.13.0",
+        "numpy": "2.5.1",
+        "platform": "macOS-26.6-arm64-arm-64bit"
+      },
+      "parameter_counts": {
+        "persistence": 0,
+        "dmd": 9,
+        "small_angle": 0,
+        "mlp": 2691,
+        "fixed_koopman": 1227,
+        "energy_conditioned": 3054
+      },
+      "training_loss_final": {
+        "mlp": 1.860142320866645e-05,
+        "fixed_koopman": 0.001689442679182523,
+        "energy_conditioned": 0.007679530729850133
+      },
+      "metrics": {
+        "0.25": {
+          "persistence": {
+            "angle_rmse": 0.3133797297225794,
+            "omega_rmse": 0.1772977274392308,
+            "max_energy_drift": 0.0,
+            "valid_steps": 49,
+            "valid_time": 0.98,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 0.2834124052086278,
+            "omega_rmse": 0.3348970067234585,
+            "max_energy_drift": 0.07103548779879332,
+            "valid_steps": 218,
+            "valid_time": 4.36,
+            "angular_frequency": 0.771890086877099
+          },
+          "small_angle": {
+            "angle_rmse": 0.009791816554954513,
+            "omega_rmse": 0.009365306655513076,
+            "max_energy_drift": 0.00015932321548461914,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.08657470130898709,
+            "omega_rmse": 0.08952618976745327,
+            "max_energy_drift": 0.02876269817352295,
+            "valid_steps": 932,
+            "valid_time": 18.64,
+            "angular_frequency": 1.0069207223044208
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.1735701514115882,
+            "omega_rmse": 0.18124855524273392,
+            "max_energy_drift": 2.0522634983062744,
+            "valid_steps": 91,
+            "valid_time": 1.82,
+            "angular_frequency": 0.9185943431549103
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.1066271563528894,
+            "omega_rmse": 0.11450551010614211,
+            "max_energy_drift": 0.06489306688308716,
+            "valid_steps": 1,
+            "valid_time": 0.02,
+            "angular_frequency": 0.9827714244806444
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 3.0926505426576156e-06,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9952247054666715
+          }
+        },
+        "1.00": {
+          "persistence": {
+            "angle_rmse": 1.2486454648764502,
+            "omega_rmse": 0.660132261673216,
+            "max_energy_drift": 0.0,
+            "valid_steps": 18,
+            "valid_time": 0.36,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.0285407568564675,
+            "omega_rmse": 1.1881258760963551,
+            "max_energy_drift": 1.0258493087522143,
+            "valid_steps": 47,
+            "valid_time": 0.9400000000000001,
+            "angular_frequency": 0.6606924613227746
+          },
+          "small_angle": {
+            "angle_rmse": 0.5687252324432318,
+            "omega_rmse": 0.5708338077247788,
+            "max_energy_drift": 0.04025334119796753,
+            "valid_steps": 184,
+            "valid_time": 3.68,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.01923564089493362,
+            "omega_rmse": 0.03000907839837082,
+            "max_energy_drift": 0.03129392862319946,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9377888518178487
+          },
+          "fixed_koopman": {
+            "angle_rmse": 0.6030218845829866,
+            "omega_rmse": 0.10998195099048771,
+            "max_energy_drift": 1.9484450817108154,
+            "valid_steps": 76,
+            "valid_time": 1.52,
+            "angular_frequency": 0.9368566561400974
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.09898764667881584,
+            "omega_rmse": 0.1266639578118294,
+            "max_energy_drift": 0.09910774230957031,
+            "valid_steps": 579,
+            "valid_time": 11.58,
+            "angular_frequency": 0.9472138654039577
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 4.2446494455394834e-05,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.9377888518178487
+          }
+        },
+        "2.00": {
+          "persistence": {
+            "angle_rmse": 1.9838473805093968,
+            "omega_rmse": 1.1135662360278311,
+            "max_energy_drift": 0.0,
+            "valid_steps": 16,
+            "valid_time": 0.32,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.996205697762622,
+            "omega_rmse": 1.7607968578306077,
+            "max_energy_drift": 2.732029048859015,
+            "valid_steps": 30,
+            "valid_time": 0.6,
+            "angular_frequency": 0.6227141037839035
+          },
+          "small_angle": {
+            "angle_rmse": 1.8533664223635586,
+            "omega_rmse": 1.8349579095078647,
+            "max_energy_drift": 0.5836596488952637,
+            "valid_steps": 14,
+            "valid_time": 0.28,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 0.33072551190347577,
+            "omega_rmse": 0.2513005326947209,
+            "max_energy_drift": 0.12528583407402039,
+            "valid_steps": 237,
+            "valid_time": 4.74,
+            "angular_frequency": 0.7662421106316569
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.9817036579609248,
+            "omega_rmse": 1.448940647299362,
+            "max_energy_drift": 1.247094750404358,
+            "valid_steps": 38,
+            "valid_time": 0.76,
+            "angular_frequency": 0.9500784234646551
+          },
+          "energy_conditioned": {
+            "angle_rmse": 0.19098266654922938,
+            "omega_rmse": 0.1487464055852554,
+            "max_energy_drift": 0.14818337559700012,
+            "valid_steps": 493,
+            "valid_time": 9.86,
+            "angular_frequency": 0.7418164471286406
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.0001081913106931176,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.7524772822969564
+          }
+        },
+        "2.80": {
+          "persistence": {
+            "angle_rmse": 1.4790732201319627,
+            "omega_rmse": 1.120612872301012,
+            "max_energy_drift": 0.0,
+            "valid_steps": 35,
+            "valid_time": 0.7000000000000001,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.4570156169131667,
+            "omega_rmse": 1.1509646396280384,
+            "max_energy_drift": 0.22686641273249109,
+            "valid_steps": 42,
+            "valid_time": 0.84,
+            "angular_frequency": 0.7653088072082321
+          },
+          "small_angle": {
+            "angle_rmse": 1.999604663789161,
+            "omega_rmse": 2.2813747212545197,
+            "max_energy_drift": 1.9773898124694824,
+            "valid_steps": 7,
+            "valid_time": 0.14,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.7386176464904968,
+            "omega_rmse": 17.553819384846143,
+            "max_energy_drift": 883.51806640625,
+            "valid_steps": 81,
+            "valid_time": 1.62,
+            "angular_frequency": 0.9973310011396169
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.6774446035424118,
+            "omega_rmse": 1.0172104033658216,
+            "max_energy_drift": 1.9380481243133545,
+            "valid_steps": 63,
+            "valid_time": 1.26,
+            "angular_frequency": 0.4811014783445319
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.316061156851673,
+            "omega_rmse": 0.7282722457158839,
+            "max_energy_drift": 0.5116659998893738,
+            "valid_steps": 12,
+            "valid_time": 0.24,
+            "angular_frequency": 0.5416539057913436
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.00013135665618702053,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.4947390005653217
+          }
+        },
+        "3.05": {
+          "persistence": {
+            "angle_rmse": 1.2402266695645523,
+            "omega_rmse": 0.9912423124229754,
+            "max_energy_drift": 0.0,
+            "valid_steps": 74,
+            "valid_time": 1.48,
+            "angular_frequency": null
+          },
+          "dmd": {
+            "angle_rmse": 1.2438878605880632,
+            "omega_rmse": 0.9902853388886217,
+            "max_energy_drift": 0.028734569296398726,
+            "valid_steps": 79,
+            "valid_time": 1.58,
+            "angular_frequency": 0.7776219439578695
+          },
+          "small_angle": {
+            "angle_rmse": 1.7902842620780184,
+            "omega_rmse": 2.643192541157397,
+            "max_energy_drift": 2.6549785137176514,
+            "valid_steps": 6,
+            "valid_time": 0.12,
+            "angular_frequency": 0.9994462312586829
+          },
+          "mlp": {
+            "angle_rmse": 1.5613646218921429,
+            "omega_rmse": 13.600607134739809,
+            "max_energy_drift": 687.0516357421875,
+            "valid_steps": 166,
+            "valid_time": 3.3200000000000003,
+            "angular_frequency": 1.4477385500413793
+          },
+          "fixed_koopman": {
+            "angle_rmse": 1.922811799843333,
+            "omega_rmse": 0.9763573283576514,
+            "max_energy_drift": 1.884903907775879,
+            "valid_steps": 44,
+            "valid_time": 0.88,
+            "angular_frequency": 0.4908738521234052
+          },
+          "energy_conditioned": {
+            "angle_rmse": 1.6479443059462777,
+            "omega_rmse": 1.6420998508718723,
+            "max_energy_drift": 0.6004407405853271,
+            "valid_steps": 1,
+            "valid_time": 0.02,
+            "angular_frequency": 0.5201312340380452
+          },
+          "reference": {
+            "angle_rmse": 0.0,
+            "omega_rmse": 0.0,
+            "max_energy_drift": 0.000133198600285378,
+            "valid_steps": 1200,
+            "valid_time": 24.0,
+            "angular_frequency": 0.3510159389485802
+          }
+        }
+      }
+    }
+  },
+  "aggregate": {
+    "0.25": {
+      "persistence": {
+        "valid_time": {
+          "mean": 0.98,
+          "std": 0.0,
+          "min": 0.98,
+          "max": 0.98
+        },
+        "angle_rmse": {
+          "mean": 0.3133797297225794,
+          "std": 0.0,
+          "min": 0.3133797297225794,
+          "max": 0.3133797297225794
+        },
+        "omega_rmse": {
+          "mean": 0.1772977274392308,
+          "std": 0.0,
+          "min": 0.1772977274392308,
+          "max": 0.1772977274392308
+        },
+        "max_energy_drift": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "dmd": {
+        "valid_time": {
+          "mean": 4.36,
+          "std": 0.0,
+          "min": 4.36,
+          "max": 4.36
+        },
+        "angle_rmse": {
+          "mean": 0.2834124052086278,
+          "std": 0.0,
+          "min": 0.2834124052086278,
+          "max": 0.2834124052086278
+        },
+        "omega_rmse": {
+          "mean": 0.3348970067234585,
+          "std": 0.0,
+          "min": 0.3348970067234585,
+          "max": 0.3348970067234585
+        },
+        "max_energy_drift": {
+          "mean": 0.07103548779879332,
+          "std": 0.0,
+          "min": 0.07103548779879332,
+          "max": 0.07103548779879332
+        }
+      },
+      "small_angle": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.009791816554954513,
+          "std": 0.0,
+          "min": 0.009791816554954513,
+          "max": 0.009791816554954513
+        },
+        "omega_rmse": {
+          "mean": 0.009365306655513076,
+          "std": 0.0,
+          "min": 0.009365306655513076,
+          "max": 0.009365306655513076
+        },
+        "max_energy_drift": {
+          "mean": 0.00015932321548461914,
+          "std": 0.0,
+          "min": 0.00015932321548461914,
+          "max": 0.00015932321548461914
+        }
+      },
+      "mlp": {
+        "valid_time": {
+          "mean": 17.606666666666666,
+          "std": 1.0190627502214427,
+          "min": 16.22,
+          "max": 18.64
+        },
+        "angle_rmse": {
+          "mean": 0.0904855479908187,
+          "std": 0.0067724173861523915,
+          "min": 0.08486948438716453,
+          "max": 0.1000124582763045
+        },
+        "omega_rmse": {
+          "mean": 0.09075888000636316,
+          "std": 0.006387710440030142,
+          "min": 0.08362508815414611,
+          "max": 0.09912536209749012
+        },
+        "max_energy_drift": {
+          "mean": 0.025388936201731365,
+          "std": 0.00630816321241378,
+          "min": 0.01654994487762451,
+          "max": 0.03085416555404663
+        }
+      },
+      "fixed_koopman": {
+        "valid_time": {
+          "mean": 2.953333333333333,
+          "std": 1.0236318782756924,
+          "min": 1.82,
+          "max": 4.3
+        },
+        "angle_rmse": {
+          "mean": 0.6482573442349407,
+          "std": 0.37185277554998913,
+          "min": 0.36446871434438644,
+          "max": 1.1735701514115882
+        },
+        "omega_rmse": {
+          "mean": 0.13762066415288557,
+          "std": 0.03130373254685913,
+          "min": 0.10929973418065714,
+          "max": 0.18124855524273392
+        },
+        "max_energy_drift": {
+          "mean": 1.2109687725702922,
+          "std": 0.6248860328167187,
+          "min": 0.556032657623291,
+          "max": 2.0522634983062744
+        }
+      },
+      "energy_conditioned": {
+        "valid_time": {
+          "mean": 7.3133333333333335,
+          "std": 8.9508336048785,
+          "min": 0.02,
+          "max": 19.92
+        },
+        "angle_rmse": {
+          "mean": 0.08343077333423245,
+          "std": 0.016492787826383946,
+          "min": 0.06971977881278943,
+          "max": 0.1066271563528894
+        },
+        "omega_rmse": {
+          "mean": 0.13128457091243811,
+          "std": 0.01189047621352279,
+          "min": 0.11450551010614211,
+          "max": 0.14063455731171132
+        },
+        "max_energy_drift": {
+          "mean": 0.07489639520645142,
+          "std": 0.013705515054113425,
+          "min": 0.06489306688308716,
+          "max": 0.09427553415298462
+        }
+      },
+      "reference": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "omega_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "max_energy_drift": {
+          "mean": 3.0926505426576156e-06,
+          "std": 0.0,
+          "min": 3.0926505426576156e-06,
+          "max": 3.0926505426576156e-06
+        }
+      }
+    },
+    "1.00": {
+      "persistence": {
+        "valid_time": {
+          "mean": 0.36000000000000004,
+          "std": 5.551115123125783e-17,
+          "min": 0.36,
+          "max": 0.36
+        },
+        "angle_rmse": {
+          "mean": 1.2486454648764502,
+          "std": 0.0,
+          "min": 1.2486454648764502,
+          "max": 1.2486454648764502
+        },
+        "omega_rmse": {
+          "mean": 0.660132261673216,
+          "std": 0.0,
+          "min": 0.660132261673216,
+          "max": 0.660132261673216
+        },
+        "max_energy_drift": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "dmd": {
+        "valid_time": {
+          "mean": 0.9400000000000001,
+          "std": 0.0,
+          "min": 0.9400000000000001,
+          "max": 0.9400000000000001
+        },
+        "angle_rmse": {
+          "mean": 1.0285407568564675,
+          "std": 0.0,
+          "min": 1.0285407568564675,
+          "max": 1.0285407568564675
+        },
+        "omega_rmse": {
+          "mean": 1.1881258760963551,
+          "std": 0.0,
+          "min": 1.1881258760963551,
+          "max": 1.1881258760963551
+        },
+        "max_energy_drift": {
+          "mean": 1.0258493087522143,
+          "std": 0.0,
+          "min": 1.0258493087522143,
+          "max": 1.0258493087522143
+        }
+      },
+      "small_angle": {
+        "valid_time": {
+          "mean": 3.68,
+          "std": 0.0,
+          "min": 3.68,
+          "max": 3.68
+        },
+        "angle_rmse": {
+          "mean": 0.5687252324432318,
+          "std": 0.0,
+          "min": 0.5687252324432318,
+          "max": 0.5687252324432318
+        },
+        "omega_rmse": {
+          "mean": 0.5708338077247788,
+          "std": 0.0,
+          "min": 0.5708338077247788,
+          "max": 0.5708338077247788
+        },
+        "max_energy_drift": {
+          "mean": 0.04025334119796753,
+          "std": 0.0,
+          "min": 0.04025334119796753,
+          "max": 0.04025334119796753
+        }
+      },
+      "mlp": {
+        "valid_time": {
+          "mean": 14.4,
+          "std": 7.047571685812544,
+          "min": 7.28,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.15422116000884753,
+          "std": 0.11019847622399016,
+          "min": 0.01923564089493362,
+          "max": 0.2891656687298875
+        },
+        "omega_rmse": {
+          "mean": 0.14924292019324228,
+          "std": 0.09864050282408873,
+          "min": 0.03000907839837082,
+          "max": 0.2715686237627269
+        },
+        "max_energy_drift": {
+          "mean": 0.15102723240852356,
+          "std": 0.08623609203493612,
+          "min": 0.03129392862319946,
+          "max": 0.2309674322605133
+        }
+      },
+      "fixed_koopman": {
+        "valid_time": {
+          "mean": 2.653333333333333,
+          "std": 1.491069712954055,
+          "min": 1.52,
+          "max": 4.76
+        },
+        "angle_rmse": {
+          "mean": 0.6323276678639118,
+          "std": 0.17887694283406558,
+          "min": 0.4293769765462555,
+          "max": 0.8645841424624933
+        },
+        "omega_rmse": {
+          "mean": 0.3400291426669197,
+          "std": 0.27507441639070573,
+          "min": 0.10998195099048771,
+          "max": 0.7267283153065317
+        },
+        "max_energy_drift": {
+          "mean": 0.9539108872413635,
+          "std": 0.753662299281717,
+          "min": 0.12470012903213501,
+          "max": 1.9484450817108154
+        }
+      },
+      "energy_conditioned": {
+        "valid_time": {
+          "mean": 11.219999999999999,
+          "std": 0.2673325020768458,
+          "min": 10.94,
+          "max": 11.58
+        },
+        "angle_rmse": {
+          "mean": 0.1013735078710326,
+          "std": 0.004514506227825214,
+          "min": 0.09743790071255491,
+          "max": 0.10769497622172701
+        },
+        "omega_rmse": {
+          "mean": 0.12677511058455712,
+          "std": 0.009356919299007217,
+          "min": 0.11537125234490053,
+          "max": 0.13829012159694146
+        },
+        "max_energy_drift": {
+          "mean": 0.10151437918345134,
+          "std": 0.005003688103974031,
+          "min": 0.09695476293563843,
+          "max": 0.10848063230514526
+        }
+      },
+      "reference": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "omega_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "max_energy_drift": {
+          "mean": 4.2446494455394834e-05,
+          "std": 0.0,
+          "min": 4.2446494455394834e-05,
+          "max": 4.2446494455394834e-05
+        }
+      }
+    },
+    "2.00": {
+      "persistence": {
+        "valid_time": {
+          "mean": 0.32,
+          "std": 0.0,
+          "min": 0.32,
+          "max": 0.32
+        },
+        "angle_rmse": {
+          "mean": 1.9838473805093966,
+          "std": 2.220446049250313e-16,
+          "min": 1.9838473805093968,
+          "max": 1.9838473805093968
+        },
+        "omega_rmse": {
+          "mean": 1.1135662360278311,
+          "std": 0.0,
+          "min": 1.1135662360278311,
+          "max": 1.1135662360278311
+        },
+        "max_energy_drift": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "dmd": {
+        "valid_time": {
+          "mean": 0.6,
+          "std": 0.0,
+          "min": 0.6,
+          "max": 0.6
+        },
+        "angle_rmse": {
+          "mean": 1.996205697762622,
+          "std": 0.0,
+          "min": 1.996205697762622,
+          "max": 1.996205697762622
+        },
+        "omega_rmse": {
+          "mean": 1.7607968578306077,
+          "std": 0.0,
+          "min": 1.7607968578306077,
+          "max": 1.7607968578306077
+        },
+        "max_energy_drift": {
+          "mean": 2.732029048859015,
+          "std": 0.0,
+          "min": 2.732029048859015,
+          "max": 2.732029048859015
+        }
+      },
+      "small_angle": {
+        "valid_time": {
+          "mean": 0.28,
+          "std": 0.0,
+          "min": 0.28,
+          "max": 0.28
+        },
+        "angle_rmse": {
+          "mean": 1.8533664223635586,
+          "std": 0.0,
+          "min": 1.8533664223635586,
+          "max": 1.8533664223635586
+        },
+        "omega_rmse": {
+          "mean": 1.8349579095078647,
+          "std": 0.0,
+          "min": 1.8349579095078647,
+          "max": 1.8349579095078647
+        },
+        "max_energy_drift": {
+          "mean": 0.5836596488952637,
+          "std": 0.0,
+          "min": 0.5836596488952637,
+          "max": 0.5836596488952637
+        }
+      },
+      "mlp": {
+        "valid_time": {
+          "mean": 5.739999999999999,
+          "std": 2.5024787711387284,
+          "min": 3.3000000000000003,
+          "max": 9.18
+        },
+        "angle_rmse": {
+          "mean": 0.3377411443306498,
+          "std": 0.15792491265902794,
+          "min": 0.14792668367533204,
+          "max": 0.5345712374131417
+        },
+        "omega_rmse": {
+          "mean": 0.23909103204034307,
+          "std": 0.11470102326006262,
+          "min": 0.09290529379656999,
+          "max": 0.37306726962973835
+        },
+        "max_energy_drift": {
+          "mean": 0.16981199383735657,
+          "std": 0.03259239951678994,
+          "min": 0.12528583407402039,
+          "max": 0.20239314436912537
+        }
+      },
+      "fixed_koopman": {
+        "valid_time": {
+          "mean": 0.7200000000000001,
+          "std": 0.043204937989385725,
+          "min": 0.66,
+          "max": 0.76
+        },
+        "angle_rmse": {
+          "mean": 1.937388083438196,
+          "std": 0.13427393210752217,
+          "min": 1.7553199129727892,
+          "max": 2.075140679380873
+        },
+        "omega_rmse": {
+          "mean": 1.3926105030001132,
+          "std": 0.09717880539704105,
+          "min": 1.2558831608852135,
+          "max": 1.473007700815764
+        },
+        "max_energy_drift": {
+          "mean": 1.2932782967885335,
+          "std": 0.11703163980005162,
+          "min": 1.17872953414917,
+          "max": 1.4540106058120728
+        }
+      },
+      "energy_conditioned": {
+        "valid_time": {
+          "mean": 7.233333333333333,
+          "std": 1.859916366100607,
+          "min": 5.8,
+          "max": 9.86
+        },
+        "angle_rmse": {
+          "mean": 0.21833614655203368,
+          "std": 0.025748636632584868,
+          "min": 0.19098266654922938,
+          "max": 0.25282943721528844
+        },
+        "omega_rmse": {
+          "mean": 0.16904988973267462,
+          "std": 0.017643331594866536,
+          "min": 0.1487464055852554,
+          "max": 0.19176177206261727
+        },
+        "max_energy_drift": {
+          "mean": 0.17015255490938822,
+          "std": 0.027805434292532342,
+          "min": 0.14818337559700012,
+          "max": 0.20938125252723694
+        }
+      },
+      "reference": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "omega_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "max_energy_drift": {
+          "mean": 0.0001081913106931176,
+          "std": 0.0,
+          "min": 0.0001081913106931176,
+          "max": 0.0001081913106931176
+        }
+      }
+    },
+    "2.80": {
+      "persistence": {
+        "valid_time": {
+          "mean": 0.7000000000000001,
+          "std": 0.0,
+          "min": 0.7000000000000001,
+          "max": 0.7000000000000001
+        },
+        "angle_rmse": {
+          "mean": 1.4790732201319627,
+          "std": 0.0,
+          "min": 1.4790732201319627,
+          "max": 1.4790732201319627
+        },
+        "omega_rmse": {
+          "mean": 1.120612872301012,
+          "std": 0.0,
+          "min": 1.120612872301012,
+          "max": 1.120612872301012
+        },
+        "max_energy_drift": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "dmd": {
+        "valid_time": {
+          "mean": 0.84,
+          "std": 0.0,
+          "min": 0.84,
+          "max": 0.84
+        },
+        "angle_rmse": {
+          "mean": 1.4570156169131667,
+          "std": 0.0,
+          "min": 1.4570156169131667,
+          "max": 1.4570156169131667
+        },
+        "omega_rmse": {
+          "mean": 1.1509646396280384,
+          "std": 0.0,
+          "min": 1.1509646396280384,
+          "max": 1.1509646396280384
+        },
+        "max_energy_drift": {
+          "mean": 0.22686641273249109,
+          "std": 0.0,
+          "min": 0.22686641273249109,
+          "max": 0.22686641273249109
+        }
+      },
+      "small_angle": {
+        "valid_time": {
+          "mean": 0.14,
+          "std": 0.0,
+          "min": 0.14,
+          "max": 0.14
+        },
+        "angle_rmse": {
+          "mean": 1.999604663789161,
+          "std": 0.0,
+          "min": 1.999604663789161,
+          "max": 1.999604663789161
+        },
+        "omega_rmse": {
+          "mean": 2.2813747212545197,
+          "std": 0.0,
+          "min": 2.2813747212545197,
+          "max": 2.2813747212545197
+        },
+        "max_energy_drift": {
+          "mean": 1.9773898124694824,
+          "std": 0.0,
+          "min": 1.9773898124694824,
+          "max": 1.9773898124694824
+        }
+      },
+      "mlp": {
+        "valid_time": {
+          "mean": 1.5466666666666669,
+          "std": 0.14817407180595243,
+          "min": 1.34,
+          "max": 1.68
+        },
+        "angle_rmse": {
+          "mean": 1.4297274780812532,
+          "std": 0.22055720109770086,
+          "min": 1.2377541867630568,
+          "max": 1.7386176464904968
+        },
+        "omega_rmse": {
+          "mean": 6.540123122130289,
+          "std": 7.792067682730433,
+          "min": 0.7196683376905556,
+          "max": 17.553819384846143
+        },
+        "max_energy_drift": {
+          "mean": 294.9147601524989,
+          "std": 416.2054645645955,
+          "min": 0.3065119981765747,
+          "max": 883.51806640625
+        }
+      },
+      "fixed_koopman": {
+        "valid_time": {
+          "mean": 0.9266666666666667,
+          "std": 0.2379542439676633,
+          "min": 0.72,
+          "max": 1.26
+        },
+        "angle_rmse": {
+          "mean": 1.7483378907379068,
+          "std": 0.21579334289510557,
+          "min": 1.526722758433966,
+          "max": 2.040846310237342
+        },
+        "omega_rmse": {
+          "mean": 1.1424523543293073,
+          "std": 0.09294529213516799,
+          "min": 1.0172104033658216,
+          "max": 1.239628811059073
+        },
+        "max_energy_drift": {
+          "mean": 1.6035748918851216,
+          "std": 0.44544453733257733,
+          "min": 0.9740321040153503,
+          "max": 1.9380481243133545
+        }
+      },
+      "energy_conditioned": {
+        "valid_time": {
+          "mean": 0.5933333333333334,
+          "std": 0.2782484900627894,
+          "min": 0.24,
+          "max": 0.92
+        },
+        "angle_rmse": {
+          "mean": 1.2554199649208908,
+          "std": 0.1272302036413907,
+          "min": 1.0783912524150194,
+          "max": 1.37180748549598
+        },
+        "omega_rmse": {
+          "mean": 0.7105870147532259,
+          "std": 0.06498002406215775,
+          "min": 0.623648114180825,
+          "max": 0.7798406843629688
+        },
+        "max_energy_drift": {
+          "mean": 0.5004333655039469,
+          "std": 0.011896545351110892,
+          "min": 0.4839698076248169,
+          "max": 0.5116659998893738
+        }
+      },
+      "reference": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "omega_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "max_energy_drift": {
+          "mean": 0.00013135665618702053,
+          "std": 0.0,
+          "min": 0.00013135665618702053,
+          "max": 0.00013135665618702053
+        }
+      }
+    },
+    "3.05": {
+      "persistence": {
+        "valid_time": {
+          "mean": 1.4799999999999998,
+          "std": 2.220446049250313e-16,
+          "min": 1.48,
+          "max": 1.48
+        },
+        "angle_rmse": {
+          "mean": 1.2402266695645523,
+          "std": 0.0,
+          "min": 1.2402266695645523,
+          "max": 1.2402266695645523
+        },
+        "omega_rmse": {
+          "mean": 0.9912423124229756,
+          "std": 1.1102230246251565e-16,
+          "min": 0.9912423124229754,
+          "max": 0.9912423124229754
+        },
+        "max_energy_drift": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "dmd": {
+        "valid_time": {
+          "mean": 1.58,
+          "std": 0.0,
+          "min": 1.58,
+          "max": 1.58
+        },
+        "angle_rmse": {
+          "mean": 1.2438878605880632,
+          "std": 0.0,
+          "min": 1.2438878605880632,
+          "max": 1.2438878605880632
+        },
+        "omega_rmse": {
+          "mean": 0.9902853388886217,
+          "std": 0.0,
+          "min": 0.9902853388886217,
+          "max": 0.9902853388886217
+        },
+        "max_energy_drift": {
+          "mean": 0.028734569296398726,
+          "std": 0.0,
+          "min": 0.028734569296398726,
+          "max": 0.028734569296398726
+        }
+      },
+      "small_angle": {
+        "valid_time": {
+          "mean": 0.12,
+          "std": 0.0,
+          "min": 0.12,
+          "max": 0.12
+        },
+        "angle_rmse": {
+          "mean": 1.7902842620780184,
+          "std": 0.0,
+          "min": 1.7902842620780184,
+          "max": 1.7902842620780184
+        },
+        "omega_rmse": {
+          "mean": 2.643192541157397,
+          "std": 0.0,
+          "min": 2.643192541157397,
+          "max": 2.643192541157397
+        },
+        "max_energy_drift": {
+          "mean": 2.6549785137176514,
+          "std": 0.0,
+          "min": 2.6549785137176514,
+          "max": 2.6549785137176514
+        }
+      },
+      "mlp": {
+        "valid_time": {
+          "mean": 2.2933333333333334,
+          "std": 0.726697247062963,
+          "min": 1.74,
+          "max": 3.3200000000000003
+        },
+        "angle_rmse": {
+          "mean": 1.31757949451804,
+          "std": 0.17740218806162522,
+          "min": 1.144365266331747,
+          "max": 1.5613646218921429
+        },
+        "omega_rmse": {
+          "mean": 5.422651601462228,
+          "std": 5.782706052561259,
+          "min": 1.3158859936429654,
+          "max": 13.600607134739809
+        },
+        "max_energy_drift": {
+          "mean": 229.92889422178268,
+          "std": 323.23553559919304,
+          "min": 0.4101312756538391,
+          "max": 687.0516357421875
+        }
+      },
+      "fixed_koopman": {
+        "valid_time": {
+          "mean": 0.9866666666666667,
+          "std": 0.12364824660660935,
+          "min": 0.88,
+          "max": 1.16
+        },
+        "angle_rmse": {
+          "mean": 1.7564952682952095,
+          "std": 0.3452168187590458,
+          "min": 1.275824629843862,
+          "max": 2.0708493751984336
+        },
+        "omega_rmse": {
+          "mean": 1.0348933275705374,
+          "std": 0.042717343694449024,
+          "min": 0.9763573283576514,
+          "max": 1.077096155184197
+        },
+        "max_energy_drift": {
+          "mean": 1.6576635440190632,
+          "std": 0.3920057840777508,
+          "min": 1.1061230897903442,
+          "max": 1.9819636344909668
+        }
+      },
+      "energy_conditioned": {
+        "valid_time": {
+          "mean": 0.02,
+          "std": 0.0,
+          "min": 0.02,
+          "max": 0.02
+        },
+        "angle_rmse": {
+          "mean": 1.6335461104880655,
+          "std": 0.05405543608328773,
+          "min": 1.5613277522979854,
+          "max": 1.6913662732199328
+        },
+        "omega_rmse": {
+          "mean": 1.6232707625950127,
+          "std": 0.03604393245652774,
+          "min": 1.5728337041943783,
+          "max": 1.6548787327187873
+        },
+        "max_energy_drift": {
+          "mean": 0.58750981092453,
+          "std": 0.011791328939314446,
+          "min": 0.5719258785247803,
+          "max": 0.6004407405853271
+        }
+      },
+      "reference": {
+        "valid_time": {
+          "mean": 24.0,
+          "std": 0.0,
+          "min": 24.0,
+          "max": 24.0
+        },
+        "angle_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "omega_rmse": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "max_energy_drift": {
+          "mean": 0.000133198600285378,
+          "std": 0.0,
+          "min": 0.000133198600285378,
+          "max": 0.000133198600285378
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "showcase_amplitude": 2.0,
+    "conditioned_valid_time_wins_over_mlp": 2,
+    "conditioned_angle_rmse_wins_over_mlp": 2,
+    "seed_count": 3
+  }
+}

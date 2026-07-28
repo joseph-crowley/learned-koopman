@@ -20,6 +20,7 @@ class ExperimentConfig:
     batch_size: int = 256
     epochs_mlp: int = 100
     epochs_fixed: int = 140
+    epochs_conditioned_pretrain: int = 40
     epochs_conditioned: int = 120
     learning_rate: float = 2e-3
     output_dir: Path = Path("results/portfolio")

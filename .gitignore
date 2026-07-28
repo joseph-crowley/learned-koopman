@@ -141,6 +141,7 @@ results/*
 results/portfolio/*
 !results/portfolio/metrics.json
 !results/portfolio/comparison.png
+!results/portfolio/robustness.json
 
 # Spyder project settings
 .spyderproject
