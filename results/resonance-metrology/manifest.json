@@ -50,7 +50,7 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "d51210997a22d3c3d38f491911ea08243e4b7f11",
+    "git_commit": "dec74d9cb709d849b12dbc6e9f85d2633a338906",
     "git_worktree_clean": true
   },
   "fixture": {
@@ -152,6 +152,64 @@
       "seed-41-h40-s8"
     ],
     "estimable_count": 5,
+    "block_ledger": [
+      {
+        "label": "seed-7-h24-s6",
+        "verdict": "ill_conditioned",
+        "condition_number": 54.85829526198702,
+        "usable_bins": 8,
+        "total_bins": 10
+      },
+      {
+        "label": "seed-17-h24-s6",
+        "verdict": "ill_conditioned",
+        "condition_number": 78.9167406596611,
+        "usable_bins": 8,
+        "total_bins": 11
+      },
+      {
+        "label": "seed-29-h24-s6",
+        "verdict": "value",
+        "condition_number": 23.65818720544911,
+        "usable_bins": 8,
+        "total_bins": 11
+      },
+      {
+        "label": "seed-41-h24-s6",
+        "verdict": "ill_conditioned",
+        "condition_number": 36.74542174725987,
+        "usable_bins": 8,
+        "total_bins": 10
+      },
+      {
+        "label": "seed-7-h40-s8",
+        "verdict": "value",
+        "condition_number": 12.042524403356841,
+        "usable_bins": 8,
+        "total_bins": 11
+      },
+      {
+        "label": "seed-17-h40-s8",
+        "verdict": "value",
+        "condition_number": 15.050270542822291,
+        "usable_bins": 8,
+        "total_bins": 11
+      },
+      {
+        "label": "seed-29-h40-s8",
+        "verdict": "value",
+        "condition_number": 13.237634911242075,
+        "usable_bins": 8,
+        "total_bins": 11
+      },
+      {
+        "label": "seed-41-h40-s8",
+        "verdict": "value",
+        "condition_number": 19.437989068953318,
+        "usable_bins": 8,
+        "total_bins": 11
+      }
+    ],
     "accepted": [
       {
         "label": "seed-29-h24-s6",
@@ -182,6 +240,7 @@
         "floor_second_order": 2.3246061339018952e-07,
         "floor_multiplicative": 3.2580342625563625e-05,
         "floor_total": 0.0006691515270878768,
+        "floor_available": true,
         "covered": false,
         "chart_error_harmonics": {
           "relative_action_harmonic_m": 0.0034275516752750924,
@@ -502,6 +561,7 @@
         "floor_second_order": 5.238651945619415e-07,
         "floor_multiplicative": 3.2270539203133844e-05,
         "floor_total": 0.0010302191650141965,
+        "floor_available": true,
         "covered": false,
         "chart_error_harmonics": {
           "relative_action_harmonic_m": 0.0051580747784462835,
@@ -822,6 +882,7 @@
         "floor_second_order": 3.9789451333481194e-07,
         "floor_multiplicative": 3.299953921826617e-05,
         "floor_total": 0.0008773719928858235,
+        "floor_available": true,
         "covered": true,
         "chart_error_harmonics": {
           "relative_action_harmonic_m": 0.004600878081697445,
@@ -1142,6 +1203,7 @@
         "floor_second_order": 4.608111025946523e-07,
         "floor_multiplicative": 2.8821227522448148e-05,
         "floor_total": 0.0001919344661205135,
+        "floor_available": true,
         "covered": false,
         "chart_error_harmonics": {
           "relative_action_harmonic_m": 0.005055246473803911,
@@ -1458,11 +1520,12 @@
           "complex_error": 0.028178274153663335
         },
         "absolute_error": 0.001532626771711058,
-        "floor_additive": 0.0,
+        "floor_additive": null,
         "floor_second_order": 4.839620831446575e-07,
         "floor_multiplicative": 2.4500119433378178e-05,
-        "floor_total": 2.4984081516522834e-05,
-        "covered": false,
+        "floor_total": null,
+        "floor_available": false,
+        "covered": null,
         "chart_error_harmonics": {
           "relative_action_harmonic_m": 0.005110577631402717,
           "angle_error_harmonic_2m": 0.0013451938246914765
@@ -1773,7 +1836,7 @@
             "normalized_rollout_rmse": 0.984255313873291,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.324433083180338,
+          "training_seconds": 7.313082166947424,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1817,7 +1880,7 @@
             "normalized_rollout_rmse": 0.7604740262031555,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.314317874843255,
+          "training_seconds": 7.3437425419688225,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1861,7 +1924,7 @@
             "normalized_rollout_rmse": 0.9233464002609253,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.3080790839158,
+          "training_seconds": 7.2721525421366096,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1905,7 +1968,7 @@
             "normalized_rollout_rmse": 0.8143563866615295,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.306951124919578,
+          "training_seconds": 7.266631291946396,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1949,7 +2012,7 @@
             "normalized_rollout_rmse": 0.913047730922699,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.648522041970864,
+          "training_seconds": 10.615712624974549,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1993,7 +2056,7 @@
             "normalized_rollout_rmse": 0.9552991986274719,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.64502620906569,
+          "training_seconds": 10.637058207998052,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2037,7 +2100,7 @@
             "normalized_rollout_rmse": 0.9009569883346558,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.592203417094424,
+          "training_seconds": 10.62868466693908,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2081,7 +2144,7 @@
             "normalized_rollout_rmse": 0.8940930962562561,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.583541667088866,
+          "training_seconds": 10.635349499993026,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2127,7 +2190,7 @@
             "normalized_rollout_rmse": 0.8176790475845337,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.366655624937266,
+          "training_seconds": 7.374791166977957,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2171,7 +2234,7 @@
             "normalized_rollout_rmse": 0.8097516894340515,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.314395958092064,
+          "training_seconds": 7.289330166997388,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2215,7 +2278,7 @@
             "normalized_rollout_rmse": 0.8482679128646851,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.3058707090094686,
+          "training_seconds": 7.292675792006776,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2259,7 +2322,7 @@
             "normalized_rollout_rmse": 0.5928313732147217,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.307562415953726,
+          "training_seconds": 7.306976916035637,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2303,7 +2366,7 @@
             "normalized_rollout_rmse": 0.7977061867713928,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.580141125014052,
+          "training_seconds": 10.63490325002931,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2347,7 +2410,7 @@
             "normalized_rollout_rmse": 0.6201055645942688,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.50925033306703,
+          "training_seconds": 10.626856500050053,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2391,7 +2454,7 @@
             "normalized_rollout_rmse": 0.9905946850776672,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.497497042175382,
+          "training_seconds": 10.663296499988064,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2435,7 +2498,7 @@
             "normalized_rollout_rmse": 0.680474579334259,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.508876875042915,
+          "training_seconds": 10.659682082943618,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -3003,6 +3066,8 @@
       0.005299431092746741
     ],
     "complex_error": 0.19585118376742347,
+    "median_per_chart_complex_error": 0.20435023622814108,
+    "charts_above_complex_threshold": 3,
     "magnitude_error": 0.06871765238142351,
     "location_error_radians": 0.059213103305705346,
     "generating_function_amplitude": 0.0026717941309535587,
@@ -3011,6 +3076,9 @@
   "empirical_gates": {
     "G1_complex_recovery": {
       "value": 0.19585118376742347,
+      "aggregation": "error of componentwise-median coefficient",
+      "median_per_chart_error": 0.20435023622814108,
+      "charts_above_threshold": 3,
       "threshold": 0.2,
       "passed": true
     },
@@ -3025,7 +3093,11 @@
       "passed": true
     },
     "G4_floor_coverage": {
-      "value": 0.2,
+      "value": 0.25,
+      "evaluated_chart_count": 4,
+      "unavailable_chart_labels": [
+        "seed-41-h40-s8"
+      ],
       "threshold": 0.8,
       "passed": false
     },
@@ -3036,15 +3108,238 @@
         "null_prediction_healthy_count": 8,
         "null_instrument_available": false,
         "null_below_two_floors": true,
-        "wrong_harmonics_passed": true,
+        "wrong_harmonics_passed": false,
+        "wrong_harmonic_checks": {
+          "2": {
+            "criterion": "each chart must report no_resonance_crossing",
+            "threshold": null,
+            "passed": true,
+            "charts": [
+              {
+                "label": "seed-7-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-7-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              }
+            ]
+          },
+          "4": {
+            "criterion": "each chart must report no_resonance_crossing",
+            "threshold": null,
+            "passed": true,
+            "charts": [
+              {
+                "label": "seed-7-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h24-s6",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-7-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h40-s8",
+                "verdict": "no_resonance_crossing",
+                "coefficient_magnitude": null,
+                "passed": true
+              }
+            ]
+          },
+          "6": {
+            "criterion": "each value must be at or below two modeled floors; abstention passes",
+            "threshold": 0.0015465235199737003,
+            "passed": false,
+            "charts": [
+              {
+                "label": "seed-7-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h24-s6",
+                "verdict": "value",
+                "coefficient_magnitude": 0.0018105703993763688,
+                "passed": false
+              },
+              {
+                "label": "seed-41-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-7-h40-s8",
+                "verdict": "value",
+                "coefficient_magnitude": 0.001498661331718332,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h40-s8",
+                "verdict": "value",
+                "coefficient_magnitude": 0.0008656906118134568,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h40-s8",
+                "verdict": "value",
+                "coefficient_magnitude": 0.0011111099055269192,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h40-s8",
+                "verdict": "value",
+                "coefficient_magnitude": 0.00102251753834597,
+                "passed": true
+              }
+            ]
+          },
+          "8": {
+            "criterion": "each value must be at or below two modeled floors; abstention passes",
+            "threshold": 0.0015465235199737003,
+            "passed": true,
+            "charts": [
+              {
+                "label": "seed-7-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h24-s6",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-7-h40-s8",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-17-h40-s8",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-29-h40-s8",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              },
+              {
+                "label": "seed-41-h40-s8",
+                "verdict": "ill_conditioned",
+                "coefficient_magnitude": null,
+                "passed": true
+              }
+            ]
+          }
+        },
         "off_band_abstained": true,
-        "shuffled_over_truth": 0.3722591485889717
+        "shuffled_over_truth": 0.3722591485889717,
+        "shuffled_band_fit_abstention_count": 8
       },
       "threshold": "at least 6 prediction-healthy/estimable null charts; null/crossed traps <= 2 floors; no-crossing and off-band controls abstain; shuffled <= 0.2 of truth",
       "passed": false
     },
     "G6_detection_roc": {
-      "value": 1.4010279616038028,
+      "value": 1.212396692183437,
       "threshold": 3.0,
       "passed": true
     },
@@ -3072,8 +3367,12 @@
     },
     "G9_variant_stability": {
       "value": 0.034196295007790485,
+      "all_trigger_variants_evaluable": false,
+      "unevaluable_trigger_variants": [
+        "quadratic_chart"
+      ],
       "threshold": 0.2,
-      "passed": true
+      "passed": false
     }
   },
   "controls": {
@@ -13753,6 +14052,228 @@
         "reference_action_available": true
       }
     },
+    "wrong_harmonic_checks": {
+      "2": {
+        "criterion": "each chart must report no_resonance_crossing",
+        "threshold": null,
+        "passed": true,
+        "charts": [
+          {
+            "label": "seed-7-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-7-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          }
+        ]
+      },
+      "4": {
+        "criterion": "each chart must report no_resonance_crossing",
+        "threshold": null,
+        "passed": true,
+        "charts": [
+          {
+            "label": "seed-7-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h24-s6",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-7-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h40-s8",
+            "verdict": "no_resonance_crossing",
+            "coefficient_magnitude": null,
+            "passed": true
+          }
+        ]
+      },
+      "6": {
+        "criterion": "each value must be at or below two modeled floors; abstention passes",
+        "threshold": 0.0015465235199737003,
+        "passed": false,
+        "charts": [
+          {
+            "label": "seed-7-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h24-s6",
+            "verdict": "value",
+            "coefficient_magnitude": 0.0018105703993763688,
+            "passed": false
+          },
+          {
+            "label": "seed-41-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-7-h40-s8",
+            "verdict": "value",
+            "coefficient_magnitude": 0.001498661331718332,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h40-s8",
+            "verdict": "value",
+            "coefficient_magnitude": 0.0008656906118134568,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h40-s8",
+            "verdict": "value",
+            "coefficient_magnitude": 0.0011111099055269192,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h40-s8",
+            "verdict": "value",
+            "coefficient_magnitude": 0.00102251753834597,
+            "passed": true
+          }
+        ]
+      },
+      "8": {
+        "criterion": "each value must be at or below two modeled floors; abstention passes",
+        "threshold": 0.0015465235199737003,
+        "passed": true,
+        "charts": [
+          {
+            "label": "seed-7-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h24-s6",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-7-h40-s8",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-17-h40-s8",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-29-h40-s8",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          },
+          {
+            "label": "seed-41-h40-s8",
+            "verdict": "ill_conditioned",
+            "coefficient_magnitude": null,
+            "passed": true
+          }
+        ]
+      }
+    },
     "off_band": {
       "order": 3,
       "band": [
@@ -18144,10 +18665,10 @@
           "detected_above_two_floors": true
         }
       },
-      "modeled_floor": 0.0006691515270878768,
-      "predicted_detection_scale": 0.17844040722343382,
+      "modeled_floor": 0.0007732617599868502,
+      "predicted_detection_scale": 0.2062031359964934,
       "observed_detection_scale": 0.25,
-      "observed_to_predicted_ratio": 1.4010279616038028
+      "observed_to_predicted_ratio": 1.212396692183437
     },
     "exact_2m_gauge_stress": {
       "ladder": [
@@ -18865,8 +19386,12 @@
         }
       },
       "maximum_trigger_deviation": 0.034196295007790485,
-      "blocks_supported_status": true,
-      "warning": false
+      "all_trigger_variants_evaluable": false,
+      "unevaluable_trigger_variants": [
+        "quadratic_chart"
+      ],
+      "blocks_supported_status": false,
+      "warning": true
     }
   },
   "ledgers": {
@@ -18904,15 +19429,15 @@
     "physical coefficients at harmonics without an in-band resonance crossing"
   ],
   "next_falsifier": "Repeat only after preserving this result: independent systems, noise/sampling sweeps, and a measured return map.",
-  "runtime_seconds": 146.07536641601473,
+  "runtime_seconds": 146.50838158419356,
   "artifacts": {
     "manifest": "manifest.json",
     "report": "report.html",
     "overview": "overview.png",
     "s1_data": "s1-trajectories.csv",
     "s2_data": "s2-null-trajectories.csv",
-    "report_sha256": "647c7d8123f58d4ba700f2930f32d1fc8136590d6aeb9b70ce64b47cf057c333",
-    "overview_sha256": "dc7331fdfd7a2e7853c3bd7adefa6d3ba2d31d3dd442b91bb2e3e6b564ffb11e",
+    "report_sha256": "fc445df6cd2b32e7d1555b121a52ecce6a9b1b8be0eabbf36499e9368112a4fa",
+    "overview_sha256": "1f986fcfe9a8132ffb3d26902cd8d9cb217312b0418b33ebe2f97372e530aae4",
     "s1_data_sha256": "b6675f6e0342590e5bd8205273af5614bf996befbe799a8a78d80901f721d4db",
     "s2_data_sha256": "fb2c39b67ba2725888a2a5dc73e0a94e1f70db2ad2de5086decf08db4ffb74b8"
   }
