@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "tool": "koopman_mechanics_workbench",
-  "learned_koopman_version": "3.1.0",
+  "learned_koopman_version": "3.2.0",
   "profile": "full",
   "environment": {
     "python": "3.12.13",
@@ -10,7 +10,7 @@
     "platform": "macOS-26.6-arm64-arm-64bit"
   },
   "source_revision": {
-    "git_commit": "45b92560f4e5be921810a15f917000d52ea252c8",
+    "git_commit": "9718e4f0f5c49c07c447eb0cd4cec85bc6f2620c",
     "git_worktree_clean": true
   },
   "dataset": {
@@ -825,7 +825,7 @@
     "overview": "overview.png",
     "model": "model.pt",
     "manifest": "manifest.json",
-    "model_sha256": "95a266e13c22fa5b6906e5ecaf76ce46a8886fb04da2c3d67c1ade91b461800f",
+    "model_sha256": "03c7aa5398664d825c7313a57369a42c5325ed57f21500381114eef0828bf181",
     "overview_sha256": "541874bcc1bc9dc99e8d0d37833cff98a6ddf39f21ebd3a8be9b4cfbb093e471",
     "report_sha256": "b2ae86b068af4035757384406fdd5e9f6c04c25cb74978354d7bd255ab37fe14"
   },
