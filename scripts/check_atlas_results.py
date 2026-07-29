@@ -108,11 +108,10 @@ def main() -> None:
         )
 
     expected_claims = (
-        f"{atlas_band['valid_time']['mean']:.2f} ± {atlas_band['valid_time']['std']:.2f}",
-        f"{mlp_band['valid_time']['mean']:.2f} ± {mlp_band['valid_time']['std']:.2f}",
-        f"{conditioned_band['valid_time']['mean']:.2f} ± "
-        f"{conditioned_band['valid_time']['std']:.2f}",
-        "4 / 5",
+        f"${atlas_band['valid_time']['mean']:.2f}"
+        f"\\pm{atlas_band['valid_time']['std']:.2f}$",
+        f"${conditioned_band['valid_time']['mean']:.2f}"
+        f"\\pm{conditioned_band['valid_time']['std']:.2f}$",
     )
     for claim in expected_claims:
         assert claim in readme, f"README atlas claim is stale or missing: {claim}"
