@@ -174,3 +174,14 @@ def test_ci_profile_is_real_but_cannot_emit_a_decisive_status(tmp_path) -> None:
     stale["status"] = "resolved_supported"
     with pytest.raises(ValueError, match="non-full"):
         validate_resonance_manifest(stale)
+
+    unsupported_refutation = copy.deepcopy(result)
+    unsupported_refutation["profile"] = "full"
+    unsupported_refutation["source_revision"]["git_worktree_clean"] = True
+    unsupported_refutation["status"] = "resolved_refuted"
+    unsupported_refutation["status_reason"] = "gauge_freedom"
+    stress = unsupported_refutation["controls"]["exact_2m_gauge_stress"]
+    stress["maximum_in_envelope_complex_shift"] = 0.2
+    stress["maximum_in_envelope_magnitude_shift"] = 0.15
+    with pytest.raises(ValueError, match="lacks a comparable 2x shift"):
+        validate_resonance_manifest(unsupported_refutation)

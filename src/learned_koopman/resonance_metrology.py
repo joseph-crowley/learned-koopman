@@ -1329,8 +1329,10 @@ alt="Resonance-metrology diagnostics"></div>
 <strong>{visible_text}</strong>. Maximum in-envelope complex shift:
 <strong>{stress['maximum_in_envelope_complex_shift']}</strong>; magnitude
 shift: <strong>{stress['maximum_in_envelope_magnitude_shift']}</strong>.</p>
-<p>A non-comparable gauge fit forces abstention; only a measured comparable
-shift beyond twice the frozen tolerance can produce a gauge refutation.</p>
+<p>In-envelope gauge fits without a comparable block:
+<strong>{stress['noncomparable_in_envelope_count']}</strong>. A non-comparable
+fit forbids support; only a measured comparable shift beyond twice the frozen
+tolerance can produce a gauge refutation.</p>
 </div>
 <div class="card"><h2>Estimator variants</h2><table><thead><tr>
 <th>variant</th><th>charts</th><th>consensus</th>
@@ -1926,16 +1928,23 @@ def run_resonance_metrology(
         for row in stress_per_scale[str(scale)]
         if row["inside_prediction_envelope"]
     ]
+    comparable_in_envelope_rows = [
+        row for row in in_envelope_rows if row["comparable_block"]
+    ]
+    noncomparable_in_envelope_count = (
+        len(in_envelope_rows) - len(comparable_in_envelope_rows)
+    )
     maximum_in_envelope_complex_shift = max(
-        (row["complex_shift"] for row in in_envelope_rows),
+        (row["complex_shift"] for row in comparable_in_envelope_rows),
         default=1e9,
     )
     maximum_in_envelope_magnitude_shift = max(
-        (row["magnitude_shift"] for row in in_envelope_rows),
+        (row["magnitude_shift"] for row in comparable_in_envelope_rows),
         default=1e9,
     )
     gauge_stress_passed = (
-        maximum_in_envelope_complex_shift <= 0.20
+        noncomparable_in_envelope_count == 0
+        and maximum_in_envelope_complex_shift <= 0.20
         and maximum_in_envelope_magnitude_shift <= 0.15
     )
     gauge_stress_refuted = (
@@ -1945,7 +1954,7 @@ def run_resonance_metrology(
                 row["complex_shift"] > 0.40
                 or row["magnitude_shift"] > 0.30
             )
-            for row in in_envelope_rows
+            for row in comparable_in_envelope_rows
         )
     )
     variant_panel = (
@@ -2128,6 +2137,9 @@ def run_resonance_metrology(
         },
         "G8_exact_gauge_stress": {
             "value": {
+                "noncomparable_in_envelope_count": (
+                    noncomparable_in_envelope_count
+                ),
                 "maximum_in_envelope_complex_shift": (
                     maximum_in_envelope_complex_shift
                 ),
@@ -2287,6 +2299,9 @@ def run_resonance_metrology(
                 "maximum_in_envelope_magnitude_shift": (
                     maximum_in_envelope_magnitude_shift
                 ),
+                "noncomparable_in_envelope_count": (
+                    noncomparable_in_envelope_count
+                ),
             },
             "variant_stability": variant_panel,
         },
@@ -2416,6 +2431,16 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
         and manifest["source_revision"].get("git_worktree_clean") is not True
     ):
         raise ValueError("full-profile evidence must come from a clean source revision")
+    if (
+        manifest["status"] == "resolved_refuted"
+        and manifest["status_reason"] == "gauge_freedom"
+    ):
+        stress = manifest["controls"]["exact_2m_gauge_stress"]
+        if not (
+            stress["maximum_in_envelope_complex_shift"] > 0.40
+            or stress["maximum_in_envelope_magnitude_shift"] > 0.30
+        ):
+            raise ValueError("gauge refutation lacks a comparable 2x shift")
     for width in (
         manifest["oracle"]["island_half_width"],
         manifest["ensemble_consensus"]["island_half_width"],
