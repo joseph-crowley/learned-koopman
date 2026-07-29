@@ -112,10 +112,10 @@ def _json_safe(value: Any) -> Any:
     if isinstance(value, (np.floating, float)):
         number = float(value)
         return number if np.isfinite(number) else None
-    if isinstance(value, (np.integer, int)):
-        return int(value)
     if isinstance(value, (np.bool_, bool)):
         return bool(value)
+    if isinstance(value, (np.integer, int)):
+        return int(value)
     return value
 
 
@@ -372,7 +372,12 @@ def _plot_report(
     axes[0, 0].set_xlabel("initial angle")
     axes[0, 0].set_ylabel("initial action")
 
-    labels = ["leading", "direct", "raw", *[row["label"] for row in ensemble["charts"]]]
+    labels = [
+        "leading",
+        "direct",
+        "raw",
+        *[f"C{index + 1}" for index, _ in enumerate(ensemble["charts"])],
+    ]
     values = [
         reference["leading_total_island_area"],
         reference["direct_physical_area"],
@@ -387,7 +392,7 @@ def _plot_report(
         linestyle="--",
         linewidth=1.2,
     )
-    axes[0, 1].set_xticks(np.arange(len(values)), labels, rotation=70, ha="right")
+    axes[0, 1].set_xticks(np.arange(len(values)), labels, rotation=35, ha="right")
     axes[0, 1].set_ylabel("total island area")
     axes[0, 1].set_title("Invariant area beats the raw polar baseline")
 
@@ -432,8 +437,8 @@ def _plot_report(
     axes[1, 1].set_title("Null floor and noncanonical negative control")
     axes[1, 1].legend()
 
-    fig.suptitle("Gauge-invariant resonant-island area audit", fontsize=15)
-    fig.savefig(path, dpi=180)
+    fig.suptitle("Gauge-invariant resonant-island area audit", fontsize=15, y=0.995)
+    fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
 
