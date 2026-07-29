@@ -25,6 +25,30 @@ from learned_koopman.map_fixtures import (
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+REFERENCE_RADIAL_CELLS = 61
+REFERENCE_ANGULAR_CELLS = 180
+REFERENCE_STEPS = 800
+REFERENCE_ACTION_MARGIN = 0.35
+REFERENCE_GAUGE_SCALES = (0.01, 0.02, 0.04, 0.10)
+REFERENCE_GAUGE_PHASES = (0.0, 0.5 * np.pi)
+REFERENCE_LIBRATION_SPAN_LIMIT = 2.0 * np.pi
+
+_INSTRUMENT_HEALTH_GATES = frozenset(
+    {
+        "direct_map_matches_leading_area",
+        "null_area_stays_within_resolution_fraction_ceiling",
+        "noncanonical_area_scaling_plumbing",
+        "learned_charts_preserve_domain_area",
+        "probe_mesh_within_model_support",
+    }
+)
+_REFUTATION_REASONS = {
+    "learned_consensus_matches_direct_area": "island_area_accuracy_failed",
+    "every_chart_matches_direct_area": "island_area_accuracy_failed",
+    "membership_matches_direct_topology": "winding_topology_failed",
+    "exact_gauges_preserve_area": "gauge_invariance_failed",
+    "learned_chart_beats_raw_polar_baseline": "no_value_over_raw_baseline",
+}
 
 
 @dataclass(frozen=True)
@@ -33,14 +57,14 @@ class IslandAreaConfig:
 
     output: Path
     resonance_manifest: Path
-    radial_cells: int = 61
-    angular_cells: int = 180
-    steps: int = 800
-    action_margin: float = 0.35
+    radial_cells: int = REFERENCE_RADIAL_CELLS
+    angular_cells: int = REFERENCE_ANGULAR_CELLS
+    steps: int = REFERENCE_STEPS
+    action_margin: float = REFERENCE_ACTION_MARGIN
     batch_size: int = 65_536
-    gauge_scales: tuple[float, ...] = (0.01, 0.02, 0.04, 0.10)
-    gauge_phases: tuple[float, ...] = (0.0, 0.5 * np.pi)
-    libration_span_limit: float = 2.0 * np.pi
+    gauge_scales: tuple[float, ...] = REFERENCE_GAUGE_SCALES
+    gauge_phases: tuple[float, ...] = REFERENCE_GAUGE_PHASES
+    libration_span_limit: float = REFERENCE_LIBRATION_SPAN_LIMIT
 
     @classmethod
     def quick(
@@ -69,6 +93,42 @@ class ProbeMesh:
     @property
     def shape(self) -> tuple[int, int]:
         return (len(self.action_edges) - 1, len(self.angle_edges) - 1)
+
+
+def _is_reference_profile(config: IslandAreaConfig) -> bool:
+    return (
+        config.radial_cells == REFERENCE_RADIAL_CELLS
+        and config.angular_cells == REFERENCE_ANGULAR_CELLS
+        and config.steps == REFERENCE_STEPS
+        and np.isclose(config.action_margin, REFERENCE_ACTION_MARGIN)
+        and tuple(config.gauge_scales) == REFERENCE_GAUGE_SCALES
+        and tuple(config.gauge_phases) == REFERENCE_GAUGE_PHASES
+        and np.isclose(
+            config.libration_span_limit,
+            REFERENCE_LIBRATION_SPAN_LIMIT,
+        )
+    )
+
+
+def _claim_state(
+    gates: dict[str, dict[str, Any]],
+    *,
+    is_reference_profile: bool,
+) -> tuple[str, str]:
+    if not is_reference_profile:
+        return "not_resolved_abstained", "non_reference_profile"
+    failed = [name for name, row in gates.items() if not bool(row["passed"])]
+    if not failed:
+        return "resolved_supported", "gauge_invariant_island_area"
+    if any(name in _INSTRUMENT_HEALTH_GATES for name in failed):
+        return (
+            "not_resolved_abstained",
+            "one_or_more_instrument_health_gates_failed",
+        )
+    for name in _REFUTATION_REASONS:
+        if name in failed:
+            return "resolved_refuted", _REFUTATION_REASONS[name]
+    return "not_resolved_abstained", "one_or_more_area_gates_failed"
 
 
 def _sha256(path: Path) -> str:
@@ -244,6 +304,32 @@ def _simulate_probe(
     return states, oracle_angles
 
 
+def _direct_bounded_mask(
+    system: TwistKickMap,
+    mesh: ProbeMesh,
+    *,
+    steps: int,
+    order: int,
+    span_limit: float,
+) -> np.ndarray:
+    """Classify an oracle mesh without retaining observed trajectories."""
+
+    actions = mesh.initial_actions.copy()
+    angles = mesh.initial_angles.copy()
+    previous = wrap_angle(order * angles)
+    unwrapped = previous.copy()
+    minimum = unwrapped.copy()
+    maximum = unwrapped.copy()
+    for _ in range(1, steps):
+        actions, angles = system.step(actions, angles)
+        current = wrap_angle(order * angles)
+        unwrapped += wrap_angle(current - previous)
+        minimum = np.minimum(minimum, unwrapped)
+        maximum = np.maximum(maximum, unwrapped)
+        previous = current
+    return (maximum - minimum) < span_limit
+
+
 def _encoded_angle_series(
     model: CanonicalKoopmanModel,
     states: np.ndarray,
@@ -311,7 +397,11 @@ def _jaccard(left: np.ndarray, right: np.ndarray) -> float:
 
 def _load_reference(
     config: IslandAreaConfig,
-) -> tuple[dict[str, Any], list[tuple[str, Path, str, CanonicalKoopmanModel]]]:
+) -> tuple[
+    dict[str, Any],
+    list[tuple[str, Path, str, CanonicalKoopmanModel]],
+    Path,
+]:
     manifest_path = config.resonance_manifest
     if not manifest_path.is_absolute():
         manifest_path = PROJECT_ROOT / manifest_path
@@ -343,7 +433,7 @@ def _load_reference(
         models.append((label, path, digest, model))
     if len(models) < 2 or len({row[2] for row in models}) != len(models):
         raise ValueError("island audit needs distinct independently fitted charts")
-    return manifest, models
+    return manifest, models, manifest_path
 
 
 def _plot_report(
@@ -358,7 +448,15 @@ def _plot_report(
     radial = int(config["radial_cells"])
     angular = int(config["angular_cells"])
     action_min, action_max = manifest["probe"]["action_band"]
-    fig, axes = plt.subplots(2, 2, figsize=(12.0, 8.6), constrained_layout=True)
+    fig, axes = plt.subplots(2, 2, figsize=(12.0, 8.6))
+    fig.subplots_adjust(
+        left=0.09,
+        right=0.97,
+        bottom=0.11,
+        top=0.87,
+        hspace=0.40,
+        wspace=0.27,
+    )
 
     axes[0, 0].imshow(
         oracle_mask.reshape(radial, angular),
@@ -437,7 +535,7 @@ def _plot_report(
     axes[1, 1].set_title("Null floor and noncanonical negative control")
     axes[1, 1].legend()
 
-    fig.suptitle("Gauge-invariant resonant-island area audit", fontsize=15, y=0.995)
+    fig.suptitle("Gauge-invariant resonant-island area audit", fontsize=15, y=0.96)
     fig.savefig(path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
@@ -468,6 +566,30 @@ def _write_report(path: Path, manifest: dict[str, Any]) -> None:
         "</tr>"
         for name, row in gates.items()
     )
+    refinement = manifest["probe"]["mesh_refinement"]
+    refinement_row = (
+        "<tr><td>direct physical/oracle refined mesh</td>"
+        f"<td>{refinement['direct_physical_area']:.6f}</td>"
+        f"<td>{refinement['relative_error_vs_leading']:.3%} vs leading</td></tr>"
+        if refinement["available"]
+        else ""
+    )
+    if manifest["status"] == "resolved_supported":
+        verdict_summary = (
+            "On this frozen synthetic reference profile, the "
+            "coordinate-dependent resonant coefficient failed its exact-gauge "
+            "test, while bounded-libration area survived it."
+        )
+    elif manifest["status"] == "resolved_refuted":
+        verdict_summary = (
+            "The reference profile refuted the declared island-area claim; "
+            "inspect the failed gates before using this observable."
+        )
+    else:
+        verdict_summary = (
+            "This run is exploratory or instrument-limited and does not emit a "
+            "decisive scientific result."
+        )
     document = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -488,9 +610,8 @@ code {{ background: #f3f4f6; padding: .1rem .25rem; }}
 </head>
 <body>
 <h1>Gauge-invariant resonant-island area</h1>
-<p class="verdict"><strong>{status}</strong> ({reason}). On this frozen
-synthetic fixture, the coordinate-dependent resonant coefficient failed its
-exact-gauge test, while bounded-libration area survived it.</p>
+<p class="verdict"><strong>{status}</strong> ({reason}).
+{html.escape(verdict_summary)}</p>
 <img src="overview.png"
 alt="Island-area membership, chart estimates, exact-gauge stress, and controls">
 <h2>What was measured</h2>
@@ -510,7 +631,8 @@ physical or learned canonical mesh, not from a fitted coefficient.</p>
 <td>{reference['raw_relative_error_vs_direct']:.3%}</td></tr>
 <tr><td>learned-chart consensus</td>
 <td>{ensemble['consensus_area']:.6f}</td>
-<td>{ensemble['consensus_relative_error_vs_direct']:.3%}</td></tr>
+<td>{ensemble['consensus_relative_error_vs_direct']:.3%} vs direct mesh</td></tr>
+{refinement_row}
 </table>
 <h2>Independent learned charts</h2>
 <table>
@@ -520,9 +642,11 @@ physical or learned canonical mesh, not from a fitted coefficient.</p>
 <h2>Adversarial controls</h2>
 <p>Maximum exact-gauge area shift:
 <strong>{controls['exact_gauge_stress']['maximum_relative_area_shift']:.4%}</strong>.
-The deliberately noncanonical 1.2× area scale moved the answer by
+Exact-canonical area invariance is structural; the empirical content is that
+the learned winding membership and numerical quadrature also survive. The
+deliberately noncanonical 1.2× area-scaling plumbing check moved the answer by
 <strong>{controls['noncanonical_scale']['relative_area_shift']:.2%}</strong>,
-so the audit is not simply insensitive to coordinate changes.</p>
+as it must by construction.</p>
 <table>
 <tr><th>gate</th><th>value</th><th>threshold</th><th>verdict</th></tr>
 {gate_rows}
@@ -552,7 +676,8 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
         raise ValueError("action_margin must be positive")
     started = time.perf_counter()
     config.output.mkdir(parents=True, exist_ok=True)
-    resonance, model_rows = _load_reference(config)
+    resonance, model_rows, reference_manifest_path = _load_reference(config)
+    is_reference_profile = _is_reference_profile(config)
     map_config = resonance["fixture"]["map"]
     order = int(map_config["kick_order"])
     kick = KickHarmonic(
@@ -592,6 +717,54 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
     raw_area = _area(mesh.physical_cell_areas, raw_mask, mesh.shape)
     leading_area = 8.0 * system.island_half_width(order)
 
+    mesh_refinement: dict[str, Any]
+    if is_reference_profile:
+        refined_config = replace(
+            config,
+            radial_cells=2 * config.radial_cells + 1,
+            angular_cells=2 * config.angular_cells,
+        )
+        refined_mesh = _build_mesh(
+            system,
+            observation,
+            refined_config,
+            order=order,
+        )
+        refined_mask = _direct_bounded_mask(
+            system,
+            refined_mesh,
+            steps=config.steps,
+            order=order,
+            span_limit=config.libration_span_limit,
+        )
+        refined_area = _area(
+            refined_mesh.physical_cell_areas,
+            refined_mask,
+            refined_mesh.shape,
+        )
+        mesh_refinement = {
+            "available": True,
+            "radial_cells": refined_config.radial_cells,
+            "angular_cells": refined_config.angular_cells,
+            "steps": config.steps,
+            "direct_physical_area": refined_area,
+            "relative_error_vs_leading": (
+                abs(refined_area - leading_area) / leading_area
+            ),
+            "relative_change_from_reference_mesh": (
+                abs(refined_area - direct_area) / refined_area
+            ),
+            "interpretation": (
+                "Post-review direct-only mesh refinement. Learned-vs-direct "
+                "errors remain same-mesh consistency measurements."
+            ),
+        }
+    else:
+        mesh_refinement = {
+            "available": False,
+            "reason": "mesh refinement is recorded only for the reference profile",
+        }
+
     chart_rows: list[dict[str, Any]] = []
     gauge_rows: list[dict[str, Any]] = []
     learned_angles: dict[str, np.ndarray] = {}
@@ -610,13 +783,19 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
         )
         latent_vertices = _latent_vertices(model, mesh.physical_vertices)
         weights = quadrilateral_cell_areas(latent_vertices)
+        latent_vertex_actions = 0.5 * np.square(latent_vertices).sum(axis=-1)
+        support_min = float(np.min(latent_vertex_actions))
+        support_max = float(np.max(latent_vertex_actions))
+        probe_within_support = (
+            support_min >= model.action_min and support_max <= model.action_max
+        )
         chart_weights[label] = weights
         island_area = _area(weights, mask, mesh.shape)
         chart_rows.append(
             {
                 "label": label,
                 "model": str(
-                    path.relative_to(config.resonance_manifest.resolve().parent)
+                    path.relative_to(reference_manifest_path.parent)
                 ),
                 "model_sha256": digest,
                 "model_fit_status": model.certificate_status,
@@ -629,6 +808,9 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
                     abs(float(weights.sum()) - physical_domain_area)
                     / physical_domain_area
                 ),
+                "probe_action_range": [support_min, support_max],
+                "model_action_support": [model.action_min, model.action_max],
+                "probe_within_model_support": probe_within_support,
                 "classification": span,
                 "uses_oracle_coordinates": False,
             }
@@ -715,6 +897,12 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
     maximum_gauge_shift = max(
         row["relative_area_shift"] for row in gauge_rows
     )
+    maximum_domain_area_error = max(
+        row["domain_area_relative_error"] for row in chart_rows
+    )
+    all_probes_within_support = all(
+        row["probe_within_model_support"] for row in chart_rows
+    )
 
     scale_factor = 1.2
     scaled_vertices = np.sqrt(scale_factor) * mesh.physical_vertices
@@ -730,6 +918,7 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
         "maximum_exact_gauge_area_shift": 0.005,
         "maximum_null_fraction": 0.10,
         "minimum_noncanonical_area_shift": 0.15,
+        "maximum_domain_area_relative_error": 0.001,
     }
     measurements = {
         "direct_vs_leading_error": abs(direct_area - leading_area) / leading_area,
@@ -739,6 +928,8 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
         "maximum_exact_gauge_area_shift": maximum_gauge_shift,
         "maximum_null_fraction": maximum_null_fraction,
         "noncanonical_area_shift": noncanonical_shift,
+        "maximum_domain_area_relative_error": maximum_domain_area_error,
+        "all_probes_within_model_support": all_probes_within_support,
     }
     empirical_gates = {
         "direct_map_matches_leading_area": {
@@ -772,15 +963,30 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
             "threshold": f"<= {thresholds['maximum_exact_gauge_area_shift']}",
             "passed": maximum_gauge_shift <= thresholds["maximum_exact_gauge_area_shift"],
         },
-        "null_area_stays_below_resolution_floor": {
+        "null_area_stays_within_resolution_fraction_ceiling": {
             "value": maximum_null_fraction,
             "threshold": f"<= {thresholds['maximum_null_fraction']}",
             "passed": maximum_null_fraction <= thresholds["maximum_null_fraction"],
         },
-        "noncanonical_control_moves_area": {
+        "noncanonical_area_scaling_plumbing": {
             "value": noncanonical_shift,
             "threshold": f">= {thresholds['minimum_noncanonical_area_shift']}",
             "passed": noncanonical_shift >= thresholds["minimum_noncanonical_area_shift"],
+        },
+        "learned_charts_preserve_domain_area": {
+            "value": maximum_domain_area_error,
+            "threshold": (
+                f"<= {thresholds['maximum_domain_area_relative_error']}"
+            ),
+            "passed": (
+                maximum_domain_area_error
+                <= thresholds["maximum_domain_area_relative_error"]
+            ),
+        },
+        "probe_mesh_within_model_support": {
+            "value": all_probes_within_support,
+            "threshold": "all charts true",
+            "passed": all_probes_within_support,
         },
         "learned_chart_beats_raw_polar_baseline": {
             "value": abs(consensus_area - direct_area),
@@ -788,12 +994,9 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
             "passed": abs(consensus_area - direct_area) < abs(raw_area - direct_area),
         },
     }
-    supported = all(row["passed"] for row in empirical_gates.values())
-    status = "resolved_supported" if supported else "not_resolved_abstained"
-    status_reason = (
-        "gauge_invariant_island_area"
-        if supported
-        else "one_or_more_predeclared_area_gates_failed"
+    status, status_reason = _claim_state(
+        empirical_gates,
+        is_reference_profile=is_reference_profile,
     )
 
     source_revision = _git_source_state()
@@ -807,6 +1010,8 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
             **asdict(config),
             "output": str(config.output),
             "resonance_manifest": str(config.resonance_manifest),
+            "profile": "reference" if is_reference_profile else "exploratory",
+            "is_reference_profile": is_reference_profile,
         },
         "environment": {
             "python": platform.python_version(),
@@ -827,11 +1032,7 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
         },
         "source_evidence": {
             "resonance_manifest": str(config.resonance_manifest),
-            "resonance_manifest_sha256": _sha256(
-                config.resonance_manifest
-                if config.resonance_manifest.is_absolute()
-                else PROJECT_ROOT / config.resonance_manifest
-            ),
+            "resonance_manifest_sha256": _sha256(reference_manifest_path),
             "resonance_status": resonance["status"],
             "resonance_status_reason": resonance["status_reason"],
             "resonance_source_revision": resonance["source_revision"],
@@ -857,6 +1058,7 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
                 f"span(m*angle) < {config.libration_span_limit:.12g}"
             ),
             "physical_cell_weights": True,
+            "mesh_refinement": mesh_refinement,
         },
         "reference": {
             "leading_total_island_area": leading_area,
@@ -915,8 +1117,9 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
                 "island_area": scaled_area,
                 "relative_area_shift": noncanonical_shift,
                 "interpretation": (
-                    "A deliberately noncanonical uniform phase-space scale "
-                    "must move the area and proves that the audit is sensitive."
+                    "A deliberately noncanonical uniform phase-space scale is "
+                    "an exact 20% area-scaling plumbing check, not an empirical "
+                    "learned-chart stress test."
                 ),
             },
         },
@@ -929,10 +1132,13 @@ def run_island_area_audit(config: IslandAreaConfig) -> dict[str, Any]:
             "from independently trained exact-symplectic charts agreed with "
             "direct physical/oracle area and survived the frozen exact-gauge "
             "ladder. The dense probe states were not used for chart training, "
-            "but the protocol was developed on this fixture. This supports an "
-            "invariant quotient on this retrospective fixture only; it does "
-            "not establish prospective transfer, measured-system robustness, "
-            "general transport recovery, calibrated uncertainty, or a theorem."
+            "but the protocol was developed on this fixture. Exact-gauge area "
+            "preservation is structural; the empirical content is same-mesh "
+            "winding membership and quadrature agreement. This supports an "
+            "invariant quotient on this retrospective fixture only; it does not "
+            "establish absolute continuum accuracy, prospective transfer, "
+            "measured-system robustness, general transport recovery, calibrated "
+            "uncertainty, or a theorem."
         ),
         "not_supported": [
             "measured-rig validation",
@@ -981,36 +1187,240 @@ def validate_island_area_manifest(
         raise ValueError("unsupported island-area schema")
     if manifest.get("experiment") != "island-area-audit":
         raise ValueError("manifest is not an island-area audit")
-    if require_clean_source and not manifest["source_revision"]["git_worktree_clean"]:
+    revision = manifest["source_revision"]
+    if require_clean_source and not revision["git_worktree_clean"]:
         raise ValueError("island-area evidence was not generated from a clean source tree")
+    if require_clean_source and revision["git_commit"]:
+        subprocess.run(
+            [
+                "git",
+                "diff",
+                "--quiet",
+                str(revision["git_commit"]),
+                "HEAD",
+                "--",
+                "pyproject.toml",
+                "src",
+            ],
+            cwd=PROJECT_ROOT,
+            check=True,
+        )
     if manifest["source_evidence"]["resonance_status_reason"] != "gauge_freedom":
         raise ValueError("island-area audit is not bound to the gauge refutation")
     if not manifest["protocol_posture"]["prospective_confirmation_required"]:
         raise ValueError("island-area audit hides its retrospective protocol posture")
+    config = manifest["config"]
+    expected_reference_profile = (
+        int(config["radial_cells"]) == REFERENCE_RADIAL_CELLS
+        and int(config["angular_cells"]) == REFERENCE_ANGULAR_CELLS
+        and int(config["steps"]) == REFERENCE_STEPS
+        and np.isclose(float(config["action_margin"]), REFERENCE_ACTION_MARGIN)
+        and tuple(config["gauge_scales"]) == REFERENCE_GAUGE_SCALES
+        and tuple(config["gauge_phases"]) == REFERENCE_GAUGE_PHASES
+        and np.isclose(
+            float(config["libration_span_limit"]),
+            REFERENCE_LIBRATION_SPAN_LIMIT,
+        )
+    )
+    if bool(config["is_reference_profile"]) != expected_reference_profile:
+        raise ValueError("island-area reference-profile marker is stale")
+    expected_profile = "reference" if expected_reference_profile else "exploratory"
+    if config["profile"] != expected_profile:
+        raise ValueError("island-area profile label is stale")
     charts = manifest["ensemble"]["charts"]
     if len(charts) < 2 or len({row["model_sha256"] for row in charts}) != len(charts):
         raise ValueError("island-area ensemble does not contain independent charts")
+    labels = [row["label"] for row in charts]
+    if labels != manifest["ensemble"]["accepted_labels"]:
+        raise ValueError("island-area accepted-chart labels are stale")
+    if manifest["ensemble"]["accepted_count"] != len(charts):
+        raise ValueError("island-area accepted-chart count is stale")
+    if manifest["source_evidence"]["model_count"] != len(charts):
+        raise ValueError("island-area source model count is stale")
+    if not manifest["source_evidence"]["models_are_distinct"]:
+        raise ValueError("island-area source evidence hides duplicate charts")
+    if any(
+        row["model_fit_status"] != "supported_on_held_out_trajectories"
+        for row in charts
+    ):
+        raise ValueError("island-area audit used a chart with failed fit gates")
     if any(row["uses_oracle_coordinates"] for row in charts):
         raise ValueError("learned-chart area classification used oracle coordinates")
+    if any(not row["probe_within_model_support"] for row in charts):
+        raise ValueError("island-area probe leaves a model's declared support")
+
+    def assert_close(measured: float, stored: object, *, name: str) -> None:
+        if not np.isclose(
+            measured,
+            float(stored),
+            rtol=1e-10,
+            atol=1e-12,
+        ):
+            raise ValueError(f"island-area {name} is stale")
+
+    reference = manifest["reference"]
+    ensemble = manifest["ensemble"]
+    controls = manifest["controls"]
+    thresholds = manifest["thresholds"]
+    measurements = manifest["measurements"]
+    direct_area = float(reference["direct_physical_area"])
+    leading_area = float(reference["leading_total_island_area"])
+    raw_area = float(reference["raw_polar_area"])
+    chart_areas = np.asarray([row["island_area"] for row in charts], dtype=float)
+    consensus_area = float(np.median(chart_areas))
+    assert_close(
+        consensus_area,
+        ensemble["consensus_area"],
+        name="consensus area",
+    )
+    expected_measurements: dict[str, float | bool] = {
+        "direct_vs_leading_error": abs(direct_area - leading_area) / leading_area,
+        "consensus_vs_direct_error": abs(consensus_area - direct_area) / direct_area,
+        "maximum_chart_vs_direct_error": max(
+            float(row["relative_error_vs_direct"]) for row in charts
+        ),
+        "minimum_membership_jaccard": min(
+            float(row["membership_jaccard_vs_direct"]) for row in charts
+        ),
+        "maximum_exact_gauge_area_shift": max(
+            float(row["relative_area_shift"])
+            for row in controls["exact_gauge_stress"]["rows"]
+        ),
+        "maximum_null_fraction": max(
+            float(row["null_fraction"]) for row in charts
+        ),
+        "noncanonical_area_shift": float(
+            controls["noncanonical_scale"]["relative_area_shift"]
+        ),
+        "maximum_domain_area_relative_error": max(
+            float(row["domain_area_relative_error"]) for row in charts
+        ),
+        "all_probes_within_model_support": all(
+            bool(row["probe_within_model_support"]) for row in charts
+        ),
+    }
+    for name, expected in expected_measurements.items():
+        stored = measurements[name]
+        if isinstance(expected, bool):
+            if bool(stored) is not expected:
+                raise ValueError(f"island-area {name} is stale")
+        else:
+            assert_close(expected, stored, name=name)
+    assert_close(
+        expected_measurements["maximum_exact_gauge_area_shift"],
+        controls["exact_gauge_stress"]["maximum_relative_area_shift"],
+        name="maximum exact-gauge area shift",
+    )
+    assert_close(
+        expected_measurements["maximum_chart_vs_direct_error"],
+        ensemble["maximum_chart_relative_error_vs_direct"],
+        name="maximum chart error",
+    )
+    assert_close(
+        (float(chart_areas.max()) - float(chart_areas.min())) / consensus_area,
+        ensemble["relative_range"],
+        name="chart area range",
+    )
+
     gates = manifest["empirical_gates"]
-    all_pass = all(row["passed"] for row in gates.values())
-    if manifest["status"] == "resolved_supported" and not all_pass:
-        raise ValueError("supported island-area status has a failed gate")
-    if manifest["status"] != "resolved_supported" and all_pass:
-        raise ValueError("island-area status understates a fully passed run")
-    maximum_shift = manifest["controls"]["exact_gauge_stress"][
-        "maximum_relative_area_shift"
-    ]
-    if maximum_shift != max(
-        row["relative_area_shift"]
-        for row in manifest["controls"]["exact_gauge_stress"]["rows"]
-    ):
-        raise ValueError("maximum exact-gauge area shift is stale")
-    if (
-        manifest["controls"]["noncanonical_scale"]["relative_area_shift"]
-        < manifest["thresholds"]["minimum_noncanonical_area_shift"]
-    ):
-        raise ValueError("noncanonical negative control did not move area")
+    expected_passes = {
+        "direct_map_matches_leading_area": (
+            expected_measurements["direct_vs_leading_error"]
+            <= thresholds["maximum_direct_vs_leading_error"]
+        ),
+        "learned_consensus_matches_direct_area": (
+            expected_measurements["consensus_vs_direct_error"]
+            <= thresholds["maximum_consensus_vs_direct_error"]
+        ),
+        "every_chart_matches_direct_area": (
+            expected_measurements["maximum_chart_vs_direct_error"]
+            <= thresholds["maximum_chart_vs_direct_error"]
+        ),
+        "membership_matches_direct_topology": (
+            expected_measurements["minimum_membership_jaccard"]
+            >= thresholds["minimum_membership_jaccard"]
+        ),
+        "exact_gauges_preserve_area": (
+            expected_measurements["maximum_exact_gauge_area_shift"]
+            <= thresholds["maximum_exact_gauge_area_shift"]
+        ),
+        "null_area_stays_within_resolution_fraction_ceiling": (
+            expected_measurements["maximum_null_fraction"]
+            <= thresholds["maximum_null_fraction"]
+        ),
+        "noncanonical_area_scaling_plumbing": (
+            expected_measurements["noncanonical_area_shift"]
+            >= thresholds["minimum_noncanonical_area_shift"]
+        ),
+        "learned_charts_preserve_domain_area": (
+            expected_measurements["maximum_domain_area_relative_error"]
+            <= thresholds["maximum_domain_area_relative_error"]
+        ),
+        "probe_mesh_within_model_support": bool(
+            expected_measurements["all_probes_within_model_support"]
+        ),
+        "learned_chart_beats_raw_polar_baseline": (
+            abs(consensus_area - direct_area) < abs(raw_area - direct_area)
+        ),
+    }
+    expected_gate_values: dict[str, float | bool] = {
+        "direct_map_matches_leading_area": expected_measurements[
+            "direct_vs_leading_error"
+        ],
+        "learned_consensus_matches_direct_area": expected_measurements[
+            "consensus_vs_direct_error"
+        ],
+        "every_chart_matches_direct_area": expected_measurements[
+            "maximum_chart_vs_direct_error"
+        ],
+        "membership_matches_direct_topology": expected_measurements[
+            "minimum_membership_jaccard"
+        ],
+        "exact_gauges_preserve_area": expected_measurements[
+            "maximum_exact_gauge_area_shift"
+        ],
+        "null_area_stays_within_resolution_fraction_ceiling": (
+            expected_measurements["maximum_null_fraction"]
+        ),
+        "noncanonical_area_scaling_plumbing": expected_measurements[
+            "noncanonical_area_shift"
+        ],
+        "learned_charts_preserve_domain_area": expected_measurements[
+            "maximum_domain_area_relative_error"
+        ],
+        "probe_mesh_within_model_support": expected_measurements[
+            "all_probes_within_model_support"
+        ],
+        "learned_chart_beats_raw_polar_baseline": abs(
+            consensus_area - direct_area
+        ),
+    }
+    if set(gates) != set(expected_passes):
+        raise ValueError("island-area empirical gate set is stale")
+    for name, expected in expected_passes.items():
+        if bool(gates[name]["passed"]) is not bool(expected):
+            raise ValueError(f"island-area gate verdict is stale: {name}")
+        expected_value = expected_gate_values[name]
+        if isinstance(expected_value, bool):
+            if bool(gates[name]["value"]) is not expected_value:
+                raise ValueError(f"island-area gate value is stale: {name}")
+        else:
+            assert_close(
+                expected_value,
+                gates[name]["value"],
+                name=f"gate value {name}",
+            )
+    expected_status = _claim_state(
+        gates,
+        is_reference_profile=expected_reference_profile,
+    )
+    if (manifest["status"], manifest["status_reason"]) != expected_status:
+        raise ValueError("island-area claim state is stale")
+    refinement = manifest["probe"]["mesh_refinement"]
+    if expected_reference_profile and not refinement["available"]:
+        raise ValueError("reference island-area evidence lacks mesh refinement")
+    if not expected_reference_profile and refinement["available"]:
+        raise ValueError("exploratory island-area evidence claims reference refinement")
     artifact_root = Path(
         manifest.get("_artifact_root", manifest["config"]["output"])
     )
@@ -1041,6 +1451,7 @@ def validate_island_area_manifest(
     return [
         "schema and claim state are consistent",
         f"{len(charts)} independent learned charts verified",
-        "direct, raw, null, exact-gauge, and noncanonical controls verified",
+        "gate arithmetic, profile guard, support, and source freshness verified",
+        "direct, raw, null, exact-gauge, and area-scaling controls verified",
         "report and overview digests verified",
     ]

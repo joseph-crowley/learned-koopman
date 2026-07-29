@@ -30,7 +30,10 @@ remains bounded within one full turn over the probe:
 
 No phase origin is fitted. A fixed offset, a smooth circle
 reparameterization, and the exact generating-function gauges used by
-`resonance-metrology` preserve bounded versus circulating winding.
+`resonance-metrology` preserve bounded versus circulating winding
+topologically. On a finite trajectory the classifier also requires the
+coordinate distortion to remain below the span margin; the audit measures
+that margin rather than assuming it.
 
 The total island area is a quadrature over the classified initial-condition
 cells,
@@ -87,16 +90,25 @@ The reference mesh uses 61 action cells, 180 angle cells, and 800 map steps.
 | Minimum membership Jaccard vs. direct | 0.99917 |
 | Learned-chart relative range | 0.00028% |
 | Worst exact-gauge area shift | 0.00440% |
+| Gauge-induced membership flips | 0 / 64 chart-gauge rows |
 | Largest null area / kicked area | 4.96% |
 | Noncanonical 1.2× scale shift | 20.0% |
+| Direct-only 123×360 refinement | 1.460938 |
 
 The null map contains one zero-winding resonant torus of zero continuum area.
 On a finite mesh it occupies one action strip; that strip is reported as a
 resolution floor rather than relabeled as an island.
 
-The noncanonical control multiplies both phase-space coordinates by
-\(\sqrt{1.2}\). It preserves the qualitative picture while changing area by
-20%, proving that the audit is sensitive to noncanonical coordinate changes.
+The noncanonical plumbing check multiplies both phase-space coordinates by
+\(\sqrt{1.2}\). Shoelace area must therefore change by exactly 20%. This
+catches normalization errors, but it is an identity rather than an empirical
+learned-chart stress test.
+
+The refined direct mesh is within 0.024% of the leading pendulum value, while
+the frozen 61×180 reference mesh is about 0.4% low. The learned 0.0823% error
+is therefore agreement with the direct classifier on the same mesh, where
+boundary-discretization error cancels—not a claim of absolute continuum
+accuracy.
 
 ## Why this is different from the failed coefficient
 
@@ -110,7 +122,8 @@ are canonical, so a properly evaluated physical cell area should survive.
 The experiment still has content: independently learned charts can
 misclassify winding topology or distort numerical quadrature even when every
 layer is formally symplectic. The direct membership comparison, raw baseline,
-null, chart ensemble, and noncanonical control test those failure modes.
+null, and chart ensemble test those failure modes. The noncanonical scale
+checks only the area-scaling plumbing.
 
 ## Claim boundary
 
@@ -131,7 +144,11 @@ separatrix flux, calibrated uncertainty, or a formal invariance theorem.
 Exact symplecticity makes area preservation structural; the empirical content
 is that the learned charts also recover the correct winding membership and
 numerical quadrature. The raw-polar comparison shows value under this
-observation distortion, not universal need for machine learning.
+observation distortion, not universal need for machine learning. Its exact
+4.95% value is span-threshold-sensitive because raw bounded and circulating
+populations meet near \(2\pi\). It is a weak observation-coordinate baseline,
+not a threshold-free classical comparator; frequency-map analysis is required
+in the prospective transfer experiment.
 
 The next serious experiment is the same paired coefficient/area protocol on a
 second map family and one measured Poincaré return map, with frequency-map and

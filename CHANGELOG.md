@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.5.1 — 2026-07-29
+
+This review-hardening release leaves the 3.5.0 numerical result unchanged.
+It prevents exploratory meshes from emitting decisive claims, distinguishes
+future refutations from instrument abstentions, gates chart support and domain
+area, recomputes manifest arithmetic, ties evidence to current source, fixes
+relative-manifest use outside the repository root, adds direct mesh refinement,
+and clarifies the structural-versus-empirical claim boundary.
+
 ## 3.5.0 — 2026-07-29
 
 This release follows the gauge refutation with a constructive quotient:
@@ -25,9 +34,12 @@ rather than inferred from a chart-dependent Fourier coefficient.
 - the eight-chart median was `1.45377`, `0.082%` from direct physical area,
   while the distorted raw-polar baseline was `4.95%` low;
 - the worst exact-gauge area shift was `0.0044%`, compared with the previously
-  measured `44.16%` coefficient shift under the same gauge ladder;
-- null area stayed below `4.96%` of the kicked result, and a noncanonical
-  1.2× phase-space scale moved the answer by the required `20%`; and
+  measured `44.16%` coefficient shift under the same gauge ladder; exact-gauge
+  area preservation is structural, while correct learned membership and
+  quadrature are the empirical content;
+- null area stayed at the `4.96%` finite-mesh resolution floor, and a
+  noncanonical 1.2× phase-space scale exercised the expected `20%`
+  area-scaling plumbing identity; and
 - the frozen status is `resolved_supported (gauge_invariant_island_area)` on
   one noiseless synthetic fixture—not a measured-system or general transport
   result.

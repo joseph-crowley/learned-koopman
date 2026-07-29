@@ -183,17 +183,21 @@ uv run learned-koopman island-area-audit \
 | Leading pendulum total area | 1.46059 |
 | Direct physical/oracle mesh | 1.45497 |
 | Raw observed-polar baseline | 1.38288 (4.95% low) |
-| Learned-chart median | **1.45377 (0.082% error)** |
+| Learned-chart median | **1.45377 (0.082% vs direct mesh)** |
 | Worst exact-gauge area shift | **0.0044%** |
 | Largest no-kick null fraction | 4.96% |
 | Deliberately noncanonical scale shift | 20.0% |
 
 The same gauge family that moved the complex coefficient by 44.16% leaves the
-area stable, while a noncanonical coordinate scale moves it exactly as it
-should. This is a positive result on the same single noiseless fixture—not a
-theorem or measured-system claim. The probe states were held out from chart
-training, but the protocol was developed on this fixture; the next system
-must be prospective. See the
+area stable. Area invariance under exact-canonical gauges is structural; the
+empirical result is that the learned winding membership and quadrature also
+survive, with zero gauge-induced membership flips. A 123×360 direct-only
+refinement gives area 1.46094, so the 0.082% number is explicitly same-mesh
+consistency, not absolute continuum accuracy. The noncanonical 20% scale is a
+plumbing identity, not a learned-chart stress test. This is a positive result
+on the same single noiseless fixture—not a theorem or measured-system claim.
+The probe states were held out from chart training, but the protocol was
+developed on this fixture; the next system must be prospective. See the
 [area audit](ISLAND_AREA_AUDIT.md), [report](results/island-area-audit/report.html),
 and [manifest](results/island-area-audit/manifest.json).
 

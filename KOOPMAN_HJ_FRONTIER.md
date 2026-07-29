@@ -162,8 +162,10 @@ fixture and chart ensemble:
 
 This supports a positive but still narrow claim: bounded-libration area is a
 stable invariant quotient on the frozen noiseless map even though the fitted
-residual coefficient is not. The result does not yet transfer to noise,
-sparse data, a second map family, or measured machinery.
+residual coefficient is not. Exact-gauge area preservation is structural; the
+empirical evidence is same-mesh winding membership and quadrature agreement,
+not a new symplectic-invariance theorem. The result does not yet transfer to
+noise, sparse data, a second map family, or measured machinery.
 
 ## Independent review and correction loop
 

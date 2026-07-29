@@ -4,7 +4,7 @@ title: "Learned Koopman: Canonical Koopman and Hamilton-Jacobi Models for Nonlin
 authors:
   - family-names: Crowley
     given-names: Joseph
-version: 3.5.0
+version: 3.5.1
 date-released: 2026-07-29
 url: "https://github.com/joseph-crowley/learned-koopman"
 license: MIT

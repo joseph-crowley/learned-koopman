@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ import pytest
 
 from learned_koopman.island_area import (
     IslandAreaConfig,
+    _claim_state,
     bounded_libration_mask,
     quadrilateral_cell_areas,
     run_island_area_audit,
@@ -61,6 +63,9 @@ def test_quick_island_area_audit_has_real_controls(tmp_path: Path) -> None:
     )
     assert result["experiment"] == "island-area-audit"
     assert result["ensemble"]["accepted_count"] == 8
+    assert result["config"]["profile"] == "exploratory"
+    assert result["status"] == "not_resolved_abstained"
+    assert result["status_reason"] == "non_reference_profile"
     assert result["controls"]["noncanonical_scale"]["relative_area_shift"] > 0.19
     assert result["controls"]["exact_gauge_stress"]["rows"]
     assert checks
@@ -85,3 +90,66 @@ def test_validator_rejects_duplicate_chart_artifacts(tmp_path: Path) -> None:
             result,
             require_clean_source=False,
         )
+
+
+def test_validator_recomputes_consensus_and_gate_arithmetic(tmp_path: Path) -> None:
+    result = run_island_area_audit(
+        IslandAreaConfig(
+            output=tmp_path,
+            resonance_manifest=REFERENCE,
+            radial_cells=9,
+            angular_cells=24,
+            steps=40,
+        )
+    )
+    result["_artifact_root"] = str(tmp_path)
+    stale = copy.deepcopy(result)
+    stale["ensemble"]["consensus_area"] += 0.25
+    with pytest.raises(ValueError, match="consensus area"):
+        validate_island_area_manifest(
+            stale,
+            require_clean_source=False,
+        )
+
+
+def test_claim_state_refuses_exploratory_support_and_can_refute() -> None:
+    passing = {
+        "direct_map_matches_leading_area": {"passed": True},
+        "learned_consensus_matches_direct_area": {"passed": True},
+        "every_chart_matches_direct_area": {"passed": True},
+        "membership_matches_direct_topology": {"passed": True},
+        "exact_gauges_preserve_area": {"passed": True},
+        "null_area_stays_within_resolution_fraction_ceiling": {"passed": True},
+        "noncanonical_area_scaling_plumbing": {"passed": True},
+        "learned_charts_preserve_domain_area": {"passed": True},
+        "probe_mesh_within_model_support": {"passed": True},
+        "learned_chart_beats_raw_polar_baseline": {"passed": True},
+    }
+    assert _claim_state(passing, is_reference_profile=False) == (
+        "not_resolved_abstained",
+        "non_reference_profile",
+    )
+    failed_invariance = copy.deepcopy(passing)
+    failed_invariance["exact_gauges_preserve_area"]["passed"] = False
+    assert _claim_state(failed_invariance, is_reference_profile=True) == (
+        "resolved_refuted",
+        "gauge_invariance_failed",
+    )
+
+
+def test_relative_reference_manifest_is_cwd_independent(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    output = tmp_path / "audit"
+    result = run_island_area_audit(
+        IslandAreaConfig(
+            output=output,
+            resonance_manifest=Path("results/resonance-metrology/manifest.json"),
+            radial_cells=9,
+            angular_cells=24,
+            steps=40,
+        )
+    )
+    assert result["ensemble"]["accepted_count"] == 8

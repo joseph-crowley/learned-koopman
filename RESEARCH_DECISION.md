@@ -83,7 +83,11 @@ Verdict: **`resolved_supported (gauge_invariant_island_area)`** on this
 fixture. The coefficient remains refuted. The combination is the scientific
 point: quotienting the measured gauge direction recovers a useful observable.
 This was the method-development fixture, not a blinded confirmation; the
-protocol is now frozen for the next system.
+protocol is now frozen for the next system. Exact-canonical area invariance is
+structural; the measured contribution is same-mesh winding membership and
+quadrature agreement across eight learned charts. Exploratory meshes cannot
+emit this decisive status, and a future failed invariance gate reports
+`resolved_refuted` rather than being softened into an abstention.
 
 ## Strongest next move
 
