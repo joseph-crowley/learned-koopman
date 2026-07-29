@@ -165,6 +165,38 @@ See the [report](results/resonance-metrology/report.html),
 [manifest](results/resonance-metrology/manifest.json), and
 [decision record](RESEARCH_DECISION.md).
 
+## Constructive quotient: island area survives the gauge attack
+
+The coefficient refutation does not mean the learned chart is useless. It
+means the output must be a physical invariant rather than an arbitrary chart
+component. `island-area-audit` reuses the frozen fixture, eight learned
+charts, and exact-gauge ladder, but measures total bounded-libration area from
+canonical cell geometry:
+
+```bash
+uv run learned-koopman island-area-audit \
+  --output results/my-island-area
+```
+
+| Frozen area measurement | Result |
+|---|---:|
+| Leading pendulum total area | 1.46059 |
+| Direct physical/oracle mesh | 1.45497 |
+| Raw observed-polar baseline | 1.38288 (4.95% low) |
+| Learned-chart median | **1.45377 (0.082% error)** |
+| Worst exact-gauge area shift | **0.0044%** |
+| Largest no-kick null fraction | 4.96% |
+| Deliberately noncanonical scale shift | 20.0% |
+
+The same gauge family that moved the complex coefficient by 44.16% leaves the
+area stable, while a noncanonical coordinate scale moves it exactly as it
+should. This is a positive result on the same single noiseless fixture—not a
+theorem or measured-system claim. The probe states were held out from chart
+training, but the protocol was developed on this fixture; the next system
+must be prospective. See the
+[area audit](ISLAND_AREA_AUDIT.md), [report](results/island-area-audit/report.html),
+and [manifest](results/island-area-audit/manifest.json).
+
 ## What the checked-in experiment establishes
 
 The promoted result uses 22 Duffing trajectories for training and eight

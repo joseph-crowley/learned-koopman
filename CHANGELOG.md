@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.5.0 — 2026-07-29
+
+This release follows the gauge refutation with a constructive quotient:
+resonant-island area is measured from bounded winding and physical cell area
+rather than inferred from a chart-dependent Fourier coefficient.
+
+### Added
+
+- `island-area-audit`, a reproducible dense-mesh experiment using the same
+  frozen map, eight learned charts, and exact-gauge ladder as the coefficient
+  refutation;
+- direct physical/oracle, raw-polar, integrable-null, and deliberately
+  noncanonical area controls;
+- chart-derived quadrature, topology-membership comparisons, HTML/PNG/JSON
+  evidence, artifact/model digests, validator, tests, and CI smokes; and
+- the eight independently trained S1 chart artifacts required to reproduce
+  the new audit without retraining.
+
+### Result
+
+- direct bounded-libration area was `1.45497` against the leading pendulum
+  value `1.46059`;
+- the eight-chart median was `1.45377`, `0.082%` from direct physical area,
+  while the distorted raw-polar baseline was `4.95%` low;
+- the worst exact-gauge area shift was `0.0044%`, compared with the previously
+  measured `44.16%` coefficient shift under the same gauge ladder;
+- null area stayed below `4.96%` of the kicked result, and a noncanonical
+  1.2× phase-space scale moved the answer by the required `20%`; and
+- the frozen status is `resolved_supported (gauge_invariant_island_area)` on
+  one noiseless synthetic fixture—not a measured-system or general transport
+  result.
+
 ## 3.4.0 — 2026-07-29
 
 This release turns chart ambiguity from a roadmap warning into a runnable

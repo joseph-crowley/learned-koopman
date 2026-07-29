@@ -147,6 +147,24 @@ The separate full resonance-metrology run is also an `actual_run`:
 This supports a narrower negative claim: on the frozen synthetic fixture,
 prediction accuracy did not identify the resonant block at 20% precision.
 
+The paired invariant-area audit is a constructive `actual_run` on the same
+fixture and chart ensemble:
+
+| Island-area measurement | Result |
+|---|---:|
+| Direct physical/oracle mesh | 1.45497 |
+| Raw observed-polar baseline | 1.38288 |
+| Eight-chart median | 1.45377 |
+| Learned median error vs. direct | 0.0823% |
+| Worst exact-gauge area shift | 0.00440% |
+| Maximum null fraction | 4.96% |
+| Noncanonical scale shift | 20.0% |
+
+This supports a positive but still narrow claim: bounded-libration area is a
+stable invariant quotient on the frozen noiseless map even though the fitted
+residual coefficient is not. The result does not yet transfer to noise,
+sparse data, a second map family, or measured machinery.
+
 ## Independent review and correction loop
 
 The July 28–29 design review used three max-effort Fable 5 exchanges with a

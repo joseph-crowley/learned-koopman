@@ -32,6 +32,7 @@ from learned_koopman.control_experiment import (
 from learned_koopman.experiment import run_experiment, run_robustness_sweep
 from learned_koopman.hj_action import run_hj_action_audit
 from learned_koopman.invariant_experiment import run_invariant_experiment
+from learned_koopman.island_area import IslandAreaConfig, run_island_area_audit
 from learned_koopman.research_lab import run_research_lab
 from learned_koopman.resonance_metrology import (
     MetrologyConfig,
@@ -331,6 +332,29 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("results/resonance-estimate.json"),
     )
+    island_area = subparsers.add_parser(
+        "island-area-audit",
+        help="Test a gauge-invariant resonant-island area across learned charts.",
+    )
+    island_area.add_argument(
+        "--resonance-manifest",
+        type=Path,
+        default=Path("results/resonance-metrology/manifest.json"),
+        help="Frozen metrology manifest whose accepted chart ensemble is audited.",
+    )
+    island_area.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/island-area-audit"),
+    )
+    island_area.add_argument(
+        "--quick",
+        action="store_true",
+        help="Use a smaller non-reference probe mesh for implementation smokes.",
+    )
+    island_area.add_argument("--radial-cells", type=int)
+    island_area.add_argument("--angular-cells", type=int)
+    island_area.add_argument("--steps", type=int)
     predict = subparsers.add_parser(
         "predict",
         help="Roll out a saved mechanics-workbench model.",
@@ -651,6 +675,47 @@ def main() -> None:
         _write_json(args.output, _json_safe(result))
         print(f"Resonance estimate: {result['status']}")
         print(f"Result: {args.output}")
+        return
+    if args.command == "island-area-audit":
+        config = (
+            IslandAreaConfig.quick(
+                args.output,
+                args.resonance_manifest,
+            )
+            if args.quick
+            else IslandAreaConfig(
+                output=args.output,
+                resonance_manifest=args.resonance_manifest,
+            )
+        )
+        updates = {
+            key: value
+            for key, value in (
+                ("radial_cells", args.radial_cells),
+                ("angular_cells", args.angular_cells),
+                ("steps", args.steps),
+            )
+            if value is not None
+        }
+        if updates:
+            config = replace(config, **updates)
+        print(
+            "Measuring bounded-libration area across the frozen learned-chart "
+            "ensemble and exact-gauge ladder…"
+        )
+        result = run_island_area_audit(config)
+        print(
+            f"Island-area status: {result['status']} "
+            f"({result['status_reason']})"
+        )
+        print(
+            "Direct / learned / raw area: "
+            f"{result['reference']['direct_physical_area']:.6f} / "
+            f"{result['ensemble']['consensus_area']:.6f} / "
+            f"{result['reference']['raw_polar_area']:.6f}"
+        )
+        print(f"Report: {args.output / 'report.html'}")
+        print(f"Manifest: {args.output / 'manifest.json'}")
         return
     if args.command == "predict":
         if args.steps < 1:

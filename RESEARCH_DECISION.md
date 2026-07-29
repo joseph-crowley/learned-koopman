@@ -56,7 +56,7 @@ residual precision on the synthetic fixture. It does not refute learned
 canonical models, the band estimator in oracle coordinates, or recovery under
 an externally fixed gauge.
 
-## Strongest next move
+## Constructive follow-up completed
 
 Turn the negative boundary into a constructive instrument by adding one
 independent physical ruler that a predictive chart cannot freely gauge away.
@@ -71,3 +71,25 @@ The leading candidates are:
 The next decisive experiment should compare those three gauge-fixing routes on
 at least two map families and one measured return map, with the current exact
 gauge ladder retained unchanged.
+
+The first quotient experiment is now implemented in `island-area-audit`.
+On the frozen map, the direct physical area is 1.45497, the eight-chart median
+is 1.45377, and the worst shift under the same exact-gauge ladder is 0.0044%.
+The distorted raw-polar baseline is 4.95% low, the no-kick null remains at the
+mesh-resolution floor, and a deliberately noncanonical scale moves the area
+by 20%.
+
+Verdict: **`resolved_supported (gauge_invariant_island_area)`** on this
+fixture. The coefficient remains refuted. The combination is the scientific
+point: quotienting the measured gauge direction recovers a useful observable.
+This was the method-development fixture, not a blinded confirmation; the
+protocol is now frozen for the next system.
+
+## Strongest next move
+
+Freeze the paired coefficient/area protocol on a second symplectic map family
+and one measured Poincaré return map. Include noise and sample-time sweeps,
+direct contour area, frequency-map analysis, and at least one
+non-learning normal-form baseline. The paper claim becomes credible only if
+the invariant result transfers while the coordinate-dependent failure remains
+visible.
