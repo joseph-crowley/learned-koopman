@@ -10,7 +10,7 @@
     "platform": "macOS-26.6-arm64-arm-64bit"
   },
   "source_revision": {
-    "git_commit": "40aafde93898210c1490d9be3456cfef464c39ee",
+    "git_commit": "4da4e8cf8d4bb1458397406dbdc4848ceda86d87",
     "git_worktree_clean": true
   },
   "dataset": {
