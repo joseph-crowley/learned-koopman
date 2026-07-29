@@ -1,0 +1,1009 @@
+{
+  "schema_version": 1,
+  "experiment": "island-area-audit",
+  "package_version": "3.5.0",
+  "status": "resolved_supported",
+  "status_reason": "gauge_invariant_island_area",
+  "config": {
+    "output": "results/island-area-audit",
+    "resonance_manifest": "results/resonance-metrology/manifest.json",
+    "radial_cells": 61,
+    "angular_cells": 180,
+    "steps": 800,
+    "action_margin": 0.35,
+    "batch_size": 65536,
+    "gauge_scales": [
+      0.01,
+      0.02,
+      0.04,
+      0.1
+    ],
+    "gauge_phases": [
+      0.0,
+      1.5707963267948966
+    ],
+    "libration_span_limit": 6.283185307179586
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "numpy": "2.5.1",
+    "torch": "2.13.0"
+  },
+  "source_revision": {
+    "git_commit": "0b0d4c6b21105afba2375d1a54c369226e61d475",
+    "git_worktree_clean": true
+  },
+  "protocol_posture": {
+    "fixture_role": "retrospective_method-development_fixture",
+    "probe_states_were_not_used_to_train_the_charts": true,
+    "prospective_confirmation_required": true,
+    "reason": "The mesh, controls, and thresholds were developed while this synthetic map was available. They are frozen for reproduction but do not count as a blinded prospective confirmation."
+  },
+  "source_evidence": {
+    "resonance_manifest": "results/resonance-metrology/manifest.json",
+    "resonance_manifest_sha256": "65c92219c6e6e527bb2f4ced7e4222571eb6031888f1c5d6b46f48a8db0840bf",
+    "resonance_status": "resolved_refuted",
+    "resonance_status_reason": "gauge_freedom",
+    "resonance_source_revision": {
+      "git_commit": "ab5c8855efed5a0c6cd40b2ec98485adebe6f101",
+      "git_worktree_clean": true
+    },
+    "model_count": 8,
+    "models_are_distinct": true
+  },
+  "probe": {
+    "resonance_order": 3,
+    "resonance_action": 1.647983674643984,
+    "action_band": [
+      1.2979836746439841,
+      1.9979836746439839
+    ],
+    "cell_count": 10980,
+    "expected_domain_area": 4.39822971502571,
+    "physical_domain_area": 4.397346565402016,
+    "physical_domain_relative_quadrature_error": 0.00020079661157252038,
+    "classification": "bounded unwrapped resonant angle: span(m*angle) < 6.28318530718",
+    "physical_cell_weights": true
+  },
+  "reference": {
+    "leading_total_island_area": 1.4605934866804429,
+    "leading_one_island_area": 0.4868644955601476,
+    "direct_physical_area": 1.45496956344343,
+    "leading_relative_error_vs_direct": 0.0038653201952230628,
+    "direct_classified_cells": 3633,
+    "direct_classification": {
+      "minimum_span": 0.01978040535190928,
+      "median_span": 120.6997499584204,
+      "maximum_bounded_span": 6.263432447110311,
+      "minimum_unbounded_span": 25.89813138641793
+    },
+    "raw_polar_area": 1.3828819760766233,
+    "raw_relative_error_vs_direct": 0.049545770013359844,
+    "raw_membership_jaccard_vs_direct": 0.9504541701073493,
+    "raw_classification": {
+      "minimum_span": 1.0066137234475292,
+      "median_span": 121.23623789142559,
+      "maximum_bounded_span": 6.28083336353302,
+      "minimum_unbounded_span": 6.28406023979187
+    },
+    "oracle_used_only_for_synthetic_evaluation": true
+  },
+  "ensemble": {
+    "accepted_labels": [
+      "seed-7-h24-s6",
+      "seed-17-h24-s6",
+      "seed-29-h24-s6",
+      "seed-41-h24-s6",
+      "seed-7-h40-s8",
+      "seed-17-h40-s8",
+      "seed-29-h40-s8",
+      "seed-41-h40-s8"
+    ],
+    "accepted_count": 8,
+    "charts": [
+      {
+        "label": "seed-7-h24-s6",
+        "model": "models/s1-seed-7-h24-s6.pt",
+        "model_sha256": "255f89e0971115db0e32e2721350860b8ec834bece32df65a24f747b59bc508e",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537701293413074,
+        "relative_error_vs_direct": 0.0008243705794669549,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397342030097921,
+        "domain_area_relative_error": 1.0313729035202843e-06,
+        "classification": {
+          "minimum_span": 0.11642378171811885,
+          "median_span": 120.71179697006872,
+          "maximum_bounded_span": 6.195100494215282,
+          "minimum_unbounded_span": 6.303361416116374
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208733282965962,
+        "null_fraction": 0.04958647269931311,
+        "null_classification": {
+          "minimum_span": 0.013548683132036388,
+          "median_span": 123.80887966344159,
+          "maximum_bounded_span": 0.0983356793774206,
+          "minimum_unbounded_span": 8.268862638865606
+        }
+      },
+      {
+        "label": "seed-17-h24-s6",
+        "model": "models/s1-seed-17-h24-s6.pt",
+        "model_sha256": "ce0807b0fcd0c9e3b3cc1d00be4bdf6d3b979658424c0d3572ed350115392543",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537699546176064,
+        "relative_error_vs_direct": 0.0008244906669969301,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397343082753493,
+        "domain_area_relative_error": 7.919886392076225e-07,
+        "classification": {
+          "minimum_span": 0.11121958097348994,
+          "median_span": 120.71021440167885,
+          "maximum_bounded_span": 6.219146207461151,
+          "minimum_unbounded_span": 6.32764982946405
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208764703449877,
+        "null_fraction": 0.04958669479000232,
+        "null_classification": {
+          "minimum_span": 0.027321330716816306,
+          "median_span": 123.81240346023837,
+          "maximum_bounded_span": 0.10592231551279241,
+          "minimum_unbounded_span": 8.282712944338115
+        }
+      },
+      {
+        "label": "seed-29-h24-s6",
+        "model": "models/s1-seed-29-h24-s6.pt",
+        "model_sha256": "db65bf1d2028e2f019f1bdb09948e4c3c6647f94994a9ed3fd3de76dd653ed83",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537715002442821,
+        "relative_error_vs_direct": 0.0008234283583998344,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.3973435475926035,
+        "domain_area_relative_error": 6.862796386999291e-07,
+        "classification": {
+          "minimum_span": 0.1516340414630335,
+          "median_span": 120.70670560091664,
+          "maximum_bounded_span": 6.235238209852966,
+          "minimum_unbounded_span": 6.343212131897005
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208749503675493,
+        "null_fraction": 0.04958653751613774,
+        "null_classification": {
+          "minimum_span": 0.018578495587213695,
+          "median_span": 123.81501933126782,
+          "maximum_bounded_span": 0.13560444513429815,
+          "minimum_unbounded_span": 8.263024359941483
+        }
+      },
+      {
+        "label": "seed-41-h24-s6",
+        "model": "models/s1-seed-41-h24-s6.pt",
+        "model_sha256": "12331771dd678e547896788ec793768c2324461b6663646f5351a906b97ab0a8",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537693743114992,
+        "relative_error_vs_direct": 0.0008248895111526758,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.3973431359112505,
+        "domain_area_relative_error": 7.799000406592802e-07,
+        "classification": {
+          "minimum_span": 0.13554757436643428,
+          "median_span": 120.7182251502096,
+          "maximum_bounded_span": 6.200508501380682,
+          "minimum_unbounded_span": 6.310100980103016
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208740647132572,
+        "null_fraction": 0.049586549108221585,
+        "null_classification": {
+          "minimum_span": 0.030169415975912273,
+          "median_span": 123.80591110626258,
+          "maximum_bounded_span": 0.11559837659726924,
+          "minimum_unbounded_span": 8.269226431846619
+        }
+      },
+      {
+        "label": "seed-7-h40-s8",
+        "model": "models/s1-seed-7-h40-s8.pt",
+        "model_sha256": "512599c653de6642c583a1cc918da92edc3b5cb72abcfe243a7948672b9269e3",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537734990692348,
+        "relative_error_vs_direct": 0.0008220545668079785,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397342942925938,
+        "domain_area_relative_error": 8.237868049397095e-07,
+        "classification": {
+          "minimum_span": 0.14314860502351934,
+          "median_span": 120.71257324209273,
+          "maximum_bounded_span": 6.187293002868088,
+          "minimum_unbounded_span": 6.294169767314585
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.0720876961118182,
+        "null_fraction": 0.049586607651034835,
+        "null_classification": {
+          "minimum_span": 0.022292416299684703,
+          "median_span": 123.81272843419646,
+          "maximum_bounded_span": 0.12360619704982412,
+          "minimum_unbounded_span": 8.25611400604248
+        }
+      },
+      {
+        "label": "seed-17-h40-s8",
+        "model": "models/s1-seed-17-h40-s8.pt",
+        "model_sha256": "965d50da2790e621f8e0553b3b6fdd35501548ae4f13a77a2a63d524c120b7d3",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537730648247038,
+        "relative_error_vs_direct": 0.0008223530229007455,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397342331241449,
+        "domain_area_relative_error": 9.628898937294489e-07,
+        "classification": {
+          "minimum_span": 0.1111514488961376,
+          "median_span": 120.71215211887821,
+          "maximum_bounded_span": 6.195380687713623,
+          "minimum_unbounded_span": 6.304444067180157
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208758922604108,
+        "null_fraction": 0.049586548939626565,
+        "null_classification": {
+          "minimum_span": 0.038237122022771075,
+          "median_span": 123.80022658298606,
+          "maximum_bounded_span": 0.09695004623195302,
+          "minimum_unbounded_span": 8.257660567760468
+        }
+      },
+      {
+        "label": "seed-29-h40-s8",
+        "model": "models/s1-seed-29-h40-s8.pt",
+        "model_sha256": "7bf885c17129f522ecb8edb60b6c9387f04e319b24a40daac52af70df32c2ee6",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537716259933144,
+        "relative_error_vs_direct": 0.0008233419311401462,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397343163294277,
+        "domain_area_relative_error": 7.736728702269114e-07,
+        "classification": {
+          "minimum_span": 0.10234450500270498,
+          "median_span": 120.7056533276008,
+          "maximum_bounded_span": 6.207281468901783,
+          "minimum_unbounded_span": 6.3155702613294125
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208739408852805,
+        "null_fraction": 0.04958646378812979,
+        "null_classification": {
+          "minimum_span": 0.04115679463277644,
+          "median_span": 123.80269859820537,
+          "maximum_bounded_span": 0.08419417541286123,
+          "minimum_unbounded_span": 8.257821679115295
+        }
+      },
+      {
+        "label": "seed-41-h40-s8",
+        "model": "models/s1-seed-41-h40-s8.pt",
+        "model_sha256": "c4f614ba4cf2d9a8325bf65410bb2bf301f697866355ba44b5974dc272efe0f4",
+        "model_fit_status": "supported_on_held_out_trajectories",
+        "island_area": 1.4537729508364001,
+        "relative_error_vs_direct": 0.0008224313670163537,
+        "membership_jaccard_vs_direct": 0.9991742361684558,
+        "membership_disagreement_fraction": 0.000273224043715847,
+        "domain_area": 4.397341302249873,
+        "domain_area_relative_error": 1.1968927316222883e-06,
+        "classification": {
+          "minimum_span": 0.115669004132954,
+          "median_span": 120.71742567707761,
+          "maximum_bounded_span": 6.195968834683299,
+          "minimum_unbounded_span": 6.304922193288803
+        },
+        "uses_oracle_coordinates": false,
+        "null_area": 0.07208755058077276,
+        "null_fraction": 0.04958652624489855,
+        "null_classification": {
+          "minimum_span": 0.03860251581202334,
+          "median_span": 123.79740131687113,
+          "maximum_bounded_span": 0.10036682288905752,
+          "minimum_unbounded_span": 8.260928392410278
+        }
+      }
+    ],
+    "consensus_area": 1.4537715631187984,
+    "consensus_relative_error_vs_direct": 0.000823385144769914,
+    "maximum_chart_relative_error_vs_direct": 0.0008248895111526758,
+    "relative_range": 2.8372805193285167e-06
+  },
+  "controls": {
+    "null": {
+      "direct_area": 0.07208763994548448,
+      "raw_polar_area": 0.07208763994548448,
+      "maximum_chart_fraction_of_kicked_area": 0.04958669479000232,
+      "interpretation": "The integrable null has one zero-winding resonant torus. Its finite mesh strip is the resolution floor, not an island."
+    },
+    "exact_gauge_stress": {
+      "scales": [
+        0.01,
+        0.02,
+        0.04,
+        0.1
+      ],
+      "phases": [
+        0.0,
+        1.5707963267948966
+      ],
+      "rows": [
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537674648784544,
+          "relative_area_shift": 1.8327951573929322e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.610409741091439e-07
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537745048088515,
+          "relative_area_shift": 3.0097382356056676e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.0890103031243784e-08
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537650570063216,
+          "relative_area_shift": 3.4890901136550104e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.8849576266311829e-06
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537790825337193,
+          "relative_area_shift": 6.158602540523091e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.020565304521333e-08
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537610116285382,
+          "relative_area_shift": 6.2717706088559005e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.422573295967997e-06
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537888416920381,
+          "relative_area_shift": 1.2871602155683976e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.095110806710837e-07
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537550943099056,
+          "relative_area_shift": 1.0342096799505666e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.6004618250415416e-05
+        },
+        {
+          "label": "seed-7-h24-s6",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538229332562818,
+          "relative_area_shift": 3.632205250924626e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 6.9453166298060945e-06
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537669377296805,
+          "relative_area_shift": 2.075216863809348e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 9.76579125473926e-07
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537738221620866,
+          "relative_area_shift": 2.660355215035872e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.1120263156697713e-07
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537641926489753,
+          "relative_area_shift": 3.963466580672582e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.116232558786145e-06
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537778759910966,
+          "relative_area_shift": 5.448849362376711e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 3.8438336558035525e-07
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537595171579472,
+          "relative_area_shift": 7.179581354035345e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.885917478347997e-06
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537865402641523,
+          "relative_area_shift": 1.1408714627276722e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.4178380429643037e-06
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537520431994633,
+          "relative_area_shift": 1.2320668814361456e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.716894629916512e-05
+        },
+        {
+          "label": "seed-17-h24-s6",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538169866114612,
+          "relative_area_shift": 3.235174430825133e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.465965115359305e-06
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537683707507487,
+          "relative_area_shift": 2.1526722273074504e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 9.142563205062446e-07
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537751702480726,
+          "relative_area_shift": 2.5244708606592643e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.9284990283938908e-08
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.453765519246866,
+          "relative_area_shift": 4.114124823066558e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.99167460879779e-06
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537790218752604,
+          "relative_area_shift": 5.17387428286775e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.201377859794591e-07
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537606491674488,
+          "relative_area_shift": 7.464086915634643e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.637152998288559e-06
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537872682636004,
+          "relative_area_shift": 1.0846284519672614e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.0877013805875576e-06
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.453752733551075,
+          "relative_area_shift": 1.2908970360241492e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.654968431869512e-05
+        },
+        {
+          "label": "seed-29-h24-s6",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453816362632226,
+          "relative_area_shift": 3.0859311753146705e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 7.6281528998122195e-06
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537683450834114,
+          "relative_area_shift": 7.079720525513822e-07,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 9.606916192648631e-07
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537746466864228,
+          "relative_area_shift": 3.6266928005924268e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.1201535535193864e-07
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537675296031596,
+          "relative_area_shift": 1.2689140191245526e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.0834369611959284e-06
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537801686402232,
+          "relative_area_shift": 7.4250626782430915e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 5.863997284655847e-07
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537665442479184,
+          "relative_area_shift": 1.946707387584643e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.816238040791329e-06
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537919596065798,
+          "relative_area_shift": 1.553567950988568e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.8234300457890277e-06
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537688689107122,
+          "relative_area_shift": 3.4764853072932145e-07,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.6963850207250543e-05
+        },
+        {
+          "label": "seed-41-h24-s6",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538333170623603,
+          "relative_area_shift": 4.398410916543219e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 9.491541901439096e-06
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537715173069088,
+          "relative_area_shift": 1.3631850678862155e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.073170287289314e-07
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537781170169888,
+          "relative_area_shift": 3.1765249242248197e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.720271004246826e-07
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537697742471885,
+          "relative_area_shift": 2.5621749527990015e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.7774540693030443e-06
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453782956886888,
+          "relative_area_shift": 6.505702338998613e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 3.826238047291061e-07
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537670064700938,
+          "relative_area_shift": 4.46603211926788e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.207339713928163e-06
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453793299287216,
+          "relative_area_shift": 1.3619878195523452e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.1837399935537479e-07
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537645314728223,
+          "relative_area_shift": 6.168496274212087e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.5464729159129495e-05
+        },
+        {
+          "label": "seed-7-h40-s8",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538296102738049,
+          "relative_area_shift": 3.859693728491928e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.608767373744964e-06
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537723050905367,
+          "relative_area_shift": 5.225947470862162e-07,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 7.852268770653791e-07
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453778131443637,
+          "relative_area_shift": 3.485151194421432e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.480170999204329e-07
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537717460274806,
+          "relative_area_shift": 9.071548064231688e-07,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.7334195942730353e-06
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537834582548381,
+          "relative_area_shift": 7.149279613023871e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 7.344388027978763e-07
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537712349449106,
+          "relative_area_shift": 1.2587107558411461e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.119856191147042e-06
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537948909034744,
+          "relative_area_shift": 1.5013401540205313e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.213395541250775e-07
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537746840011623,
+          "relative_area_shift": 1.1137752498272136e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.5250483983244388e-05
+        },
+        {
+          "label": "seed-17-h40-s8",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538354312928639,
+          "relative_area_shift": 4.2899727384594794e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.85647458825445e-06
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.4537697200486441,
+          "relative_area_shift": 1.311034440508095e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 8.34920509013037e-07
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537762419282527,
+          "relative_area_shift": 3.1751444695621548e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.8795010945862484e-07
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537680554614028,
+          "relative_area_shift": 2.4560473239736183e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.8325458159639962e-06
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537810820747343,
+          "relative_area_shift": 6.504516425286948e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.1387863360033293e-07
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.4537654525397712,
+          "relative_area_shift": 4.246508483778252e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.317065525891893e-06
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537914319572978,
+          "relative_area_shift": 1.3623848222920636e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.2148418630002046e-07
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537635351390432,
+          "relative_area_shift": 5.565423156265862e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.5735686493760287e-05
+        },
+        {
+          "label": "seed-29-h40-s8",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453827822651423,
+          "relative_area_shift": 3.865576759356763e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 5.4762992014123724e-06
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.01,
+          "phase": 0.0,
+          "island_area": 1.453771617040936,
+          "relative_area_shift": 9.174716473493163e-07,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 7.74059074364524e-07
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.01,
+          "phase": 1.5707963267948966,
+          "island_area": 1.453777990153512,
+          "relative_area_shift": 3.4663714914505656e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.9317492088250396e-07
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.02,
+          "phase": 0.0,
+          "island_area": 1.4537705007437873,
+          "relative_area_shift": 1.6853337458121533e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.7110261017462878e-06
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.02,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537832741065542,
+          "relative_area_shift": 7.101019556117932e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.2480083279607967e-07
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.04,
+          "phase": 0.0,
+          "island_area": 1.453768924613116,
+          "relative_area_shift": 2.7694993786941257e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.074835061400445e-06
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.04,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4537945733671953,
+          "relative_area_shift": 1.4873389123620988e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 2.0224724349208231e-07
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.1,
+          "phase": 0.0,
+          "island_area": 1.4537695569283215,
+          "relative_area_shift": 2.334551675777405e-06,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 1.5136113402212478e-05
+        },
+        {
+          "label": "seed-41-h40-s8",
+          "scale": 0.1,
+          "phase": 1.5707963267948966,
+          "island_area": 1.4538343137670402,
+          "relative_area_shift": 4.2209432088257164e-05,
+          "membership_disagreement_fraction": 0.0,
+          "domain_area_relative_shift": 4.402841071678012e-06
+        }
+      ],
+      "maximum_relative_area_shift": 4.398410916543219e-05
+    },
+    "noncanonical_scale": {
+      "phase_space_scale": 1.2,
+      "island_area": 1.7459634761321188,
+      "relative_area_shift": 0.20000000000000184,
+      "interpretation": "A deliberately noncanonical uniform phase-space scale must move the area and proves that the audit is sensitive."
+    }
+  },
+  "thresholds": {
+    "maximum_direct_vs_leading_error": 0.03,
+    "maximum_consensus_vs_direct_error": 0.02,
+    "maximum_chart_vs_direct_error": 0.03,
+    "minimum_membership_jaccard": 0.98,
+    "maximum_exact_gauge_area_shift": 0.005,
+    "maximum_null_fraction": 0.1,
+    "minimum_noncanonical_area_shift": 0.15
+  },
+  "measurements": {
+    "direct_vs_leading_error": 0.003850437023236711,
+    "consensus_vs_direct_error": 0.000823385144769914,
+    "maximum_chart_vs_direct_error": 0.0008248895111526758,
+    "minimum_membership_jaccard": 0.9991742361684558,
+    "maximum_exact_gauge_area_shift": 4.398410916543219e-05,
+    "maximum_null_fraction": 0.04958669479000232,
+    "noncanonical_area_shift": 0.20000000000000184
+  },
+  "empirical_gates": {
+    "direct_map_matches_leading_area": {
+      "value": 0.003850437023236711,
+      "threshold": "<= 0.03",
+      "passed": true
+    },
+    "learned_consensus_matches_direct_area": {
+      "value": 0.000823385144769914,
+      "threshold": "<= 0.02",
+      "passed": true
+    },
+    "every_chart_matches_direct_area": {
+      "value": 0.0008248895111526758,
+      "threshold": "<= 0.03",
+      "passed": true
+    },
+    "membership_matches_direct_topology": {
+      "value": 0.9991742361684558,
+      "threshold": ">= 0.98",
+      "passed": true
+    },
+    "exact_gauges_preserve_area": {
+      "value": 4.398410916543219e-05,
+      "threshold": "<= 0.005",
+      "passed": true
+    },
+    "null_area_stays_below_resolution_floor": {
+      "value": 0.04958669479000232,
+      "threshold": "<= 0.1",
+      "passed": true
+    },
+    "noncanonical_control_moves_area": {
+      "value": 0.20000000000000184,
+      "threshold": ">= 0.15",
+      "passed": true
+    },
+    "learned_chart_beats_raw_polar_baseline": {
+      "value": 0.0011980003246316873,
+      "threshold": "< 0.07208758736680676",
+      "passed": true
+    }
+  },
+  "claim_boundary": "On one noiseless synthetic kicked twist map and one fixed dense physical initial-condition mesh, bounded-libration area recovered from independently trained exact-symplectic charts agreed with direct physical/oracle area and survived the frozen exact-gauge ladder. The dense probe states were not used for chart training, but the protocol was developed on this fixture. This supports an invariant quotient on this retrospective fixture only; it does not establish prospective transfer, measured-system robustness, general transport recovery, calibrated uncertainty, or a theorem.",
+  "not_supported": [
+    "measured-rig validation",
+    "noise, irregular sampling, or partial observation",
+    "general island or separatrix-flux recovery",
+    "formal invariance or a-posteriori KAM certification",
+    "superiority to classical phase-space methods beyond this fixture"
+  ],
+  "next_falsifier": "Repeat the coefficient and invariant-area protocols on a second map family and one measured return map with noise, sampling, and classical frequency-map baselines frozen in advance.",
+  "runtime_seconds": 58.57937595807016,
+  "artifacts": {
+    "manifest": "manifest.json",
+    "report": "report.html",
+    "overview": "overview.png",
+    "overview_sha256": "68f3b720f0c0e1514e2ce0f2813a79b0337d3d0099ebd2d20f4ceb255f4294d8",
+    "report_sha256": "9208e9e620d02e0786a50370c2ee361aab280bd20074f46b2fbe138e62be7abc"
+  }
+}
