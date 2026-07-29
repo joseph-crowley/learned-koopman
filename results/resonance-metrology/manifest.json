@@ -50,7 +50,7 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "bb59d94a63bcb4f1276de0c99cd8bff698c4662a",
+    "git_commit": "d51210997a22d3c3d38f491911ea08243e4b7f11",
     "git_worktree_clean": true
   },
   "fixture": {
@@ -1773,7 +1773,7 @@
             "normalized_rollout_rmse": 0.984255313873291,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.306085082935169,
+          "training_seconds": 7.324433083180338,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1817,7 +1817,7 @@
             "normalized_rollout_rmse": 0.7604740262031555,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.323174207936972,
+          "training_seconds": 7.314317874843255,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1861,7 +1861,7 @@
             "normalized_rollout_rmse": 0.9233464002609253,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.30960537516512,
+          "training_seconds": 7.3080790839158,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1905,7 +1905,7 @@
             "normalized_rollout_rmse": 0.8143563866615295,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 7.307110416004434,
+          "training_seconds": 7.306951124919578,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1949,7 +1949,7 @@
             "normalized_rollout_rmse": 0.913047730922699,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.616798165952787,
+          "training_seconds": 10.648522041970864,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -1993,7 +1993,7 @@
             "normalized_rollout_rmse": 0.9552991986274719,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.560346333077177,
+          "training_seconds": 10.64502620906569,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2037,7 +2037,7 @@
             "normalized_rollout_rmse": 0.9009569883346558,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.553693500114605,
+          "training_seconds": 10.592203417094424,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2081,7 +2081,7 @@
             "normalized_rollout_rmse": 0.8940930962562561,
             "persistence_normalized_rollout_rmse": 1.303470492362976
           },
-          "training_seconds": 10.512072874931619,
+          "training_seconds": 10.583541667088866,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2127,7 +2127,7 @@
             "normalized_rollout_rmse": 0.8176790475845337,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.279418166028336,
+          "training_seconds": 7.366655624937266,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2171,7 +2171,7 @@
             "normalized_rollout_rmse": 0.8097516894340515,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.30094716604799,
+          "training_seconds": 7.314395958092064,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2215,7 +2215,7 @@
             "normalized_rollout_rmse": 0.8482679128646851,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.26850570901297,
+          "training_seconds": 7.3058707090094686,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2259,7 +2259,7 @@
             "normalized_rollout_rmse": 0.5928313732147217,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 7.274501624982804,
+          "training_seconds": 7.307562415953726,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2303,7 +2303,7 @@
             "normalized_rollout_rmse": 0.7977061867713928,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.530158624984324,
+          "training_seconds": 10.580141125014052,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2347,7 +2347,7 @@
             "normalized_rollout_rmse": 0.6201055645942688,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.485687749926,
+          "training_seconds": 10.50925033306703,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2391,7 +2391,7 @@
             "normalized_rollout_rmse": 0.9905946850776672,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.452011625049636,
+          "training_seconds": 10.497497042175382,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -2435,7 +2435,7 @@
             "normalized_rollout_rmse": 0.680474579334259,
             "persistence_normalized_rollout_rmse": 1.3010363578796387
           },
-          "training_seconds": 10.481301416875795,
+          "training_seconds": 10.508876875042915,
           "frequency_initialization": {
             "method": "training_orbit_circular_mean_raw_polar_increment",
             "uses_oracle_coordinates": false,
@@ -18904,7 +18904,7 @@
     "physical coefficients at harmonics without an in-band resonance crossing"
   ],
   "next_falsifier": "Repeat only after preserving this result: independent systems, noise/sampling sweeps, and a measured return map.",
-  "runtime_seconds": 145.5328981250059,
+  "runtime_seconds": 146.07536641601473,
   "artifacts": {
     "manifest": "manifest.json",
     "report": "report.html",
