@@ -23,19 +23,22 @@ The canonical Koopman–HJ experiment demonstrates that:
 - its latent Hamiltonian \(h(I)\), with \(I=(Q^2+P^2)/2\), generates an exact
   action-conditioned rotation, so model action conservation is architectural
   rather than a training penalty;
-- the model reaches normalized recursive rollout RMSE 0.0551 on eight complete
+- the model reaches normalized recursive rollout RMSE 0.0270 on eight complete
   held-out trajectories, versus 1.5636 for persistence;
-- the held-out observed Koopman phase residual is 0.00053, observed normalized
-  action drift is 0.0092, numerical symplectic defect is
-  \(3.58\times10^{-7}\), and model-rollout action drift is
-  \(2.92\times10^{-5}\);
+- the held-out observed Koopman phase residual is 0.00024, observed normalized
+  action drift is 0.0034, numerical symplectic defect is
+  \(2.38\times10^{-7}\), and model-rollout action drift is
+  \(3.19\times10^{-5}\);
+- independent complete-orbit diagnostics report mean radial coefficient of
+  variation 0.0026, phase-step coefficient of variation 0.0060, and normalized
+  conjugacy RMSE 0.00031 on the held-out trajectories;
 - the learned latent action agrees with independently integrated physical
-  action \(J=(2\pi)^{-1}\oint p\,dq\) at affine \(R^2=0.9999996\), slope
-  0.9987, and intercept 0.00015;
+  action \(J=(2\pi)^{-1}\oint p\,dq\) at affine \(R^2=0.99999994\), slope
+  0.99983, and intercept 0.00051;
 - without energy labels in training, \(dh/dI\) matches measured orbit
-  frequency at 1.77% normalized RMSE and \(h(I)\), after the physically
+  frequency at 0.93% normalized RMSE and \(h(I)\), after the physically
   irrelevant additive energy offset, matches the reference-energy shape at
-  0.49% normalized RMSE;
+  0.18% normalized RMSE;
 - the post-fit data themselves satisfy \(dH/dJ=\omega\) at 0.008% normalized
   RMSE, validating the closed-orbit action ruler used to judge the model.
 

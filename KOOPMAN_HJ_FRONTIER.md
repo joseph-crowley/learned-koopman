@@ -94,17 +94,20 @@ The checked-in result is an `actual_run` on synthetic data:
 
 | Claim | Evidence |
 |---|---:|
-| Held-out recursive normalized rollout RMSE | 0.0551 |
+| Held-out recursive normalized rollout RMSE | 0.0270 |
 | Persistence RMSE on the same runs | 1.5636 |
-| Held-out observed action drift | 0.0092 |
-| Held-out Koopman phase residual | 0.00053 |
+| Held-out observed action drift | 0.0034 |
+| Held-out Koopman phase residual | 0.00024 |
+| Held-out radial coefficient of variation | 0.0026 |
+| Held-out phase-step coefficient of variation | 0.0060 |
+| Held-out complete latent-conjugacy RMSE | 0.00031 |
 | Numerical inverse error | \(4.77\times10^{-7}\) |
-| Numerical symplectic defect | \(3.58\times10^{-7}\) |
-| Model-rollout action drift | \(2.92\times10^{-5}\) |
-| Held-out latent action vs. physical action | \(R^2=0.9999996\) |
-| Held-out action slope / intercept | 0.9987 / 0.00015 |
-| Held-out \(dh/dI\) vs. measured frequency | 1.77% normalized RMSE |
-| Held-out \(h(I)\) vs. reference energy shape | 0.49% normalized RMSE |
+| Numerical symplectic defect | \(2.38\times10^{-7}\) |
+| Model-rollout action drift | \(3.19\times10^{-5}\) |
+| Held-out latent action vs. physical action | \(R^2=0.99999994\) |
+| Held-out action slope / intercept | 0.99983 / 0.00051 |
+| Held-out \(dh/dI\) vs. measured frequency | 0.93% normalized RMSE |
+| Held-out \(h(I)\) vs. reference energy shape | 0.18% normalized RMSE |
 
 Training excludes the reference energy, empirical action, and complete
 held-out trajectories. The action and learned-Hamiltonian checks are evaluated
@@ -116,7 +119,9 @@ Evidence artifacts:
 - `results/koopman-hj/manifest.json`
 - `results/koopman-hj/report.html`
 - `results/koopman-hj/model.pt`
+- `results/koopman-hj/orbit-diagnostics.json`
 - `results/koopman-hj/action-audit/manifest.json`
+- `results/chart-fidelity.json`
 
 This evidence supports “the construction works on this problem.” It does not
 support “state of the art,” “novel,” “general,” “robust,” “hardware-ready,” or
@@ -858,7 +863,8 @@ but it does not create a predictor, canonical transformation, or controller.
 Rejected. A conserved scalar has arbitrary monotone gauge. Perfect rank
 correlation is not canonical action. The original learned invariant showed
 exactly this: perfect ordering but only 0.847 affine \(R^2\). The symplectic
-model fixes the gauge and reaches held-out \(R^2=0.9999996\) with slope 0.9987.
+model fixes the gauge and reaches held-out \(R^2=0.99999994\) with slope
+0.99983.
 
 ### “Use one unconstrained encoder and decoder”
 

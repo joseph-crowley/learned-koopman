@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "model": "results/koopman-hj/model.pt",
+  "input": "examples/duffing-trajectories.csv",
+  "state_columns": [
+    "position",
+    "velocity"
+  ],
+  "thresholds": {
+    "radial_coefficient_of_variation": 0.08,
+    "phase_step_coefficient_of_variation": 0.08,
+    "normalized_conjugacy_rmse": 0.08
+  },
+  "diagnostics": {
+    "trajectory_count": 30,
+    "supported_trajectory_count": 30,
+    "per_trajectory": [
+      {
+        "radial_coefficient_of_variation": 0.008531187660992146,
+        "phase_step_coefficient_of_variation": 0.011803459376096725,
+        "phase_law_rmse_radians": 0.0006813386571593583,
+        "normalized_conjugacy_rmse": 0.0007451414712704718,
+        "mean_phase_step_radians": 0.02518087811768055,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.007339334115386009,
+        "phase_step_coefficient_of_variation": 0.010631393641233444,
+        "phase_law_rmse_radians": 0.0006433545495383441,
+        "normalized_conjugacy_rmse": 0.0007006619707681239,
+        "mean_phase_step_radians": 0.02524477429687977,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.006552769802510738,
+        "phase_step_coefficient_of_variation": 0.009640290401875973,
+        "phase_law_rmse_radians": 0.0005973842926323414,
+        "normalized_conjugacy_rmse": 0.000651458976790309,
+        "mean_phase_step_radians": 0.02532881684601307,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.005965447518974543,
+        "phase_step_coefficient_of_variation": 0.008704587817192078,
+        "phase_law_rmse_radians": 0.0005442399415187538,
+        "normalized_conjugacy_rmse": 0.0005967171746306121,
+        "mean_phase_step_radians": 0.02543102391064167,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0054822699166834354,
+        "phase_step_coefficient_of_variation": 0.007785566616803408,
+        "phase_law_rmse_radians": 0.00048516594688408077,
+        "normalized_conjugacy_rmse": 0.0005370922735892236,
+        "mean_phase_step_radians": 0.025550249963998795,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.005055914167314768,
+        "phase_step_coefficient_of_variation": 0.006878806743770838,
+        "phase_law_rmse_radians": 0.0004215830995235592,
+        "normalized_conjugacy_rmse": 0.00047384219942614436,
+        "mean_phase_step_radians": 0.025685720145702362,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.00466193538159132,
+        "phase_step_coefficient_of_variation": 0.005995462648570538,
+        "phase_law_rmse_radians": 0.0003550558176357299,
+        "normalized_conjugacy_rmse": 0.0004085763357579708,
+        "mean_phase_step_radians": 0.025836845859885216,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.004287701100111008,
+        "phase_step_coefficient_of_variation": 0.005155624821782112,
+        "phase_law_rmse_radians": 0.00028733554063364863,
+        "normalized_conjugacy_rmse": 0.00034325674641877413,
+        "mean_phase_step_radians": 0.026003176346421242,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.003926959354430437,
+        "phase_step_coefficient_of_variation": 0.004386927932500839,
+        "phase_law_rmse_radians": 0.00022058875765651464,
+        "normalized_conjugacy_rmse": 0.0002804635150823742,
+        "mean_phase_step_radians": 0.02618430182337761,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.00357699953019619,
+        "phase_step_coefficient_of_variation": 0.0037275429349392653,
+        "phase_law_rmse_radians": 0.00015809855540283024,
+        "normalized_conjugacy_rmse": 0.00022391625680029392,
+        "mean_phase_step_radians": 0.026379870250821114,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.00323705212213099,
+        "phase_step_coefficient_of_variation": 0.0032296483404934406,
+        "phase_law_rmse_radians": 0.0001067533521563746,
+        "normalized_conjugacy_rmse": 0.00017937472148332745,
+        "mean_phase_step_radians": 0.02658945508301258,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.002907552057877183,
+        "phase_step_coefficient_of_variation": 0.0029540597461163998,
+        "phase_law_rmse_radians": 8.300572517327964e-05,
+        "normalized_conjugacy_rmse": 0.00015457143308594823,
+        "mean_phase_step_radians": 0.02681255340576172,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.002589958952739835,
+        "phase_step_coefficient_of_variation": 0.0029434466268867254,
+        "phase_law_rmse_radians": 9.887701162369922e-05,
+        "normalized_conjugacy_rmse": 0.00015383782738354057,
+        "mean_phase_step_radians": 0.027048572897911072,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.002287136623635888,
+        "phase_step_coefficient_of_variation": 0.003188841976225376,
+        "phase_law_rmse_radians": 0.00013347965432330966,
+        "normalized_conjugacy_rmse": 0.00017113194917328656,
+        "mean_phase_step_radians": 0.027296900749206543,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0020043838303536177,
+        "phase_step_coefficient_of_variation": 0.003632489824667573,
+        "phase_law_rmse_radians": 0.0001689172931946814,
+        "normalized_conjugacy_rmse": 0.0001955327606992796,
+        "mean_phase_step_radians": 0.027557043358683586,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0017502129776403308,
+        "phase_step_coefficient_of_variation": 0.0041959271766245365,
+        "phase_law_rmse_radians": 0.0001988349249586463,
+        "normalized_conjugacy_rmse": 0.00021913903765380383,
+        "mean_phase_step_radians": 0.02782873436808586,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0015360921388491988,
+        "phase_step_coefficient_of_variation": 0.004798635374754667,
+        "phase_law_rmse_radians": 0.00022088653349783272,
+        "normalized_conjugacy_rmse": 0.00023774693545419723,
+        "mean_phase_step_radians": 0.028111949563026428,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0013741211732849479,
+        "phase_step_coefficient_of_variation": 0.005365179385989904,
+        "phase_law_rmse_radians": 0.000234103761613369,
+        "normalized_conjugacy_rmse": 0.00024937751004472375,
+        "mean_phase_step_radians": 0.028406770899891853,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.001271928078494966,
+        "phase_step_coefficient_of_variation": 0.0058273328468203545,
+        "phase_law_rmse_radians": 0.00023823403171263635,
+        "normalized_conjugacy_rmse": 0.000253298640018329,
+        "mean_phase_step_radians": 0.028713330626487732,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.001226933440193534,
+        "phase_step_coefficient_of_variation": 0.006123768165707588,
+        "phase_law_rmse_radians": 0.00023353348660748452,
+        "normalized_conjugacy_rmse": 0.00024965210468508303,
+        "mean_phase_step_radians": 0.02903168648481369,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.001225923653692007,
+        "phase_step_coefficient_of_variation": 0.006196354981511831,
+        "phase_law_rmse_radians": 0.00022064866789150983,
+        "normalized_conjugacy_rmse": 0.00023917053476907313,
+        "mean_phase_step_radians": 0.029361668974161148,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0012510999804362655,
+        "phase_step_coefficient_of_variation": 0.005984215997159481,
+        "phase_law_rmse_radians": 0.0002004718844546005,
+        "normalized_conjugacy_rmse": 0.00022287614410743117,
+        "mean_phase_step_radians": 0.029702702537178993,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0012849154882133007,
+        "phase_step_coefficient_of_variation": 0.005425554234534502,
+        "phase_law_rmse_radians": 0.00017438866780139506,
+        "normalized_conjugacy_rmse": 0.00020209746435284615,
+        "mean_phase_step_radians": 0.03005376271903515,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0013089349959045649,
+        "phase_step_coefficient_of_variation": 0.004492396954447031,
+        "phase_law_rmse_radians": 0.000145938916830346,
+        "normalized_conjugacy_rmse": 0.00017969399050343782,
+        "mean_phase_step_radians": 0.030413515865802765,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0013013773132115602,
+        "phase_step_coefficient_of_variation": 0.0033234781585633755,
+        "phase_law_rmse_radians": 0.00012538892042357475,
+        "normalized_conjugacy_rmse": 0.0001631597406230867,
+        "mean_phase_step_radians": 0.030780591070652008,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0012394635705277324,
+        "phase_step_coefficient_of_variation": 0.002767916303128004,
+        "phase_law_rmse_radians": 0.00013274990487843752,
+        "normalized_conjugacy_rmse": 0.00016688014147803187,
+        "mean_phase_step_radians": 0.031153885647654533,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.001109202508814633,
+        "phase_step_coefficient_of_variation": 0.0042684003710746765,
+        "phase_law_rmse_radians": 0.0001788549416232854,
+        "normalized_conjugacy_rmse": 0.00020339552429504693,
+        "mean_phase_step_radians": 0.031532932072877884,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0009203333756886423,
+        "phase_step_coefficient_of_variation": 0.007278615143150091,
+        "phase_law_rmse_radians": 0.00025658169761300087,
+        "normalized_conjugacy_rmse": 0.0002732831344474107,
+        "mean_phase_step_radians": 0.03191814944148064,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0007353167166002095,
+        "phase_step_coefficient_of_variation": 0.011147060431540012,
+        "phase_law_rmse_radians": 0.0003651685838121921,
+        "normalized_conjugacy_rmse": 0.0003780810220632702,
+        "mean_phase_step_radians": 0.03231075033545494,
+        "verdict": "supported_by_orbit_residuals"
+      },
+      {
+        "radial_coefficient_of_variation": 0.0007396136643365026,
+        "phase_step_coefficient_of_variation": 0.015716709196567535,
+        "phase_law_rmse_radians": 0.0005185139598324895,
+        "normalized_conjugacy_rmse": 0.0005313492147251964,
+        "mean_phase_step_radians": 0.03271201625466347,
+        "verdict": "supported_by_orbit_residuals"
+      }
+    ],
+    "mean_radial_coefficient_of_variation": 0.0028894023736938832,
+    "maximum_radial_coefficient_of_variation": 0.008531187660992146,
+    "mean_phase_step_coefficient_of_variation": 0.0061189898056909445,
+    "maximum_phase_step_coefficient_of_variation": 0.015716709196567535,
+    "mean_phase_law_rmse_radians": 0.0002809825692869102,
+    "maximum_phase_law_rmse_radians": 0.0006813386571593583,
+    "mean_normalized_conjugacy_rmse": 0.0003194925583860216,
+    "maximum_normalized_conjugacy_rmse": 0.0007451414712704718
+  },
+  "claim_boundary": "These are empirical complete-orbit support checks. They are not a KAM or physical-system certificate."
+}

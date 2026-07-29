@@ -108,23 +108,26 @@ never optimization targets.
 
 | Held-out or post-fit measurement | Result |
 |---|---:|
-| Recursive normalized rollout RMSE | **0.0551** |
+| Recursive normalized rollout RMSE | **0.0270** |
 | Persistence rollout RMSE | 1.5636 |
-| Observed Koopman phase residual | **0.00053** |
-| Observed normalized action drift | **0.0092** |
-| Numerical symplectic defect | **3.58×10⁻⁷** |
-| Model-rollout action drift | **2.92×10⁻⁵** |
-| Latent action vs. \((2\pi)^{-1}\oint p\,dq\) | **R² 0.9999996** |
-| Physical-action calibration slope | **0.9987** |
-| Learned \(dh/dI\) vs. measured frequency | **1.77% error** |
-| Learned \(h(I)\) vs. energy shape | **0.49% error** |
+| Observed Koopman phase residual | **0.00024** |
+| Observed normalized action drift | **0.0034** |
+| Complete-orbit radial coefficient of variation | **0.0026** |
+| Complete latent-conjugacy RMSE | **0.00031** |
+| Numerical symplectic defect | **2.38×10⁻⁷** |
+| Model-rollout action drift | **3.19×10⁻⁵** |
+| Latent action vs. \((2\pi)^{-1}\oint p\,dq\) | **R² 0.99999994** |
+| Physical-action calibration slope | **0.99983** |
+| Learned \(dh/dI\) vs. measured frequency | **0.93% error** |
+| Learned \(h(I)\) vs. energy shape | **0.18% error** |
 
 The [report](results/koopman-hj/report.html),
 [manifest](results/koopman-hj/manifest.json), and
-[action audit](results/koopman-hj/action-audit/report.html) carry the evidence
-and exact claim boundary. This is one synthetic system and one deterministic
-split—not yet a statistically powered research result or a hardware
-validation.
+[orbit diagnostics](results/koopman-hj/orbit-diagnostics.json) carry the model
+evidence and exact claim boundary. The independent
+[action audit](results/koopman-hj/action-audit/report.html) supplies the
+physical ruler. This is one synthetic system and one deterministic split—not
+yet a statistically powered research result or a hardware validation.
 
 ## Why the Hamilton–Jacobi connection matters
 

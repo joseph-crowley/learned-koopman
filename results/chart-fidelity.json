@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "experiment": "controlled_chart_fidelity_separation",
+  "config": {
+    "harmonic_order": 4,
+    "kick_amplitude": 0.01,
+    "base_frequency": 1.0,
+    "twist": 0.3,
+    "gauge_amplitude": 0.45,
+    "off_resonance_action_offset": 1.0,
+    "angle_samples": 8192,
+    "chart_error_levels": [
+      0.0,
+      0.02,
+      0.05,
+      0.1,
+      0.25,
+      0.5
+    ]
+  },
+  "resonant_probe": {
+    "label": "resonant",
+    "action": 1.9026544226496553,
+    "frequency": 1.5707963267948966,
+    "harmonic_rotation_number": 1.0,
+    "measurements": [
+      {
+        "chart_relative_error": 0.0,
+        "recovered_generating_function_amplitude": 0.002499999999999999,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 3.469446951953614e-16,
+        "spectrum_normalized_rmse": 2.2720572823657668e-14
+      },
+      {
+        "chart_relative_error": 0.02,
+        "recovered_generating_function_amplitude": 0.0025000000003280462,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 1.3121847358688044e-10,
+        "spectrum_normalized_rmse": 0.005399815974681978
+      },
+      {
+        "chart_relative_error": 0.05,
+        "recovered_generating_function_amplitude": 0.002500000002050288,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 8.201151563413944e-10,
+        "spectrum_normalized_rmse": 0.013498506794162871
+      },
+      {
+        "chart_relative_error": 0.1,
+        "recovered_generating_function_amplitude": 0.0025000000082011525,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 3.280460972310273e-09,
+        "spectrum_normalized_rmse": 0.026989637869601398
+      },
+      {
+        "chart_relative_error": 0.25,
+        "recovered_generating_function_amplitude": 0.0025000000512571986,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 2.0502879428951903e-08,
+        "spectrum_normalized_rmse": 0.0673454413812318
+      },
+      {
+        "chart_relative_error": 0.5,
+        "recovered_generating_function_amplitude": 0.0025000002050287857,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 8.201151424636066e-08,
+        "spectrum_normalized_rmse": 0.13378380336222248
+      }
+    ]
+  },
+  "off_resonant_probe": {
+    "label": "off_resonant",
+    "action": 2.9026544226496553,
+    "frequency": 1.8707963267948966,
+    "harmonic_rotation_number": 1.1909859317102744,
+    "measurements": [
+      {
+        "chart_relative_error": 0.0,
+        "recovered_generating_function_amplitude": 0.0024999999999999983,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 6.938893903907228e-16,
+        "spectrum_normalized_rmse": 3.0228419018323795e-14
+      },
+      {
+        "chart_relative_error": 0.02,
+        "recovered_generating_function_amplitude": 0.0048156586685732215,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 0.9262634674292886,
+        "spectrum_normalized_rmse": 0.002803318375136094
+      },
+      {
+        "chart_relative_error": 0.05,
+        "recovered_generating_function_amplitude": 0.008532893818473608,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 2.413157527389443,
+        "spectrum_normalized_rmse": 0.003955215010204458
+      },
+      {
+        "chart_relative_error": 0.1,
+        "recovered_generating_function_amplitude": 0.014834646612715012,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 4.933858645086005,
+        "spectrum_normalized_rmse": 0.00455007054967262
+      },
+      {
+        "chart_relative_error": 0.25,
+        "recovered_generating_function_amplitude": 0.033852817423091854,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 12.54112696923674,
+        "spectrum_normalized_rmse": 0.004984706882589123
+      },
+      {
+        "chart_relative_error": 0.5,
+        "recovered_generating_function_amplitude": 0.06559863681661803,
+        "true_generating_function_amplitude": 0.0025,
+        "relative_amplitude_error": 25.23945472664721,
+        "spectrum_normalized_rmse": 0.005144809202033296
+      }
+    ]
+  },
+  "comparison": {
+    "off_to_resonant_error_ratio_by_nonzero_chart_error": [
+      7058941032.536891,
+      2942461810.064272,
+      1504013822.0609045,
+      611676375.1498995,
+      307755014.14141047
+    ],
+    "minimum_off_to_resonant_error_ratio": 307755014.14141047,
+    "passes_controlled_threefold_protection_gate": true
+  },
+  "claim_boundary": {
+    "supported": "For this known canonical shear and synthetic symplectic map, the target residual harmonic is substantially more stable at resonance.",
+    "not_supported": "The experiment does not show that optimizer error in a learned chart obeys the same bound or that measured-system residuals are identifiable.",
+    "next_falsifier": "Repeat with learned chart ensembles and adversarial chart errors at a fixed held-out map error."
+  }
+}

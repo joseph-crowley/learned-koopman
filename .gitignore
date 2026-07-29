@@ -137,6 +137,7 @@ venv.bak/
 
 # Local experiment outputs; only the verified portfolio figure and metrics are committed.
 results/*
+!results/chart-fidelity.json
 !results/portfolio/
 results/portfolio/*
 !results/portfolio/metrics.json
@@ -168,6 +169,7 @@ results/koopman-hj/*
 !results/koopman-hj/overview.png
 !results/koopman-hj/report.html
 !results/koopman-hj/model.pt
+!results/koopman-hj/orbit-diagnostics.json
 !results/koopman-hj/action-audit/
 results/koopman-hj/action-audit/*
 !results/koopman-hj/action-audit/manifest.json
