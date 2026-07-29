@@ -1214,8 +1214,12 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
     )
     for axis in axes.flat:
         axis.grid(alpha=0.2)
-    figure.suptitle("Learned-chart resonance metrology", fontsize=16)
-    figure.tight_layout()
+    figure.suptitle(
+        "Learned-chart resonance metrology",
+        fontsize=16,
+        y=0.99,
+    )
+    figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.965))
     figure.savefig(path, dpi=180)
     plt.close(figure)
 
