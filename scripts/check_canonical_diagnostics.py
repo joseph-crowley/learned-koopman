@@ -41,8 +41,11 @@ def main() -> None:
         np.testing.assert_allclose(
             committed["diagnostics"][name],
             rebuilt[name],
-            rtol=1e-7,
-            atol=1e-10,
+            # Torch reductions can differ by a few float32 ulps across CPU
+            # kernels. This is still four orders tighter than the declared
+            # 0.08 scientific support thresholds.
+            rtol=1e-5,
+            atol=1e-8,
         )
     print(
         "canonical orbit diagnostics reproduce from the committed model and CSV; "
