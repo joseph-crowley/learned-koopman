@@ -123,6 +123,42 @@ trajectory-band estimator without oracle coordinates. It refuses failed model
 fits and labels ensemble spread as a lower bound on chart ambiguity rather
 than calibrated physical error.
 
+## Checked resonance result: prediction is not identifiability
+
+The frozen full reference run returned **`resolved_refuted
+(gauge_freedom)`**. All eight charts were good one-step predictors. Five
+supported a conditioned band fit, and their median estimate nearly met the
+recovery target. But an exact canonical gauge that stayed inside the same
+prediction envelope moved the recovered block by more than twice the allowed
+complex and magnitude tolerances.
+
+| Frozen measurement | Result |
+|---|---:|
+| Prediction-accepted charts | **8 / 8** |
+| Charts with an estimable band fit | 5 / 8 |
+| Held-out normalized one-step RMSE | **0.0453–0.0508** |
+| Median complex block error | 19.59% (20% gate passes) |
+| Median magnitude error | 6.87% (15% gate passes) |
+| Recovered / planted island halfwidth | 0.1887 / 0.1826 |
+| Empirical floor coverage | 20% (80% gate fails) |
+| Estimable null charts | 5 / 8 (minimum 6 fails) |
+| Shuffled-angle level / allowed | 37.23% / 20% |
+| Maximum prediction-equivalent exact-gauge shift | **44.16% complex, 43.29% magnitude** |
+| Estimator-variant deviation | 3.42% |
+
+![Learned-chart prediction, coefficient recovery, floor coverage, and exact
+gauge stress.](results/resonance-metrology/overview.png)
+
+The defensible result is negative and useful: on this fixture, predictive
+agreement among exact-symplectic learned charts is insufficient to identify a
+resonant normal-form coefficient at the claimed 20% precision. This does not
+show that such coefficients are never recoverable. It localizes the missing
+ingredient: a chart gauge fixed by external physics, a richer island-capable
+surrogate, or an invariant quotient that removes the measured gauge direction.
+See the [report](results/resonance-metrology/report.html),
+[manifest](results/resonance-metrology/manifest.json), and
+[decision record](RESEARCH_DECISION.md).
+
 ## What the checked-in experiment establishes
 
 The promoted result uses 22 Duffing trajectories for training and eight

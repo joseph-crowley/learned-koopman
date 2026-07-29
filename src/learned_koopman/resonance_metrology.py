@@ -1109,11 +1109,20 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
     truth = manifest["oracle"]["kick_amplitude"]
     figure, axes = plt.subplots(2, 2, figsize=(13, 9))
     names = [row["label"] for row in charts]
+    short_names = [
+        name.replace("seed-", "").replace("-h", " / h").replace("-s", " s")
+        for name in names
+    ]
     one_step = [row["held_out_one_step_rmse"] for row in charts]
     errors = [row["complex_error"] for row in charts]
     axes[0, 0].scatter(one_step, errors, color="#4057c9", s=55)
-    for name, x_value, y_value in zip(names, one_step, errors, strict=True):
-        axes[0, 0].annotate(name.split("-")[1], (x_value, y_value), fontsize=8)
+    for name, x_value, y_value in zip(
+        short_names,
+        one_step,
+        errors,
+        strict=True,
+    ):
+        axes[0, 0].annotate(name, (x_value, y_value), fontsize=8)
     axes[0, 0].axhline(0.2, color="#b23a33", linestyle="--")
     axes[0, 0].set(
         title="Prediction quality vs resonant-block error",
@@ -1171,6 +1180,7 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
         xlabel="accepted chart",
         ylabel="fraction of planted kick",
     )
+    axes[1, 0].set_xticks(positions, short_names, rotation=25, ha="right")
     axes[1, 0].legend()
 
     stress = manifest["controls"]["exact_2m_gauge_stress"]
@@ -1192,7 +1202,10 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
     ]
     axes[1, 1].plot(ladder, max_shift, marker="o", color="#7c3fb7")
     for scale, shift, inside in zip(ladder, max_shift, in_envelope, strict=True):
-        axes[1, 1].annotate("inside" if inside else "visible", (scale, shift))
+        axes[1, 1].annotate(
+            "in envelope" if inside else "outside",
+            (scale, shift),
+        )
     axes[1, 1].axhline(0.2, color="#b23a33", linestyle="--")
     axes[1, 1].set(
         title="Exact 2m gauge identifiability stress",

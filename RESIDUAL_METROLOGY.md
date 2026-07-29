@@ -173,6 +173,21 @@ that as a general research contribution; it can establish a reproducible
 protocol, a measured positive or negative boundary, and the next decisive
 experiments.
 
+The checked full run establishes the negative boundary. Eight of eight charts
+passed held-out prediction, and the median trajectory-band coefficient reached
+19.59% complex error, but a prediction-equivalent exact \(2m\) gauge moved the
+block by as much as 44.16%. The empirical floor covered only 20% of realized
+per-chart errors, the null instrument produced only five estimable charts, and
+the shuffled-angle level exceeded its gate. The resulting
+`resolved_refuted (gauge_freedom)` status is a refutation of the stated
+precision on this fixture, not a universal impossibility result.
+
+That result kills the tempting product claim that an ensemble of accurate
+canonical predictors automatically yields a physical residual coefficient.
+The next high-value experiment must add information that fixes or quotients
+the gauge: measured physical phase/action markers, continuation from a known
+normal form, or a gauge-invariant island/transport observable.
+
 Relevant starting points include:
 
 - [Action-Angle Networks](https://arxiv.org/abs/2211.15338)

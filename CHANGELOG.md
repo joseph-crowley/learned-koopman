@@ -37,6 +37,14 @@ resonance-metrology experiment.
   metrology;
 - narrowed Duffing discretization and measured-data language to the evidence.
 
+### Result
+
+- the clean full profile accepted all eight learned charts as predictors and
+  recovered the planted block to 19.59% complex error, but returned
+  `resolved_refuted (gauge_freedom)` because a prediction-equivalent exact
+  gauge moved the block by 44.16%; the failed floor, null-availability, and
+  shuffled-angle gates remain visible in the checked manifest.
+
 ## 3.3.0 — 2026-07-28
 
 This release begins the transition from one integrable chart to a

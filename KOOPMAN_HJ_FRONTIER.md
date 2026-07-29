@@ -2,7 +2,7 @@
 
 **Status:** implementation-backed research program
 
-**Evidence date:** 2026-07-28
+**Evidence date:** 2026-07-29
 
 **Flagship direction:** a regime-aware canonical phase-space cartographer with
 gauge-aware residual normal forms, transport analysis, and calibrated
@@ -60,12 +60,14 @@ The high-ceiling research contribution is the full combination:
    manifolds, transport flux, fast surrogates, and validity maps.
 
 The current code is an unusually good PyTorch example and a credible research
-seed. It is **not yet a defensible novel research result** because the evidence
-is one synthetic system and because Action-Angle Networks, neural canonical
-transformations, exact symplectic map learners, and a very recent
-Buckingham-Symplectic Network already occupy nearby ground. Novelty must come
-from a clearly differentiated method plus matched baselines, multiple systems,
-robustness, and preferably measured hardware.
+seed. Its new resonance experiment is a defensible **synthetic negative
+result**: prediction-equivalent exact canonical gauges can move a learned
+resonant block beyond its declared precision. It is not yet a general novel
+research result because this is one fixture, and Action-Angle Networks, neural
+canonical transformations, and exact symplectic map learners already occupy
+nearby ground. A paper needs independent systems, matched baselines, robustness,
+and preferably measured hardware; the differentiated hypothesis is the
+gauge-aware metrology protocol and the boundary it measures.
 
 ## Work Performed
 
@@ -85,7 +87,9 @@ This pass:
 - trained and evaluated the model on complete held-out Duffing trajectories;
 - exported a support-gated model and prediction command;
 - added human and machine reports, artifact hashes, validators, tests, and CI
-  actual runs; and
+  actual runs;
+- trained paired 16-model kicked/null chart ensembles and preserved a
+  predeclared exact-gauge refutation of residual precision; and
 - converted the findings into the staged research and product program below.
 
 ## Evidence Posture
@@ -127,6 +131,20 @@ Evidence artifacts:
 This evidence supports “the construction works on this problem.” It does not
 support “state of the art,” “novel,” “general,” “robust,” “hardware-ready,” or
 “safe for control.”
+
+The separate full resonance-metrology run is also an `actual_run`:
+
+| Residual-metrology measurement | Result |
+|---|---:|
+| Prediction-accepted exact-symplectic charts | 8 / 8 |
+| Estimable trajectory-band blocks | 5 / 8 |
+| Median complex / magnitude error | 19.59% / 6.87% |
+| Empirical floor coverage | 20% |
+| Maximum prediction-equivalent exact-gauge shift | 44.16% / 43.29% |
+| Frozen verdict | `resolved_refuted (gauge_freedom)` |
+
+This supports a narrower negative claim: on the frozen synthetic fixture,
+prediction accuracy did not identify the resonant block at 20% precision.
 
 ## Independent review and correction loop
 
