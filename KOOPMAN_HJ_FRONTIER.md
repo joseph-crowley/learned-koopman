@@ -4,13 +4,17 @@
 
 **Evidence date:** 2026-07-28
 
-**Flagship direction:** gauge-fixed canonical Koopman atlases for useful
-mechanical system identification, simulation, and control
+**Flagship direction:** a regime-aware canonical phase-space cartographer with
+gauge-aware residual normal forms, transport analysis, and calibrated
+abstention
 
 ## Executive Recommendation
 
-Build this project around a **Canonical Koopman Atlas**, not a generic Koopman
-autoencoder and not a standalone neural Hamilton–Jacobi PDE solver.
+Build this project around a **Canonical Spectral Atlas**, not a generic Koopman
+autoencoder and not a standalone neural Hamilton–Jacobi PDE solver. The
+structure-preserving surrogate should model the complete return map; the
+Koopman–HJ chart should be a local analysis layer accepted only where its
+geometry, phase law, and conjugacy residuals pass.
 
 The useful core is:
 
@@ -37,21 +41,23 @@ H\circ F_\theta^{-1}=h_\psi(I),
 For one degree of freedom, that core is now implemented and works on the
 checked-in Duffing experiment. It learns a canonical chart and Hamiltonian
 normal form without energy labels, recursively predicts held-out trajectories,
-and independently checks the latent action against
-\((2\pi)^{-1}\oint p\,dq\).
+and checks whether mean radial action agrees with
+\((2\pi)^{-1}\oint p\,dq\) at the area scale fixed by symplecticity.
 
 The high-ceiling research contribution is the full combination:
 
 1. **exact symplectic learned conjugacy**, rather than a symplectic penalty;
 2. **Hamiltonian-derived fiberwise Koopman spectrum**, rather than an arbitrary
    latent linear matrix;
-3. **canonical gauge fixing against physical action**, rather than reporting
-   only correlation with a conserved scalar;
-4. **charted topology and calibrated abstention** near separatrices,
+3. **chart-error-aware resonant residuals**, rather than treating every
+   post-conjugacy Fourier coefficient as physical;
+4. **canonical physical scale plus independent circularization tests**, rather
+   than reporting only correlation with a conserved scalar;
+5. **charted topology and calibrated abstention** near separatrices,
    resonances, impacts, and nonintegrable regions;
-5. **controlled slow action drift around a trusted conservative core**; and
-6. **mechanics-facing outputs**: nonlinear modes, backbone curves, resonance
-   maps, fast surrogates, reduced control models, and validity certificates.
+6. **controlled slow action drift around a trusted conservative core**; and
+7. **physics-facing outputs**: nonlinear modes, resonant islands, invariant
+   manifolds, transport flux, fast surrogates, and validity maps.
 
 The current code is an unusually good PyTorch example and a credible research
 seed. It is **not yet a defensible novel research result** because the evidence
@@ -118,10 +124,19 @@ support “state of the art,” “novel,” “general,” “robust,” “har
 
 ## Delegate Inputs
 
-No external model or subagent verdict is treated as evidence in this pass. The
-review uses live repository behavior and primary published or preprint sources.
-That is deliberate: novelty and scientific claims here must survive direct
-prior-art comparison and executable tests, not model agreement.
+The July 28 design review included a two-round Claude Opus 5 critique after
+Fable 5 was quota-blocked before inference. The critique generated candidate
+experiments and then retracted several of its own first-pass claims when the
+experiments failed. Codex reran the accepted probes locally. Delegate agreement
+is not evidence: promoted claims below are tied to repository behavior,
+controlled numerical tests, and primary literature.
+
+The most important surviving correction is that **chart error is the first
+research obstacle**. In the controlled probe, a 5% chart misspecification
+caused roughly 6.8% leading-harmonic error while much larger coordinate noise
+had less effect. The promoted `chart-fidelity` command now isolates the expected
+resonant cohomological cancellation in a known-chart oracle experiment. The
+learned-chart version remains deliberately unresolved.
 
 ## Repo Current-State Map
 
@@ -306,7 +321,39 @@ global chart may not achieve intrinsic dimension.
 action/frequency cocycles, and treat separatrices and resonance zones as
 scientific routing boundaries.
 
-### 9. HJ PDE, viscosity, HJB, and reachability
+### 9. Data-driven normal forms, resonances, and Poincaré maps
+
+[Birkhoff RRE](https://arxiv.org/abs/2403.19003) and its
+[symplectic-map continuation](https://arxiv.org/abs/2505.08715) recover
+high-order rotation information from quasiperiodic trajectories without a
+learned global chart.
+
+Accelerator physics has extracted nonlinear normal forms and resonance-driving
+terms from measured turn-by-turn beam data since at least
+[Bartolini and Schmidt (1998)](https://cds.cern.ch/record/333077), with modern
+measurements represented by
+[Franchi et al.](https://arxiv.org/abs/1402.1461).
+[SSMLearn](https://www.nature.com/articles/s41467-022-28518-y) learns nonlinear
+normal forms, backbone curves, damping, and forced response from measured
+structural trajectories.
+
+For magnetic-field Poincaré data,
+[HénonNet](https://arxiv.org/abs/2007.04496) already learns fast
+structure-preserving maps,
+[level-set learning](https://arxiv.org/abs/2312.00967) finds invariant regions
+with few map evaluations, and
+[persistent-homology classification](https://arxiv.org/abs/2408.09298)
+separates islands, chaotic layers, and invariant tori.
+
+**What they own:** broad claims to data-driven normal forms, measured resonance
+terms, learned symplectic Poincaré maps, and orbit classification.
+
+**Opening here:** quantify what survives an imperfect learned canonical chart;
+retain resonant blocks rather than removing them; connect supported local
+normal forms to invariant manifolds and transport; and expose uncertainty and
+abstention in one differentiable scientific workbench.
+
+### 10. HJ PDE, viscosity, HJB, and reachability
 
 This is adjacent but distinct from classical action-angle mechanics:
 
@@ -329,27 +376,31 @@ with an HJB value function.
 
 ## Where the Differentiated Contribution Can Be
 
-### Candidate method: Gauge-Fixed Canonical Koopman Atlas
+### Candidate method: Gauge-Aware Canonical Spectral Atlas
 
 The method hypothesis is:
 
 > A charted exact-symplectic conjugacy, trained from canonical trajectories and
-> constrained by a learned Hamiltonian normal form, yields physically
-> identifiable actions, fiberwise Koopman spectra, fast stable simulation, and
-> a useful boundary between integrable and nonintegrable behavior.
+> constrained locally by learned Hamiltonian normal forms, yields
+> physically scaled actions, fiberwise Koopman spectra, gauge-aware resonant
+> residuals, fast stable simulation, and a useful boundary between integrable
+> and nonintegrable behavior.
 
 The differentiating pieces are jointly testable:
 
-1. **Gauge identifiability.** Exact symplecticity plus topology makes latent
-   circle area agree with physical action. This is stronger than learning a
-   monotone conserved coordinate.
-2. **Spectral–mechanical equivalence.** The same \(h(I)\) must explain
+1. **Physical scale plus chart quality.** Exact symplecticity fixes phase-space
+   area, while independent radial, phase-law, and conjugacy residuals test
+   whether the learned chart actually realizes a normal form.
+2. **Residual identifiability.** Only residual quantities stable across a
+   bounded canonical chart ambiguity are reported; the first target is a
+   resonant-block error law.
+3. **Spectral–mechanical equivalence.** The same \(h(I)\) must explain
    energy shape, frequency, phase evolution, and Koopman multipliers.
-3. **Atlas consistency.** Overlap maps must be symplectic, actions must agree,
+4. **Atlas consistency.** Overlap maps must be symplectic, actions must agree,
    and angle changes must satisfy an integer-affine torus transition law.
-4. **Residual-calibrated validity.** The system must know when a chart stops
+5. **Residual-calibrated validity.** The system must know when a chart stops
    representing the data.
-5. **Controlled perturbation around normal form.** Inputs, damping, and weak
+6. **Controlled perturbation around normal form.** Inputs, damping, and weak
    forcing should appear as learned slow action drift and phase correction,
    preserving the trusted autonomous core.
 
@@ -378,7 +429,22 @@ Required checks:
 - conservative-window detection;
 - uncertainty and missing-data flags.
 
-### Layer B: exact canonical conjugacy
+### Layer B: exact-symplectic return-map substrate and local conjugacy
+
+First learn a flexible return map
+
+\[
+M_\eta:\mathbb R^{2n}\to\mathbb R^{2n},
+\qquad
+(DM_\eta)^\top J\,DM_\eta=J,
+\]
+
+that is expressive enough to contain resonant islands, hyperbolic structures,
+and chaos. The map is the numerical substrate and should carry an ensemble or
+other calibrated uncertainty mechanism. It must not assume global
+integrability.
+
+Then fit local canonical analysis charts:
 
 For \(n\) degrees of freedom:
 
@@ -400,7 +466,7 @@ Architectural symplecticity is preferred over a soft defect penalty. Penalties
 remain diagnostics and can enforce additional constraints, but they should not
 carry the fundamental guarantee.
 
-### Layer C: integrable Hamiltonian normal form
+### Layer C: supported local Hamiltonian normal forms
 
 \[
 I_j=\frac{Q_j^2+P_j^2}{2},
@@ -413,6 +479,11 @@ h_\psi=h_\psi(I,\mu),
 Here \(\mu\) contains physical parameters. The gradient relation is important:
 an independently learned frequency network and energy network can disagree,
 whereas one \(h_\psi\) makes the HJ identity structural.
+
+Accept this representation only where radial, phase-law, complete-conjugacy,
+and data-density checks pass. Conjugate the full learned map by \(F_\theta\),
+fit an explicitly truncated residual generating function, and report only
+harmonics stable across the admissible chart ensemble.
 
 Use dimensionally consistent or symbolic heads when interpretability is the
 goal. Use monotone or convex parameterizations only when the physics warrants
@@ -478,7 +549,9 @@ with the appropriate integer matrix \(A\) for torus coordinates.
 
 Route based on calibrated residuals and topology, not a black-box classifier
 alone. If no chart is valid, abstain or hand off to a nonintegrable/continuous
-spectrum model.
+spectrum model. Resonant zones use resonant normal forms; hyperbolic zones use
+periodic orbits, invariant manifolds, turnstile lobes, and flux; chaotic zones
+use transfer or continuous-spectrum methods.
 
 ### Layer G: forcing, damping, and control
 
@@ -511,7 +584,26 @@ extra behavior the data require.
 
 ## Practical Systems Worth Building
 
-### 1. Nonlinear vibration workbench
+### 1. Magnetic field-line Poincaré workbench
+
+For fusion and plasma design:
+
+- learn a fast exact-area-preserving surrogate of an expensive field-line
+  tracer;
+- continue rotational transform, islands, invariant manifolds, and stochastic
+  layers across coil or configuration parameters;
+- quantify chart and surrogate uncertainty against withheld tracer calls;
+- expose transport/topology objectives to an optimizer.
+
+This is the cleanest first software application because the return map is
+naturally area-preserving and damping or mechanical momentum reconstruction do
+not intervene. HénonNet, level-set learning, persistent-homology orbit
+classification, direct island-width measurement, and island-residue
+optimization already occupy substantial ground. The opening is the integrated
+gauge-aware residual, continuation, uncertainty, and transport workflow—not
+island detection alone.
+
+### 2. Nonlinear vibration workbench
 
 For mechanical engineers:
 
@@ -524,7 +616,7 @@ For mechanical engineers:
 
 This is the nearest practical product.
 
-### 2. Resonance and detuning analyzer
+### 3. Resonance and detuning analyzer
 
 For weakly coupled oscillators:
 
@@ -534,7 +626,7 @@ For weakly coupled oscillators:
 - simulate averaged action exchange;
 - recommend safe or high-response operating regions.
 
-### 3. Structure-preserving reduced model for control
+### 4. Structure-preserving reduced model for control
 
 For robotics and flexible mechanisms:
 
@@ -545,7 +637,7 @@ For robotics and flexible mechanisms:
   shaping;
 - retain a physical support and residual certificate.
 
-### 4. Mechanics diagnostic and anomaly monitor
+### 5. Mechanics diagnostic and anomaly monitor
 
 Learn a baseline \(F,h\) on healthy data. Track:
 
@@ -558,7 +650,7 @@ Learn a baseline \(F,h\) on healthy data. Track:
 Those are physically interpretable condition indicators, not just embedding
 distance.
 
-### 5. Reduced coordinate front end for HJB and reachability
+### 6. Reduced coordinate front end for HJB and reachability
 
 Use the canonical atlas to reduce dimension and separate fast phase. Solve
 value or reachability problems in the reduced coordinates with a monotone HJ
@@ -685,7 +777,7 @@ support excursions, inference time, and calibration—not just prediction MSE.
 | Experiment | Question | Decisive result |
 |---|---|---|
 | E1 exactness | Is the implementation structurally symplectic? | inverse, Jacobian, action drift at numerical floor |
-| E2 gauge | Does symplecticity recover physical action? | held-out slope near 1; nonlinear gauge ablation fails |
+| E2 chart fidelity | Can physical residual be separated from chart error? | resonant quantities remain stable across learned-chart ensembles; off-resonant quantities abstain |
 | E3 HJ consistency | Does one \(h(I)\) explain energy and frequency? | low held-out \(H-h(I)-c\) and \(\Omega-\nabla h\) |
 | E4 Koopman | Are phase harmonics genuine local eigenfunctions? | low generator/map residual across held-out actions |
 | E5 long horizon | Does structure improve useful rollout? | accuracy and bounded invariant error vs matched baselines |

@@ -71,6 +71,35 @@ uv run learned-koopman canonical-predict \
 Prediction refuses an uncertified fit or a state outside the observed action
 range unless `--allow-unsupported` is explicit.
 
+## Diagnose the chart and try to break the research hypothesis
+
+An action-range check on one state cannot establish that a learned canonical
+chart is valid. Test complete trajectories against independent geometry,
+phase-law, and conjugacy residuals:
+
+```bash
+uv run learned-koopman canonical-diagnose \
+  results/koopman-hj/model.pt \
+  examples/duffing-trajectories.csv \
+  --position-column position \
+  --momentum-column velocity \
+  --output results/koopman-hj/orbit-diagnostics.json
+```
+
+Run the first chart-identifiability falsifier:
+
+```bash
+uv run learned-koopman chart-fidelity \
+  --output results/chart-fidelity.json
+```
+
+The experiment observes a known symplectic twist-kick map through a canonical
+shear, deliberately misspecifies the inverse chart, and compares recovery of
+the same residual harmonic on and off resonance. It is an oracle test of the
+cohomological mechanism—not evidence that an optimizer's learned-chart error
+obeys the same protection. The next decisive experiment replaces the known
+chart error with ensembles of learned charts.
+
 ## What the checked-in experiment establishes
 
 The promoted result uses 22 Duffing trajectories for training and eight
@@ -99,18 +128,22 @@ validation.
 
 ## Why the Hamilton–Jacobi connection matters
 
-A generic learned invariant is free up to a nonlinear monotone reparameterization.
-That is enough to label orbit families, but it is not yet physical action.
-Symplecticity fixes the gauge: canonical maps preserve phase-space area, so the
-latent circle area \(I\) must agree with
+A generic learned invariant is free up to a nonlinear monotone
+reparameterization. That is enough to label orbit families, but it is not yet
+physical action. Symplecticity removes the arbitrary fitted scale: canonical
+maps preserve phase-space area, so a chart that truly circularizes the periodic
+orbits has mean radial action \(I\) agreeing with
 
 \[
 J=\frac{1}{2\pi}\oint p\,dq
 \]
 
-when the learned chart truly straightens the periodic orbits. In that chart the
-Hamiltonian depends only on action, the angle advances linearly, and the same
-coordinates simultaneously expose Hamilton–Jacobi and Koopman structure:
+The enclosed-area version of this equality is structural for any exact
+symplectic map; the nontrivial diagnostic is whether the learned orbit is
+circular enough that its mean radial action agrees at that fixed physical
+scale. In that chart the Hamiltonian depends only on action, the angle advances
+linearly, and the same coordinates simultaneously expose Hamilton–Jacobi and
+Koopman structure:
 
 \[
 H\circ F_\theta^{-1}=h(I),\qquad
@@ -257,6 +290,13 @@ print(manifest["certificate"]["status"])
 ```bash
 uv run ruff check .
 uv run pytest
+uv run learned-koopman chart-fidelity --output results/chart-fidelity.json
+uv run learned-koopman canonical-diagnose \
+  results/koopman-hj/model.pt examples/duffing-trajectories.csv \
+  --position-column position --momentum-column velocity \
+  --output results/koopman-hj/orbit-diagnostics.json
+uv run python scripts/check_chart_fidelity.py
+uv run python scripts/check_canonical_diagnostics.py
 uv run python scripts/check_canonical_model.py
 uv run python scripts/check_hj_action.py
 uv run python scripts/check_workbench.py

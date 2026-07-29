@@ -10,11 +10,19 @@ import numpy as np
 import torch
 
 from learned_koopman import __version__
+from learned_koopman.canonical_diagnostics import (
+    diagnose_canonical_orbits,
+    summarize_orbit_diagnostics,
+)
 from learned_koopman.canonical_experiment import (
     CanonicalExperimentConfig,
     run_canonical_experiment,
 )
 from learned_koopman.canonical_model import load_canonical_model
+from learned_koopman.chart_fidelity import (
+    ChartFidelityConfig,
+    run_chart_fidelity_experiment,
+)
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.control_experiment import (
     ControlExperimentProfile,
@@ -221,6 +229,32 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("results/canonical-prediction.csv"),
     )
+    canonical_diagnose = subparsers.add_parser(
+        "canonical-diagnose",
+        help="Test complete trajectories against a saved canonical chart.",
+    )
+    canonical_diagnose.add_argument("model", type=Path)
+    canonical_diagnose.add_argument("input", type=Path)
+    canonical_diagnose.add_argument("--position-column", required=True)
+    canonical_diagnose.add_argument("--momentum-column", required=True)
+    canonical_diagnose.add_argument("--trajectory-column", default="trajectory_id")
+    canonical_diagnose.add_argument("--time-column", default="time")
+    canonical_diagnose.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/canonical-diagnostics.json"),
+    )
+    chart_fidelity = subparsers.add_parser(
+        "chart-fidelity",
+        help="Run the controlled canonical-chart identifiability falsifier.",
+    )
+    chart_fidelity.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/chart-fidelity.json"),
+    )
+    chart_fidelity.add_argument("--angle-samples", type=int, default=8192)
+    chart_fidelity.add_argument("--harmonic-order", type=int, default=4)
     predict = subparsers.add_parser(
         "predict",
         help="Roll out a saved mechanics-workbench model.",
@@ -392,6 +426,44 @@ def main() -> None:
                 writer.writerow((step * model.network.dt, *state))
         print(f"Prediction support: {support}")
         print(f"Prediction: {args.output}")
+        return
+    if args.command == "canonical-diagnose":
+        model = load_canonical_model(args.model)
+        dataset = load_trajectory_csv(
+            args.input,
+            state_columns=(args.position_column, args.momentum_column),
+            trajectory_column=args.trajectory_column,
+            time_column=args.time_column,
+        )
+        rows = diagnose_canonical_orbits(model.network, dataset.states)
+        result = {
+            "schema_version": 1,
+            "model": str(args.model),
+            "input": str(args.input),
+            "state_columns": [args.position_column, args.momentum_column],
+            "thresholds": {
+                "radial_coefficient_of_variation": 0.08,
+                "phase_step_coefficient_of_variation": 0.08,
+                "normalized_conjugacy_rmse": 0.08,
+            },
+            "diagnostics": summarize_orbit_diagnostics(rows),
+            "claim_boundary": (
+                "These are empirical complete-orbit support checks. "
+                "They are not a KAM or physical-system certificate."
+            ),
+        }
+        _write_json(args.output, result)
+        print(f"Canonical diagnostics: {args.output}")
+        return
+    if args.command == "chart-fidelity":
+        result = run_chart_fidelity_experiment(
+            ChartFidelityConfig(
+                angle_samples=args.angle_samples,
+                harmonic_order=args.harmonic_order,
+            )
+        )
+        _write_json(args.output, result)
+        print(f"Chart-fidelity experiment: {args.output}")
         return
     if args.command == "predict":
         if args.steps < 1:

@@ -1,5 +1,34 @@
 # Changelog
 
+## 3.3.0 — 2026-07-28
+
+This release begins the transition from one integrable chart to a
+residual-aware phase-space instrument.
+
+### Added
+
+- independent radial, phase-step, phase-law, and complete-conjugacy diagnostics
+  for observed trajectories;
+- `canonical-diagnose`, which tests complete new trajectories against a saved
+  canonical chart instead of treating an action-range check as sufficient
+  support;
+- an explicitly documented Fourier convention for truncated residual
+  generating functions;
+- `chart-fidelity`, a controlled falsification experiment that separates
+  physical resonant structure from a deliberately misspecified canonical
+  observation chart;
+- hard claim boundaries distinguishing a known-gauge oracle experiment from
+  the still-unresolved learned-chart identifiability problem.
+
+### Changed
+
+- replaced the proposed one-number chart diagnostic with independent geometric
+  and phase-law residuals;
+- narrowed the action comparison: exact symplecticity fixes the physical area
+  scale, while mean radial action tests circularization quality;
+- promoted chart error, rather than ordinary measurement noise, as the first
+  research obstacle to resolve.
+
 ## 3.2.0 — 2026-07-28
 
 This release turns the Hamilton–Jacobi connection into a runnable,

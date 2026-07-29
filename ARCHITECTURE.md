@@ -20,7 +20,9 @@ canonical trajectory CSV (q,p)
 held-out physical trajectories
   ├─> recursive rollout + persistence comparison
   ├─> observed action drift
-  ├─> fiberwise Koopman phase residual
+  ├─> radial circularization residual
+  ├─> phase-step and learned phase-law residuals
+  ├─> complete latent conjugacy residual
   ├─> numerical inverse and symplectic checks
   └─> empirical J = (2 pi)^-1 integral p dq
        ├─> canonical gauge check I approximately equals J
@@ -72,15 +74,32 @@ nonisochronous family.
 
 Training uses only ordered state samples and complete trajectory identity.
 Reference energy and the empirical action integral are post-fit tests. The
-closed-orbit area is decisive because a generic scalar invariant has arbitrary
-monotone gauge, whereas a symplectic transformation preserves phase-space
-area. Agreement between latent \(I\) and physical
-\((2\pi)^{-1}\oint p\,dq\) tests whether the model learned a genuinely
-canonical chart.
+closed-orbit area fixes the physical scale because a generic scalar invariant
+has arbitrary monotone gauge, whereas a symplectic transformation preserves
+phase-space area. Enclosed latent area equals physical
+\((2\pi)^{-1}\oint p\,dq\) structurally. The additional mean-radial-action,
+radial-variation, phase-law, and complete-conjugacy checks test whether the
+model actually circularizes and linearizes the observed orbit at that scale.
 
 The exported model carries its certificate and observed action range.
 `canonical-predict` refuses a rejected fit or action extrapolation unless the
 caller explicitly overrides the gate.
+
+`canonical-diagnose` is the stronger support surface for a new dataset. It
+requires complete trajectories and separates radial geometry, phase-step
+uniformity, learned frequency-law error, and complete latent conjugacy error.
+
+`chart-fidelity` is the first residual-identifiability cell. It fits
+
+\[
+\Delta I=-\partial_\phi G,\qquad
+G(\phi)=\sum_m K_m\cos(m\phi+\vartheta_m)
+\]
+
+with a reported fit remainder, then measures how a controlled canonical-chart
+error contaminates \(K_m\) on and off resonance. The current cell uses a known
+chart and is an oracle mechanism test. Learned-chart ensembles are the next
+falsifier.
 
 ## Mechanics-workbench flow
 

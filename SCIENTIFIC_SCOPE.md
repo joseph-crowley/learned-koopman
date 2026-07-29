@@ -39,6 +39,20 @@ The canonical Koopman–HJ experiment demonstrates that:
 - the post-fit data themselves satisfy \(dH/dJ=\omega\) at 0.008% normalized
   RMSE, validating the closed-orbit action ruler used to judge the model.
 
+Version 3.3 adds two narrower instruments:
+
+- independent radial, phase-step, learned phase-law, and complete-conjugacy
+  residuals, so no single statistic is asked to stand for both chart geometry
+  and time parameterization;
+- a controlled known-chart experiment in which a residual harmonic is stable
+  at exact resonance and strongly contaminated off resonance under the same
+  misspecified canonical shear.
+
+The second result verifies the expected first-order cohomological mechanism in
+an oracle setting. It does not show that a learned chart's optimizer error is a
+bounded canonical gauge transformation. Learned-chart ensembles and
+adversarial chart perturbations remain the decisive falsifier.
+
 These are actual-run results for one synthetic one-degree-of-freedom
 integrable system and one deterministic split. They establish that the
 implementation realizes the intended canonical normal form on this problem.
