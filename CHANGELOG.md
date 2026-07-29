@@ -18,9 +18,10 @@ resonance-metrology experiment.
 - `resonance-metrology`, a Python API, CLI, JSON/HTML/PNG evidence surface,
   model/data artifacts, validator, and CI smoke;
 - `resonance-estimate`, a no-oracle trajectory/model CLI that refuses failed
-  chart fits and reports pairwise chart ambiguity without calibrated claims;
+  or byte-identical copied chart fits, records model digests, and reports
+  pairwise chart ambiguity without calibrated claims;
 - a public resonance-metrology decision and mathematical convention record;
-- contributor guidance for evidence-bearing scientific changes.
+- contributor guidance for evidence-bearing scientific changes; and
 - an observation-only winding-rate initializer that prevents large
   discrete-map rotations from falling into the wrong wrapped-frequency
   optimization basin, with its diagnostics recorded in every run.
