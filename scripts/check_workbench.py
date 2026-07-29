@@ -239,9 +239,9 @@ def main() -> None:
         errors = payload["operator_family"]["held_out_errors"]
         claims = (
             f"{invariant['held_out_mean_normalized_drift']:.4f}",
-            f"{errors['fibered']['normalized_rollout_rmse']:.3f}",
-            f"{errors['global_edmd']['normalized_rollout_rmse']:.3f}",
-            f"{errors['persistence']['normalized_rollout_rmse']:.3f}",
+            f"{errors['fibered']['normalized_rollout_rmse']:.4f}",
+            f"{errors['global_edmd']['normalized_rollout_rmse']:.4f}",
+            f"{errors['persistence']['normalized_rollout_rmse']:.4f}",
         )
         for claim in claims:
             assert claim in readme, f"README workbench claim is stale: {claim}"
