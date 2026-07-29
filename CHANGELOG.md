@@ -40,11 +40,16 @@ resonance-metrology experiment.
 
 ### Result
 
-- the clean full profile accepted all eight learned charts as predictors and
-  recovered the planted block to 19.59% complex error, but returned
+- the clean full profile accepted all eight learned charts as predictors,
+  placed the componentwise-median block at 19.59% complex error while the
+  median per-chart error was 20.44%, and returned
   `resolved_refuted (gauge_freedom)` because a prediction-equivalent exact
   gauge moved the block by 44.16%; the failed floor, null-availability, and
   shuffled-angle gates remain visible in the checked manifest.
+- post-review hardening makes wrong-harmonic traps per-chart, makes an
+  unavailable paired-null floor and an abstained estimator variant explicit,
+  validates the committed flagship evidence in CI, and adds the abstention
+  and no-formal-guarantee ledgers to the report.
 
 ## 3.3.0 — 2026-07-28
 

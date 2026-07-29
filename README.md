@@ -138,14 +138,15 @@ complex and magnitude tolerances.
 | Prediction-accepted charts | **8 / 8** |
 | Charts with an estimable band fit | 5 / 8 |
 | Held-out normalized one-step RMSE | **0.0453–0.0508** |
-| Median complex block error | 19.59% (20% gate passes) |
+| Consensus complex block error | 19.59% (20% gate passes) |
+| Median per-chart complex error | 20.44% (3 / 5 exceed 20%) |
 | Median magnitude error | 6.87% (15% gate passes) |
 | Recovered / planted island halfwidth | 0.1887 / 0.1826 |
-| Empirical floor coverage | 20% (80% gate fails) |
+| Empirical floor coverage | 25% of 4 evaluable charts (80% gate fails) |
 | Estimable null charts | 5 / 8 (minimum 6 fails) |
 | Shuffled-angle level / allowed | 37.23% / 20% |
 | Maximum prediction-equivalent exact-gauge shift | **44.16% complex, 43.29% magnitude** |
-| Estimator-variant deviation | 3.42% |
+| Estimator variants | G9 unresolved; quadratic trigger abstained |
 
 ![Learned-chart prediction, coefficient recovery, floor coverage, and exact
 gauge stress.](results/resonance-metrology/overview.png)
@@ -156,6 +157,10 @@ resonant normal-form coefficient at the claimed 20% precision. This does not
 show that such coefficients are never recoverable. It localizes the missing
 ingredient: a chart gauge fixed by external physics, a richer island-capable
 surrogate, or an invariant quotient that removes the measured gauge direction.
+The recovery sits exactly at the reporting boundary: error of the
+componentwise-median coefficient is 19.59%, while the median of the five
+per-chart errors is 20.44%. It is near-recovery with shared bias, not a
+positive 20%-accuracy claim.
 See the [report](results/resonance-metrology/report.html),
 [manifest](results/resonance-metrology/manifest.json), and
 [decision record](RESEARCH_DECISION.md).
@@ -376,6 +381,7 @@ uv run learned-koopman canonical-diagnose \
   --position-column position --momentum-column velocity \
   --output results/koopman-hj/orbit-diagnostics.json
 uv run python scripts/check_chart_fidelity.py
+uv run python scripts/check_resonance_metrology.py
 uv run python scripts/check_resonance_metrology.py \
   results/ci-resonance-metrology/manifest.json
 uv run python scripts/check_canonical_diagnostics.py

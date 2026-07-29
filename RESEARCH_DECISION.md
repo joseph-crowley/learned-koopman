@@ -40,11 +40,14 @@ The provenance-clean promoted run recorded in
 
 - 8/8 prediction-accepted charts;
 - 5/8 estimable trajectory-band blocks;
-- 19.59% median complex and 6.87% magnitude error;
-- 20% empirical-floor coverage;
+- 19.59% consensus complex error, while the median per-chart complex error
+  was 20.44% and 3/5 charts exceeded 20%;
+- 25% empirical-floor coverage among four charts with an available paired
+  null floor; one chart's floor was explicitly unavailable;
 - 5/8 estimable paired nulls;
 - 37.23% shuffled-angle level against a 20% limit;
-- 3.42% estimator-variant deviation; and
+- a 3.42% maximum among evaluable trigger variants, with G9 unresolved
+  because the quadratic trigger abstained; and
 - a 44.16% complex / 43.29% magnitude block shift under an exact gauge that
   remained inside the frozen prediction envelope.
 

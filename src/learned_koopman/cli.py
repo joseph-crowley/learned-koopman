@@ -583,7 +583,7 @@ def main() -> None:
         try:
             model_digests = _independent_model_digests(args.model)
         except ValueError as error:
-            parser.error(f"--{error}")
+            parser.error(str(error))
         dataset = load_trajectory_csv(
             args.input,
             state_columns=(args.position_column, args.momentum_column),

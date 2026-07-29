@@ -138,8 +138,9 @@ The separate full resonance-metrology run is also an `actual_run`:
 |---|---:|
 | Prediction-accepted exact-symplectic charts | 8 / 8 |
 | Estimable trajectory-band blocks | 5 / 8 |
-| Median complex / magnitude error | 19.59% / 6.87% |
-| Empirical floor coverage | 20% |
+| Consensus complex / magnitude error | 19.59% / 6.87% |
+| Median per-chart complex error | 20.44% (3 / 5 above 20%) |
+| Empirical floor coverage | 25% of 4 evaluable charts |
 | Maximum prediction-equivalent exact-gauge shift | 44.16% / 43.29% |
 | Frozen verdict | `resolved_refuted (gauge_freedom)` |
 

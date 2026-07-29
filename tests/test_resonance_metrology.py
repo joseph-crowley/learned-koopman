@@ -199,3 +199,37 @@ def test_ci_profile_is_real_but_cannot_emit_a_decisive_status(tmp_path) -> None:
     stress["maximum_in_envelope_magnitude_shift"] = 0.15
     with pytest.raises(ValueError, match="lacks a comparable 2x shift"):
         validate_resonance_manifest(unsupported_refutation)
+
+    silent_variant = copy.deepcopy(result)
+    silent_variant["empirical_gates"]["G9_variant_stability"].update(
+        {
+            "passed": True,
+            "all_trigger_variants_evaluable": False,
+        }
+    )
+    with pytest.raises(ValueError, match="unevaluable trigger"):
+        validate_resonance_manifest(silent_variant)
+
+    stale_trap = copy.deepcopy(result)
+    first_check = next(
+        iter(stale_trap["controls"]["wrong_harmonic_checks"].values())
+    )
+    first_check["passed"] = not all(
+        row["passed"] for row in first_check["charts"]
+    )
+    with pytest.raises(ValueError, match="per-chart ledger"):
+        validate_resonance_manifest(stale_trap)
+
+    report = config.output / "report.html"
+    report_payload = report.read_bytes()
+    report.unlink()
+    with pytest.raises(ValueError, match="report artifact is missing"):
+        validate_resonance_manifest(result)
+    report.write_bytes(report_payload)
+
+    s1_data = config.output / "s1-trajectories.csv"
+    s1_data.unlink()
+    optional_checks = validate_resonance_manifest(result)
+    assert any("source artifact is not shipped" in row for row in optional_checks)
+    with pytest.raises(ValueError, match="s1_data artifact is missing"):
+        validate_resonance_manifest(result, require_data_artifacts=True)

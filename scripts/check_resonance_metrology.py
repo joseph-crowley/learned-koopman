@@ -28,7 +28,12 @@ def main() -> None:
     args = parser.parse_args()
     payload = json.loads(args.manifest.read_text(encoding="utf-8"))
     payload["_artifact_root"] = str(args.manifest.parent)
-    checks = validate_resonance_manifest(payload)
+    checks = validate_resonance_manifest(
+        payload,
+        require_data_artifacts=(
+            args.manifest.resolve() != DEFAULT_MANIFEST.resolve()
+        ),
+    )
     if args.reproduce:
         with tempfile.TemporaryDirectory(
             prefix="learned-koopman-metrology-reproduction-"

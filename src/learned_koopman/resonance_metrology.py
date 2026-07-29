@@ -1158,7 +1158,14 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
     )
     axes[0, 1].legend()
 
-    floor = [row["floor_total"] / truth for row in charts]
+    floor = [
+        (
+            row["floor_total"] / truth
+            if row["floor_total"] is not None
+            else np.nan
+        )
+        for row in charts
+    ]
     realized = [row["absolute_error"] / truth for row in charts]
     positions = np.arange(len(charts))
     axes[1, 0].bar(
@@ -1292,7 +1299,35 @@ def _write_report(path: Path, manifest: dict[str, Any]) -> None:
         f"<td>{'yes' if row['covered'] else 'no'}</td>"
         "</tr>"
         for row in accepted
+        if row["floor_available"]
     )
+    unavailable_floor_rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(row['label'])}</td>"
+        f"<td>{row['held_out_one_step_rmse']:.5f}</td>"
+        f"<td>{row['complex_error']:.2%}</td>"
+        f"<td>{row['magnitude_error']:.2%}</td>"
+        "<td>unavailable</td><td>not evaluated</td>"
+        "</tr>"
+        for row in accepted
+        if not row["floor_available"]
+    )
+    block_abstention_rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(row['label'])}</td>"
+        f"<td>{html.escape(row['verdict'])}</td>"
+        f"<td>{html.escape(str(row['condition_number']))}</td>"
+        f"<td>{html.escape(str(row['usable_bins']))}</td>"
+        "</tr>"
+        for row in manifest["ensemble"]["block_ledger"]
+        if row["verdict"] != "value"
+    )
+    shuffled = manifest["controls"]["shuffled_angle_runs"]
+    shuffled_abstentions = sum(row["verdict"] != "value" for row in shuffled)
+    certification = manifest["ledgers"]["certification"]
+    unevaluable_variants = manifest["controls"]["variant_stability"][
+        "unevaluable_trigger_variants"
+    ]
     path.write_text(
         f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1337,10 +1372,16 @@ alt="Resonance-metrology diagnostics"></div>
 <td>{oracle['generating_function_amplitude']:.6g}</td></tr>
 </tbody></table></div>
 <div class="card"><h2>Predeclared gates</h2><ul>{gate_rows}</ul></div>
-<div class="card"><h2>Accepted learned charts</h2><table><thead><tr>
+<div class="card"><h2>Estimable learned charts</h2><table><thead><tr>
 <th>chart</th><th>one-step RMSE</th><th>complex error</th>
 <th>magnitude error</th><th>floor</th><th>covered</th></tr></thead>
-<tbody>{chart_rows}</tbody></table></div>
+<tbody>{chart_rows}{unavailable_floor_rows}</tbody></table></div>
+<div class="card"><h2>Block abstention map</h2>
+<p>Prediction acceptance and coefficient estimability are separate gates.
+These accepted predictors withheld a primary block:</p>
+<table><thead><tr><th>chart</th><th>verdict</th>
+<th>condition number</th><th>usable bins</th></tr></thead>
+<tbody>{block_abstention_rows}</tbody></table></div>
 <div class="card"><h2>Identifiability margin</h2>
 <p>Smallest exact-gauge rung leaving the prediction envelope:
 <strong>{visible_text}</strong>. Maximum in-envelope complex shift:
@@ -1354,6 +1395,18 @@ tolerance can produce a gauge refutation.</p>
 <div class="card"><h2>Estimator variants</h2><table><thead><tr>
 <th>variant</th><th>charts</th><th>consensus</th>
 <th>relative deviation</th></tr></thead><tbody>{variant_rows}</tbody></table>
+<p>Every trigger variant must be evaluable before G9 can pass. Unevaluable
+triggers: {html.escape(str(unevaluable_variants))}.</p>
+</div>
+<div class="card"><h2>Control interpretation</h2>
+<p>All {shuffled_abstentions} / {len(shuffled)} shuffled trajectory-band fits
+abstained. The stricter retained-bin statistic was
+{manifest['controls']['shuffled_angle_over_truth']:.2%} of the planted
+coefficient, against a 20% limit; this is recorded separately so abstention
+cannot pass the shuffle control vacuously.</p>
+<p>Certification ledger: formal guarantees =
+<strong>{html.escape(certification['formal_guarantees'])}</strong>.
+This is an empirical falsification instrument, not a formal certificate.</p>
 </div>
 <h2>What the number means</h2>
 <p>The primary estimator fits the complex residual harmonic across an action
@@ -1505,15 +1558,24 @@ def _variant_panel(
         "inner_band",
         "learned_h_frequency",
     )
-    maximum = max(
-        float(payload[name]["relative_deviation_from_primary"] or 0.0)
+    unevaluable = [
+        name
         for name in trigger_names
-    )
+        if payload[name]["relative_deviation_from_primary"] is None
+    ]
+    evaluated_deviations = [
+        float(payload[name]["relative_deviation_from_primary"])
+        for name in trigger_names
+        if payload[name]["relative_deviation_from_primary"] is not None
+    ]
+    maximum = max(evaluated_deviations, default=1e9)
     return {
         "variants": payload,
         "maximum_trigger_deviation": maximum,
-        "blocks_supported_status": maximum <= 0.2,
-        "warning": maximum > 0.1,
+        "all_trigger_variants_evaluable": not unevaluable,
+        "unevaluable_trigger_variants": unevaluable,
+        "blocks_supported_status": not unevaluable and maximum <= 0.2,
+        "warning": bool(unevaluable) or maximum > 0.1,
     }
 
 
@@ -1678,6 +1740,22 @@ def run_resonance_metrology(
             strict=True,
         )
     }
+    block_ledger = []
+    for label in accepted_labels:
+        chart_result = primary_by_label[label]
+        estimate = chart_result.get(
+            "estimate",
+            {"verdict": chart_result["verdict"]},
+        )
+        block_ledger.append(
+            {
+                "label": label,
+                "verdict": estimate["verdict"],
+                "condition_number": estimate.get("condition_number"),
+                "usable_bins": estimate.get("usable_bins"),
+                "total_bins": estimate.get("total_bins"),
+            }
+        )
     null_results: dict[str, dict[str, Any]] = {}
     accepted_rows = []
     training_by_label = {
@@ -1697,14 +1775,17 @@ def run_resonance_metrology(
             reference_angles=s2_bundle.angles[test_indices],
         )
         null_results[label] = null
-        estimate = chart_result["estimate"]
+        estimate = chart_result.get(
+            "estimate",
+            {"verdict": chart_result["verdict"]},
+        )
         if estimate["verdict"] != "value":
             continue
         coefficient = estimate["coefficient"]
         null_coefficient = (
             null["charts"][0]["estimate"]["coefficient"]
             if null["charts"][0]["verdict"] == "value"
-            else 0.0j
+            else None
         )
         with torch.no_grad():
             tensor = torch.tensor(held_out_states, dtype=torch.float32)
@@ -1717,7 +1798,9 @@ def run_resonance_metrology(
             held_out_angles,
             target_order=config.target_order,
         )
-        floor_additive = abs(null_coefficient)
+        floor_additive = (
+            abs(null_coefficient) if null_coefficient is not None else None
+        )
         floor_second_order = (
             2.34
             * harmonics["relative_action_harmonic_m"] ** 2
@@ -1730,6 +1813,8 @@ def run_resonance_metrology(
         )
         floor_total = (
             floor_additive + floor_second_order + floor_multiplicative
+            if floor_additive is not None
+            else None
         )
         absolute_error = abs(coefficient - truth)
         frequency_coefficients = (
@@ -1770,7 +1855,12 @@ def run_resonance_metrology(
                 "floor_second_order": floor_second_order,
                 "floor_multiplicative": floor_multiplicative,
                 "floor_total": floor_total,
-                "covered": absolute_error <= 2.0 * floor_total,
+                "floor_available": floor_total is not None,
+                "covered": (
+                    absolute_error <= 2.0 * floor_total
+                    if floor_total is not None
+                    else None
+                ),
                 "chart_error_harmonics": harmonics,
                 "analysis": chart_result,
                 "frequency_coefficients_descending": (
@@ -1787,18 +1877,27 @@ def run_resonance_metrology(
         else 0.0j
     )
     consensus_complex_error = abs(consensus - truth) / abs(truth)
+    median_per_chart_complex_error = (
+        float(np.median([row["complex_error"] for row in accepted_rows]))
+        if accepted_rows
+        else 1e9
+    )
+    charts_above_complex_threshold = sum(
+        row["complex_error"] > 0.20 for row in accepted_rows
+    )
     consensus_magnitude_error = abs(abs(consensus) - abs(truth)) / abs(truth)
     consensus_location_error = (
         abs(np.angle(consensus / truth)) / config.target_order
     )
+    floor_rows = [row for row in accepted_rows if row["floor_available"]]
     coverage_fraction = (
-        float(np.mean([row["covered"] for row in accepted_rows]))
-        if accepted_rows
+        float(np.mean([row["covered"] for row in floor_rows]))
+        if floor_rows
         else 0.0
     )
     modeled_floor = (
-        float(np.median([row["floor_total"] for row in accepted_rows]))
-        if accepted_rows
+        float(np.median([row["floor_total"] for row in floor_rows]))
+        if floor_rows
         else config.kick_amplitude
     )
     circle_errors = [
@@ -1984,6 +2083,13 @@ def run_resonance_metrology(
         else {
             "variants": {},
             "maximum_trigger_deviation": 1e9,
+            "all_trigger_variants_evaluable": False,
+            "unevaluable_trigger_variants": [
+                "primary_linear",
+                "quadratic_chart",
+                "inner_band",
+                "learned_h_frequency",
+            ],
             "blocks_supported_status": False,
             "warning": True,
         }
@@ -2000,22 +2106,60 @@ def run_resonance_metrology(
         else 0.0
     )
     wrong_traps_pass = True
+    wrong_harmonic_checks: dict[str, Any] = {}
     for wrong_order, result in wrong_harmonics.items():
         order_value = int(wrong_order)
         if order_value in (2, 4):
-            wrong_traps_pass &= all(
-                row["verdict"] == "no_resonance_crossing"
-                for row in result["charts"]
-            )
-        else:
-            values = [
-                row["estimate"]["coefficient"]
-                for row in result["charts"]
-                if row["verdict"] == "value"
+            rows = [
+                {
+                    "label": label,
+                    "verdict": row["verdict"],
+                    "coefficient_magnitude": None,
+                    "passed": row["verdict"] == "no_resonance_crossing",
+                }
+                for label, row in zip(
+                    accepted_labels,
+                    result["charts"],
+                    strict=True,
+                )
             ]
-            wrong_traps_pass &= not values or (
-                abs(_consensus(values)) <= 2.0 * modeled_floor
+            criterion = "each chart must report no_resonance_crossing"
+            threshold = None
+        else:
+            threshold = 2.0 * modeled_floor
+            rows = [
+                {
+                    "label": label,
+                    "verdict": row["verdict"],
+                    "coefficient_magnitude": (
+                        abs(row["estimate"]["coefficient"])
+                        if row["verdict"] == "value"
+                        else None
+                    ),
+                    "passed": (
+                        abs(row["estimate"]["coefficient"]) <= threshold
+                        if row["verdict"] == "value"
+                        else True
+                    ),
+                }
+                for label, row in zip(
+                    accepted_labels,
+                    result["charts"],
+                    strict=True,
+                )
+            ]
+            criterion = (
+                "each value must be at or below two modeled floors; "
+                "abstention passes"
             )
+        check_passed = all(row["passed"] for row in rows)
+        wrong_harmonic_checks[wrong_order] = {
+            "criterion": criterion,
+            "threshold": threshold,
+            "passed": check_passed,
+            "charts": rows,
+        }
+        wrong_traps_pass &= check_passed
     off_band_passed = all(
         row["verdict"] == "no_resonance_crossing"
         for row in off_band_control["charts"]
@@ -2093,6 +2237,9 @@ def run_resonance_metrology(
     empirical_gates = {
         "G1_complex_recovery": {
             "value": consensus_complex_error,
+            "aggregation": "error of componentwise-median coefficient",
+            "median_per_chart_error": median_per_chart_complex_error,
+            "charts_above_threshold": charts_above_complex_threshold,
             "threshold": 0.20,
             "passed": consensus_complex_error <= 0.20,
         },
@@ -2111,6 +2258,12 @@ def run_resonance_metrology(
         },
         "G4_floor_coverage": {
             "value": coverage_fraction,
+            "evaluated_chart_count": len(floor_rows),
+            "unavailable_chart_labels": [
+                row["label"]
+                for row in accepted_rows
+                if not row["floor_available"]
+            ],
             "threshold": 0.80,
             "passed": coverage_fraction >= 0.80,
         },
@@ -2122,8 +2275,12 @@ def run_resonance_metrology(
                 "null_instrument_available": null_instrument_available,
                 "null_below_two_floors": null_passed,
                 "wrong_harmonics_passed": wrong_traps_pass,
+                "wrong_harmonic_checks": wrong_harmonic_checks,
                 "off_band_abstained": off_band_passed,
                 "shuffled_over_truth": shuffled_level,
+                "shuffled_band_fit_abstention_count": sum(
+                    row["verdict"] != "value" for row in shuffled_results
+                ),
             },
             "threshold": (
                 "at least 6 prediction-healthy/estimable null charts; "
@@ -2169,6 +2326,12 @@ def run_resonance_metrology(
         },
         "G9_variant_stability": {
             "value": variant_panel["maximum_trigger_deviation"],
+            "all_trigger_variants_evaluable": variant_panel[
+                "all_trigger_variants_evaluable"
+            ],
+            "unevaluable_trigger_variants": variant_panel[
+                "unevaluable_trigger_variants"
+            ],
             "threshold": 0.20,
             "passed": variant_panel["blocks_supported_status"],
         },
@@ -2262,6 +2425,7 @@ def run_resonance_metrology(
             "accepted_count": len(accepted_labels),
             "accepted_labels": accepted_labels,
             "estimable_count": len(accepted_rows),
+            "block_ledger": block_ledger,
             "accepted": accepted_rows,
             "dropped": dropped,
             "training": training_rows,
@@ -2279,6 +2443,12 @@ def run_resonance_metrology(
         "ensemble_consensus": {
             "coefficient": _complex_payload(consensus),
             "complex_error": consensus_complex_error,
+            "median_per_chart_complex_error": (
+                median_per_chart_complex_error
+            ),
+            "charts_above_complex_threshold": (
+                charts_above_complex_threshold
+            ),
             "magnitude_error": consensus_magnitude_error,
             "location_error_radians": consensus_location_error,
             "generating_function_amplitude": abs(consensus)
@@ -2292,6 +2462,7 @@ def run_resonance_metrology(
         "controls": {
             "null_runs": null_results,
             "wrong_harmonics": wrong_harmonics,
+            "wrong_harmonic_checks": wrong_harmonic_checks,
             "off_band": off_band_control,
             "shuffled_angle_over_truth": shuffled_level,
             "shuffled_angle_runs": shuffled_results,
@@ -2389,7 +2560,11 @@ def run_resonance_metrology(
     return safe_manifest
 
 
-def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
+def validate_resonance_manifest(
+    manifest: dict[str, Any],
+    *,
+    require_data_artifacts: bool = False,
+) -> list[str]:
     if manifest.get("schema_version") != 1:
         raise ValueError("unsupported resonance-metrology schema")
     if manifest.get("experiment") != "resonance-metrology":
@@ -2414,13 +2589,22 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
         raise ValueError("empirical-gate status is missing")
     artifacts = manifest["artifacts"]
     root = Path(manifest.get("_artifact_root", "."))
+    artifact_checks = []
     for name in ("report", "overview", "s1_data", "s2_data"):
         digest = artifacts.get(f"{name}_sha256")
         if not isinstance(digest, str) or len(digest) != 64:
             raise ValueError(f"{name} artifact digest is missing")
         target = root / artifacts[name]
+        required = name in {"report", "overview"} or require_data_artifacts
+        if required and not target.is_file():
+            raise ValueError(f"{name} artifact is missing")
         if target.is_file() and _sha256(target) != digest:
             raise ValueError(f"{name} artifact digest is stale")
+        artifact_checks.append(
+            f"{name} digest verified"
+            if target.is_file()
+            else f"{name} digest recorded; source artifact is not shipped"
+        )
     accepted = manifest["ensemble"]["accepted"]
     if len(accepted) != manifest["ensemble"]["estimable_count"]:
         raise ValueError("estimable-chart count is stale")
@@ -2431,6 +2615,35 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
         raise ValueError("an estimable chart was not prediction-accepted")
     if any(row["complex_error"] < 0.0 for row in accepted):
         raise ValueError("chart error cannot be negative")
+    for row in accepted:
+        if row["floor_available"] != (row["floor_total"] is not None):
+            raise ValueError("floor availability is inconsistent")
+        if not row["floor_available"] and row["covered"] is not None:
+            raise ValueError("unavailable floor silently emitted coverage")
+    floor_gate = manifest["empirical_gates"]["G4_floor_coverage"]
+    if floor_gate["evaluated_chart_count"] != sum(
+        row["floor_available"] for row in accepted
+    ):
+        raise ValueError("floor-coverage denominator is stale")
+    variant_gate = manifest["empirical_gates"]["G9_variant_stability"]
+    if (
+        variant_gate["passed"]
+        and not variant_gate["all_trigger_variants_evaluable"]
+    ):
+        raise ValueError("G9 passed with an unevaluable trigger variant")
+    trap_checks = manifest["controls"]["wrong_harmonic_checks"]
+    if any(
+        check["passed"]
+        != all(row["passed"] for row in check["charts"])
+        for check in trap_checks.values()
+    ):
+        raise ValueError("wrong-harmonic per-chart ledger is inconsistent")
+    false_positive_gate = manifest["empirical_gates"]["G5_false_positives"]
+    if (
+        false_positive_gate["passed"]
+        and not all(check["passed"] for check in trap_checks.values())
+    ):
+        raise ValueError("G5 passed with a failed wrong-harmonic chart")
     for system_name in ("s1", "s2"):
         for row in manifest["ensemble"]["training"][system_name]:
             initialization = row.get("frequency_initialization", {})
@@ -2467,7 +2680,8 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
     return [
         "profile semantics and status are consistent",
         "accepted-chart ledger is internally consistent",
+        "floor and per-chart control abstentions are explicit",
         "all chart initializers are observation-only and finite",
-        "all report/data artifact hashes are present",
+        *artifact_checks,
         "island widths use nonnegative generating amplitudes",
     ]

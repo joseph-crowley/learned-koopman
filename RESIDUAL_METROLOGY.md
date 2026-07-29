@@ -175,11 +175,13 @@ protocol, a measured positive or negative boundary, and the next decisive
 experiments.
 
 The checked full run establishes the negative boundary. Eight of eight charts
-passed held-out prediction, and the median trajectory-band coefficient reached
-19.59% complex error, but a prediction-equivalent exact \(2m\) gauge moved the
-block by as much as 44.16%. The empirical floor covered only 20% of realized
-per-chart errors, the null instrument produced only five estimable charts, and
-the shuffled-angle level exceeded its gate. The resulting
+passed held-out prediction. The componentwise-median coefficient had 19.59%
+complex error, while the median per-chart error was 20.44% and 3/5 charts
+exceeded 20%. A prediction-equivalent exact \(2m\) gauge moved the
+block by as much as 44.16%. The empirical floor covered only 25% of the four
+charts with an available paired-null floor, the null instrument produced only
+five estimable charts, the quadratic estimator variant abstained, and the
+shuffled-angle level exceeded its gate. The resulting
 `resolved_refuted (gauge_freedom)` status is a refutation of the stated
 precision on this fixture, not a universal impossibility result.
 
