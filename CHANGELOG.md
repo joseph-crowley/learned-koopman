@@ -1,5 +1,39 @@
 # Changelog
 
+## 3.2.0 — 2026-07-28
+
+This release turns the Hamilton–Jacobi connection into a runnable,
+structure-preserving model rather than a roadmap item.
+
+### Added
+
+- an exact-symplectic neural canonical transformation composed of analytically
+  invertible translations, reciprocal scalings, and alternating shears;
+- a latent Hamiltonian normal form \(h(I)\), with
+  \(I=(Q^2+P^2)/2\), \(\omega(I)=dh/dI\), and analytic rotation instead of
+  numerical time integration;
+- `canonical-train` / `koopman-hj` and `canonical-predict` commands;
+- a canonical-action audit that measures
+  \(J=(2\pi)^{-1}\oint p\,dq\), checks \(dH/dJ=\omega\), and distinguishes
+  nonlinear invariant gauge from physical action;
+- complete-trajectory held-out evaluation of recursive rollout, observed
+  action drift, Koopman phase residual, numerical invertibility, symplectic
+  defect, and exact model action conservation;
+- post-fit checks showing whether the learned \(h(I)\) recovers measured
+  frequency and reference-energy shape without using energy in training;
+- loadable model and HTML/PNG/JSON evidence surfaces, artifact validators,
+  refusal of uncertified or out-of-action-support prediction, and CI smokes;
+- a committed 30-trajectory Duffing result plus a source-backed Koopman–HJ
+  frontier and research program.
+
+### Changed
+
+- promoted exact canonical mechanics ahead of the unconstrained polynomial
+  operator family while retaining the latter as a useful invariant-discovery
+  and baseline path;
+- reframed empirical closed-orbit integration as a hard evaluation ruler, not
+  the product architecture.
+
 ## 3.1.0 — 2026-07-28
 
 This release turns the research lab into the first useful local instrument for

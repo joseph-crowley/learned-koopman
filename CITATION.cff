@@ -1,10 +1,10 @@
 cff-version: 1.2.0
 message: "If this project helped your work, please cite the repository."
-title: "Learned Koopman: An Invariant-Conditioned Workbench for Nonlinear Dynamics"
+title: "Learned Koopman: Canonical Koopman and Hamilton-Jacobi Models for Nonlinear Mechanics"
 authors:
   - family-names: Crowley
     given-names: Joseph
-version: 3.1.0
+version: 3.2.0
 date-released: 2026-07-28
 url: "https://github.com/joseph-crowley/learned-koopman"
 license: MIT

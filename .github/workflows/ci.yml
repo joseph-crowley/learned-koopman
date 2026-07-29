@@ -22,10 +22,17 @@ jobs:
       - run: uv run python scripts/check_atlas_results.py
       - run: uv run python scripts/check_research_lab.py
       - run: uv run python scripts/check_workbench.py
+      - run: uv run python scripts/check_hj_action.py
+      - run: uv run python scripts/check_canonical_model.py
       - run: uv run learned-koopman generate-example --output results/ci-duffing.csv --trajectories 18 --steps 160 --dt 0.03
       - run: uv run learned-koopman analyze results/ci-duffing.csv --state-columns position velocity --reference-column energy --quick --epochs 90 --output results/ci-workbench
       - run: uv run python scripts/check_workbench.py results/ci-workbench/manifest.json
       - run: uv run learned-koopman predict results/ci-workbench/model.pt --initial 1.1 0.0 --steps 40 --output results/ci-workbench/prediction.csv
+      - run: uv run learned-koopman generate-example --output results/ci-canonical.csv --trajectories 18 --steps 220 --dt 0.03
+      - run: uv run learned-koopman canonical-train results/ci-canonical.csv --position-column position --momentum-column velocity --reference-column energy --quick --epochs 80 --output results/ci-canonical
+      - run: uv run python scripts/check_canonical_model.py results/ci-canonical/manifest.json
+      - run: uv run python scripts/check_hj_action.py results/ci-canonical/action-audit/manifest.json
+      - run: uv run learned-koopman canonical-predict results/ci-canonical/model.pt --initial 1.1 0.0 --steps 80 --output results/ci-canonical/prediction.csv
       - run: uv run learned-koopman demo --quick --output results/ci-smoke
       - run: uv run python scripts/check_run_health.py results/ci-smoke/metrics.json
       - run: uv run learned-koopman demo --quick --seed 17 --output results/ci-smoke-seed-17

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Koopman + HJ action audit</title>
+<style>
+body { margin: 0; background: #f4f1ea; color: #20242b; font: 17px/1.55 system-ui; }
+main { max-width: 980px; margin: auto; padding: 54px 24px 80px; }
+.eyebrow { color: #4057c9; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+h1 { font: 700 clamp(36px,7vw,68px)/1.02 Georgia,serif; margin: 10px 0 24px; }
+h2 { margin-top: 40px; } .card { background: white; padding: 26px; border-radius: 18px;
+box-shadow: 0 10px 35px #1e263112; margin: 22px 0; }
+.status { display: inline-block; border-radius: 99px; padding: 7px 13px;
+background: #e8edf9; font-weight: 700; } img { width: 100%; border-radius: 12px; }
+.pass { color: #176e50; } .fail { color: #ae352d; } code { font-size: .9em; }
+</style></head><body><main>
+<div class="eyebrow">learned-koopman · canonical mechanics</div>
+<h1>Does the learned foliation line up with Hamilton–Jacobi action?</h1>
+<p class="status">supported_on_supplied_periodic_orbits</p>
+<p>This audit measures <strong>J = (1/2π)∮p dq</strong> directly from each supplied
+closed orbit. It then tests <strong>dH/dJ = ω</strong> when a reference Hamiltonian is
+available and calibrates the learned invariant against J when a model is supplied.</p>
+<div class="card"><img src="overview.png" alt="Canonical-action audit plots"></div>
+<div class="card"><h2>Measured evidence</h2>
+<ul><li class="pass">PASS — enough closed orbits</li>
+<li class="pass">PASS — orbit closure is accurate</li>
+<li class="pass">PASS — action is ordered</li>
+<li class="pass">PASS — hamilton jacobi identity holds</li>
+<li class="pass">PASS — learned invariant calibrates to action</li></ul>
+<p><strong>Hamilton–Jacobi identity:</strong> normalized RMSE 0.008%; median relative error 0.007%.</p>
+<p><strong>Learned coordinate:</strong> held-out monotone-calibration R² 0.9934; |rank correlation| 1.0000.</p></div>
+<h2>Scientific boundary</h2>
+<p>This is a one-degree-of-freedom, autonomous, conservative, periodic-orbit audit.
+The two supplied state columns must be canonical position and momentum. Velocity is
+momentum only after the correct mass scaling. This result does not claim a global
+generating function, a phase chart through a turning point, multi-degree integrability,
+or a Hamilton–Jacobi–Bellman solution.</p>
+<h2>What it unlocks</h2>
+<p>The existing neural invariant is free up to a monotone gauge. Empirical action
+anchors that gauge to a canonical physical quantity. The next construction can learn
+a conjugate phase, enforce {φ,J} = 1, and test the HJ PDE and Koopman eigenfunction
+residuals on held-out tori.</p>
+<p>Machine-readable evidence: <code>manifest.json</code>.</p>
+</main></body></html>

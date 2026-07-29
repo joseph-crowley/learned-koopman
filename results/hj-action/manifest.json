@@ -1,0 +1,922 @@
+{
+  "schema_version": 1,
+  "package_version": "3.2.0",
+  "scientific_contract": {
+    "system_class": "one-degree-of-freedom autonomous conservative mechanics",
+    "coordinate_contract": "state column 1 is canonical q; state column 2 is canonical p",
+    "measured_equations": [
+      "J = (1 / (2 pi)) integral_closed_orbit p dq",
+      "omega = 2 pi / T",
+      "dH/dJ = omega"
+    ],
+    "not_claimed": [
+      "global Hamilton-Jacobi generating function",
+      "global angle chart through turning points or separatrices",
+      "multi-degree-of-freedom Liouville integrability",
+      "Hamilton-Jacobi-Bellman control solution"
+    ]
+  },
+  "dataset": {
+    "source": "examples/duffing-trajectories.csv",
+    "source_sha256": "d6f3e513f61d49d31a807d32069c8df8845a6d04e164d32a456bc137768b2949",
+    "trajectory_count": 30,
+    "step_count": 360,
+    "dt": 0.025000000000000022,
+    "canonical_columns": [
+      "position",
+      "velocity"
+    ],
+    "reference_column": "energy"
+  },
+  "measurements": [
+    {
+      "trajectory_id": "run-000",
+      "cycle_count": 1,
+      "position_amplitude": 0.2608744951247173,
+      "action": 0.031378186472039486,
+      "period": 6.250885262366319,
+      "frequency": 1.00516727526703,
+      "max_closure_error": 5.410380650046623e-06,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.250885262366319,
+          "period": 6.250885262366319,
+          "action": 0.031378186472039486,
+          "frequency": 1.00516727526703,
+          "closure_error": 5.410380650046623e-06
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-001",
+      "cycle_count": 1,
+      "position_amplitude": 0.3265406563429356,
+      "action": 0.04955596465322567,
+      "period": 6.232626260960624,
+      "frequency": 1.0081119971103754,
+      "max_closure_error": 3.3843566848978896e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.232626260960624,
+          "period": 6.232626260960624,
+          "action": 0.04955596465322567,
+          "frequency": 1.0081119971103754,
+          "closure_error": 3.3843566848978896e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-002",
+      "cycle_count": 1,
+      "position_amplitude": 0.39162131066096445,
+      "action": 0.07196737855860878,
+      "period": 6.21046343227938,
+      "frequency": 1.0117095729961516,
+      "max_closure_error": 3.922020690460566e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.21046343227938,
+          "period": 6.21046343227938,
+          "action": 0.07196737855860878,
+          "frequency": 1.0117095729961516,
+          "closure_error": 3.922020690460566e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-003",
+      "cycle_count": 1,
+      "position_amplitude": 0.4559611774515313,
+      "action": 0.09868483617250466,
+      "period": 6.1845302271746,
+      "frequency": 1.0159519116862747,
+      "max_closure_error": 3.8439507905244706e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.1845302271746,
+          "period": 6.1845302271746,
+          "action": 0.09868483617250466,
+          "frequency": 1.0159519116862747,
+          "closure_error": 3.8439507905244706e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-004",
+      "cycle_count": 1,
+      "position_amplitude": 0.5194781087627829,
+      "action": 0.12979339227745934,
+      "period": 6.154978601553142,
+      "frequency": 1.0208297565151716,
+      "max_closure_error": 2.6319534646435085e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.154978601553142,
+          "period": 6.154978601553142,
+          "action": 0.12979339227745934,
+          "frequency": 1.0208297565151716,
+          "closure_error": 2.6319534646435085e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-005",
+      "cycle_count": 1,
+      "position_amplitude": 0.5819921745535055,
+      "action": 0.16539039393367624,
+      "period": 6.121976420355721,
+      "frequency": 1.026332817337852,
+      "max_closure_error": 1.779587496301094e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.121976420355721,
+          "period": 6.121976420355721,
+          "action": 0.16539039393367624,
+          "frequency": 1.026332817337852,
+          "closure_error": 1.779587496301094e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-006",
+      "cycle_count": 1,
+      "position_amplitude": 0.643501955333068,
+      "action": 0.20558517239398505,
+      "period": 6.08570784849215,
+      "frequency": 1.0324493819952867,
+      "max_closure_error": 4.1632208942149475e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.08570784849215,
+          "period": 6.08570784849215,
+          "action": 0.20558517239398505,
+          "frequency": 1.0324493819952867,
+          "closure_error": 4.1632208942149475e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-007",
+      "cycle_count": 1,
+      "position_amplitude": 0.7038602600205995,
+      "action": 0.25049849530093266,
+      "period": 6.046365033532415,
+      "frequency": 1.0391673794641565,
+      "max_closure_error": 2.148826488940383e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.046365033532415,
+          "period": 6.046365033532415,
+          "action": 0.25049849530093266,
+          "frequency": 1.0391673794641565,
+          "closure_error": 2.148826488940383e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-008",
+      "cycle_count": 1,
+      "position_amplitude": 0.7629811425552779,
+      "action": 0.3002623177422875,
+      "period": 6.004152270597678,
+      "frequency": 1.0464733444466978,
+      "max_closure_error": 2.4394618650275723e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 6.004152270597678,
+          "period": 6.004152270597678,
+          "action": 0.3002623177422875,
+          "frequency": 1.0464733444466978,
+          "closure_error": 2.4394618650275723e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-009",
+      "cycle_count": 1,
+      "position_amplitude": 0.8274404834959336,
+      "action": 0.35501908180651676,
+      "period": 5.959276195638847,
+      "frequency": 1.0543537672876757,
+      "max_closure_error": 4.191540786239244e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.959276195638847,
+          "period": 5.959276195638847,
+          "action": 0.35501908180651676,
+          "frequency": 1.0543537672876757,
+          "closure_error": 4.191540786239244e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-010",
+      "cycle_count": 1,
+      "position_amplitude": 0.8984624473876983,
+      "action": 0.41492145788724144,
+      "period": 5.911949383514565,
+      "frequency": 1.0627941647640304,
+      "max_closure_error": 4.575224761115247e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.911949383514565,
+          "period": 5.911949383514565,
+          "action": 0.41492145788724144,
+          "frequency": 1.0627941647640304,
+          "closure_error": 4.575224761115247e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-011",
+      "cycle_count": 1,
+      "position_amplitude": 0.9707559709816762,
+      "action": 0.4801317573422326,
+      "period": 5.862385115042602,
+      "frequency": 1.0717796910095911,
+      "max_closure_error": 4.6846042275327016e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.862385115042602,
+          "period": 5.862385115042602,
+          "action": 0.4801317573422326,
+          "frequency": 1.0717796910095911,
+          "closure_error": 4.6846042275327016e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-012",
+      "cycle_count": 1,
+      "position_amplitude": 1.0442627769877413,
+      "action": 0.5508214391305803,
+      "period": 5.8107954693638675,
+      "frequency": 1.0812952099770659,
+      "max_closure_error": 4.703732078392853e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.8107954693638675,
+          "period": 5.8107954693638675,
+          "action": 0.5508214391305803,
+          "frequency": 1.0812952099770659,
+          "closure_error": 4.703732078392853e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-013",
+      "cycle_count": 1,
+      "position_amplitude": 1.118877596899417,
+      "action": 0.6271706153113605,
+      "period": 5.757389531386015,
+      "frequency": 1.0913253780949215,
+      "max_closure_error": 4.087344658003295e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.757389531386015,
+          "period": 5.757389531386015,
+          "action": 0.6271706153113605,
+          "frequency": 1.0913253780949215,
+          "closure_error": 4.087344658003295e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-014",
+      "cycle_count": 1,
+      "position_amplitude": 1.1944442265537956,
+      "action": 0.7093675290478433,
+      "period": 5.702371450329662,
+      "frequency": 1.101854791801812,
+      "max_closure_error": 1.7272662763521998e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.702371450329662,
+          "period": 5.702371450329662,
+          "action": 0.7093675290478433,
+          "frequency": 1.101854791801812,
+          "closure_error": 1.7272662763521998e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-015",
+      "cycle_count": 1,
+      "position_amplitude": 1.2707535969712351,
+      "action": 0.797608080379881,
+      "period": 5.645939310493359,
+      "frequency": 1.1128680210043813,
+      "max_closure_error": 2.807006323427956e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.645939310493359,
+          "period": 5.645939310493359,
+          "action": 0.797608080379881,
+          "frequency": 1.1128680210043813,
+          "closure_error": 2.807006323427956e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-016",
+      "cycle_count": 1,
+      "position_amplitude": 1.3475444406681452,
+      "action": 0.8920956221188577,
+      "period": 5.588286374494434,
+      "frequency": 1.1243491986840097,
+      "max_closure_error": 5.273375756347252e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.588286374494434,
+          "period": 5.588286374494434,
+          "action": 0.8920956221188577,
+          "frequency": 1.1243491986840097,
+          "closure_error": 5.273375756347252e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-017",
+      "cycle_count": 1,
+      "position_amplitude": 1.4245069204407192,
+      "action": 0.993039966985461,
+      "period": 5.529594831531789,
+      "frequency": 1.1362831271742637,
+      "max_closure_error": 3.262489019668232e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.529594831531789,
+          "period": 5.529594831531789,
+          "action": 0.993039966985461,
+          "frequency": 1.1362831271742637,
+          "closure_error": 3.262489019668232e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-018",
+      "cycle_count": 1,
+      "position_amplitude": 1.5012892494245786,
+      "action": 1.100657030108549,
+      "period": 5.470036940839718,
+      "frequency": 1.148655004551951,
+      "max_closure_error": 3.555721376186362e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.470036940839718,
+          "period": 5.470036940839718,
+          "action": 1.100657030108549,
+          "frequency": 1.148655004551951,
+          "closure_error": 3.555721376186362e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-019",
+      "cycle_count": 1,
+      "position_amplitude": 1.5775069208955097,
+      "action": 1.21516934458113,
+      "period": 5.409781213434947,
+      "frequency": 1.1614490603752292,
+      "max_closure_error": 5.472127789276068e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.409781213434947,
+          "period": 5.409781213434947,
+          "action": 1.21516934458113,
+          "frequency": 1.1614490603752292,
+          "closure_error": 5.472127789276068e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-020",
+      "cycle_count": 1,
+      "position_amplitude": 1.6527537812806028,
+      "action": 1.3368038862240594,
+      "period": 5.348979147661273,
+      "frequency": 1.1746512995712042,
+      "max_closure_error": 9.2545952979588e-06,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.348979147661273,
+          "period": 5.348979147661273,
+          "action": 1.3368038862240594,
+          "frequency": 1.1746512995712042,
+          "closure_error": 9.2545952979588e-06
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-021",
+      "cycle_count": 1,
+      "position_amplitude": 1.7266139333637178,
+      "action": 1.46579350895094,
+      "period": 5.287777931917389,
+      "frequency": 1.1882468190000663,
+      "max_closure_error": 6.0756100907993786e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.287777931917389,
+          "period": 5.287777931917389,
+          "action": 1.46579350895094,
+          "frequency": 1.1882468190000663,
+          "closure_error": 6.0756100907993786e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-022",
+      "cycle_count": 1,
+      "position_amplitude": 1.7986734425157014,
+      "action": 1.6023753109315726,
+      "period": 5.226311889001125,
+      "frequency": 1.2022216508744286,
+      "max_closure_error": 1.2442604183071792e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.226311889001125,
+          "period": 5.226311889001125,
+          "action": 1.6023753109315726,
+          "frequency": 1.2022216508744286,
+          "closure_error": 1.2442604183071792e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-023",
+      "cycle_count": 1,
+      "position_amplitude": 1.8685310738551082,
+      "action": 1.7467905388108824,
+      "period": 5.164704784688399,
+      "frequency": 1.21656233398027,
+      "max_closure_error": 6.240825873812281e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.164704784688399,
+          "period": 5.164704784688399,
+          "action": 1.7467905388108824,
+          "frequency": 1.21656233398027,
+          "closure_error": 6.240825873812281e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-024",
+      "cycle_count": 1,
+      "position_amplitude": 1.9358077791026789,
+      "action": 1.899285230412673,
+      "period": 5.103074418982762,
+      "frequency": 1.2312548850565392,
+      "max_closure_error": 2.8614010795481453e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.103074418982762,
+          "period": 5.103074418982762,
+          "action": 1.899285230412673,
+          "frequency": 1.2312548850565392,
+          "closure_error": 2.8614010795481453e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-025",
+      "cycle_count": 1,
+      "position_amplitude": 2.000155282179393,
+      "action": 2.0601076223649666,
+      "period": 5.041522518728342,
+      "frequency": 1.2462872641823364,
+      "max_closure_error": 6.124385545506933e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 5.041522518728342,
+          "period": 5.041522518728342,
+          "action": 2.0601076223649666,
+          "frequency": 1.2462872641823364,
+          "closure_error": 6.124385545506933e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-026",
+      "cycle_count": 1,
+      "position_amplitude": 2.061264754167368,
+      "action": 2.229511448863993,
+      "period": 4.980150453722244,
+      "frequency": 1.2616456802993639,
+      "max_closure_error": 4.6046234868590653e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 4.980150453722244,
+          "period": 4.980150453722244,
+          "action": 2.229511448863993,
+          "frequency": 1.2616456802993639,
+          "closure_error": 4.6046234868590653e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-027",
+      "cycle_count": 1,
+      "position_amplitude": 2.11887707933551,
+      "action": 2.407750709118594,
+      "period": 4.919039860202682,
+      "frequency": 1.2773194537441086,
+      "max_closure_error": 5.265738950359398e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 4.919039860202682,
+          "period": 4.919039860202682,
+          "action": 2.407750709118594,
+          "frequency": 1.2773194537441086,
+          "closure_error": 5.265738950359398e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-028",
+      "cycle_count": 1,
+      "position_amplitude": 2.1727964458484452,
+      "action": 2.5950857161955123,
+      "period": 4.858276417443389,
+      "frequency": 1.2932951457064352,
+      "max_closure_error": 6.617493340141094e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 4.858276417443389,
+          "period": 4.858276417443389,
+          "action": 2.5950857161955123,
+          "frequency": 1.2932951457064352,
+          "closure_error": 6.617493340141094e-05
+        }
+      ]
+    },
+    {
+      "trajectory_id": "run-029",
+      "cycle_count": 1,
+      "position_amplitude": 2.222908775403407,
+      "action": 2.791775533401567,
+      "period": 4.797924952249978,
+      "frequency": 1.309563065223248,
+      "max_closure_error": 2.343188732921445e-05,
+      "action_coefficient_of_variation": 0.0,
+      "period_coefficient_of_variation": 0.0,
+      "cycles": [
+        {
+          "start_time": 0.0,
+          "end_time": 4.797924952249978,
+          "period": 4.797924952249978,
+          "action": 2.791775533401567,
+          "frequency": 1.309563065223248,
+          "closure_error": 2.343188732921445e-05
+        }
+      ]
+    }
+  ],
+  "rejected_trajectories": [],
+  "aggregate": {
+    "measured_trajectory_count": 30,
+    "rejected_trajectory_count": 0,
+    "max_closure_error": 6.617493340141094e-05,
+    "median_closure_error": 3.882985740492518e-05,
+    "action_rank_vs_amplitude": 1.0,
+    "action_min": 0.031378186472039486,
+    "action_max": 2.791775533401567,
+    "frequency_min": 1.00516727526703,
+    "frequency_max": 1.309563065223248
+  },
+  "hj_identity": {
+    "available": true,
+    "equation": "dH/dJ = omega",
+    "normalized_rmse": 7.700755904858035e-05,
+    "median_relative_error": 7.290755624658578e-05,
+    "max_relative_error": 9.581941335164386e-05,
+    "action": [
+      0.031378186472039486,
+      0.04955596465322567,
+      0.07196737855860878,
+      0.09868483617250466,
+      0.12979339227745934,
+      0.16539039393367624,
+      0.20558517239398505,
+      0.25049849530093266,
+      0.3002623177422875,
+      0.35501908180651676,
+      0.41492145788724144,
+      0.4801317573422326,
+      0.5508214391305803,
+      0.6271706153113605,
+      0.7093675290478433,
+      0.797608080379881,
+      0.8920956221188577,
+      0.993039966985461,
+      1.100657030108549,
+      1.21516934458113,
+      1.3368038862240594,
+      1.46579350895094,
+      1.6023753109315726,
+      1.7467905388108824,
+      1.899285230412673,
+      2.0601076223649666,
+      2.229511448863993,
+      2.407750709118594,
+      2.5950857161955123,
+      2.791775533401567
+    ],
+    "energy": [
+      0.031462247439449725,
+      0.04976217305733639,
+      0.07239755354364251,
+      0.09948682201905193,
+      0.13117026725145,
+      0.16761003363551388,
+      0.20899012098463332,
+      0.2555163839262889,
+      0.3074165305765167,
+      0.36494012006063614,
+      0.42835855842596393,
+      0.49796509267290834,
+      0.5740748031483471,
+      0.6570245954507444,
+      0.7471731941056362,
+      0.8449011410556,
+      0.9506108016686278,
+      1.0647263788816668,
+      1.1876939324785833,
+      1.319981396834,
+      1.4620785889319998,
+      1.6144972006128058,
+      1.777770774309889,
+      1.952454667680333,
+      2.139126017080972,
+      2.338383712319389,
+      2.550848397131,
+      2.7771625130979998,
+      3.0179904068801666,
+      3.2740185108063056
+    ],
+    "measured_frequency": [
+      1.00516727526703,
+      1.0081119971103754,
+      1.0117095729961516,
+      1.0159519116862747,
+      1.0208297565151716,
+      1.026332817337852,
+      1.0324493819952867,
+      1.0391673794641565,
+      1.0464733444466978,
+      1.0543537672876757,
+      1.0627941647640304,
+      1.0717796910095911,
+      1.0812952099770659,
+      1.0913253780949215,
+      1.101854791801812,
+      1.1128680210043813,
+      1.1243491986840097,
+      1.1362831271742637,
+      1.148655004551951,
+      1.1614490603752292,
+      1.1746512995712042,
+      1.1882468190000663,
+      1.2022216508744286,
+      1.21656233398027,
+      1.2312548850565392,
+      1.2462872641823364,
+      1.2616456802993639,
+      1.2773194537441086,
+      1.2932951457064352,
+      1.309563065223248
+    ],
+    "dH_dJ": [
+      1.0052534319729918,
+      1.0081857722557075,
+      1.0117829878472138,
+      1.0160249737614035,
+      1.0209028473997779,
+      1.0264057962175888,
+      1.0325226496650663,
+      1.0392410267619945,
+      1.0465477935234588,
+      1.0544297006019918,
+      1.062871435048526,
+      1.071858282800577,
+      1.0813750743143933,
+      1.0914065342081067,
+      1.1019373439423177,
+      1.1129505065937222,
+      1.1244307169787664,
+      1.1363655157509038,
+      1.1487370331394349,
+      1.161531560117612,
+      1.1747359490618807,
+      1.1883336920434333,
+      1.2023133683989684,
+      1.2166582736361713,
+      1.2313569500124997,
+      1.2463939366401826,
+      1.2617583963312553,
+      1.2774369106990688,
+      1.2934190684885873,
+      1.3099501100787094
+    ]
+  },
+  "learned_coordinate_alignment": {
+    "available": true,
+    "coordinate": [
+      1.700675853755739,
+      1.6207191364632711,
+      1.5247884515259,
+      1.414315367076132,
+      1.2910465051730473,
+      1.1570135917928484,
+      1.0144725806183286,
+      0.8658151206043031,
+      0.713462202085389,
+      0.5597542784280247,
+      0.40685192611482407,
+      0.256658199429512,
+      0.1107687260541651,
+      -0.02955087986257341,
+      -0.16336237101091278,
+      -0.29002979497114817,
+      -0.40917375170522263,
+      -0.5206169168154399,
+      -0.624343786140283,
+      -0.7204823162820604,
+      -0.8092853999800153,
+      -0.8910929588807954,
+      -0.9662887503703436,
+      -1.0352718571821848,
+      -1.0984456724590725,
+      -1.1562143954965802,
+      -1.2089685989750756,
+      -1.2570572359694374,
+      -1.3007754286130269,
+      -1.3404024289713965
+    ],
+    "affine_r2": 0.8470101379327282,
+    "absolute_rank_correlation": 1.0,
+    "orientation": -1.0,
+    "affine_slope": -0.7680610578376807,
+    "affine_intercept": 0.9554743129459402,
+    "calibration": {
+      "kind": "trajectory-interleaved monotone polynomial",
+      "degree": 3,
+      "coefficients": [
+        0.22335432494999224,
+        0.4927408433053816,
+        0.5262891434134587,
+        0.5312435778229904
+      ],
+      "calibration_trajectory_ids": [
+        "run-000",
+        "run-002",
+        "run-004",
+        "run-006",
+        "run-008",
+        "run-010",
+        "run-012",
+        "run-014",
+        "run-016",
+        "run-018",
+        "run-020",
+        "run-022",
+        "run-024",
+        "run-026",
+        "run-028",
+        "run-029"
+      ],
+      "held_out_trajectory_ids": [
+        "run-001",
+        "run-003",
+        "run-005",
+        "run-007",
+        "run-009",
+        "run-011",
+        "run-013",
+        "run-015",
+        "run-017",
+        "run-019",
+        "run-021",
+        "run-023",
+        "run-025",
+        "run-027"
+      ],
+      "held_out_r2": 0.9933671685145057,
+      "held_out_max_absolute_error": 0.10525113101957739,
+      "monotone_over_observed_range": true,
+      "minimum_derivative": 0.1639457688773554
+    }
+  },
+  "certificate": {
+    "status": "supported_on_supplied_periodic_orbits",
+    "decisive_comparisons": {
+      "enough_closed_orbits": true,
+      "orbit_closure_is_accurate": true,
+      "action_is_ordered": true,
+      "hamilton_jacobi_identity_holds": true,
+      "learned_invariant_calibrates_to_action": true
+    },
+    "scope": "the supplied periodic trajectories under the declared canonical coordinate and conservative-system assumptions"
+  },
+  "artifacts": {
+    "overview": "overview.png",
+    "report": "report.html",
+    "manifest": "manifest.json",
+    "overview_sha256": "97a486137b8b5bba7c1030e84366fe7e5a28d81141ba7e024a0741d5cbde1dea",
+    "report_sha256": "77beef2a13cda4f180eb3a3d9813fe6bcb6ab382a110d170e1abe8bba052a1f7"
+  },
+  "validation_checks": [
+    "closed-orbit actions were measured from supplied canonical coordinates",
+    "the certificate was recomputed from measured closure and ordering",
+    "the Hamilton-Jacobi identity was checked",
+    "the learned invariant was compared with canonical action"
+  ]
+}

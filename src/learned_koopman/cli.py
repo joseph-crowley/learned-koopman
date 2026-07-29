@@ -7,14 +7,21 @@ from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from learned_koopman import __version__
+from learned_koopman.canonical_experiment import (
+    CanonicalExperimentConfig,
+    run_canonical_experiment,
+)
+from learned_koopman.canonical_model import load_canonical_model
 from learned_koopman.config import ExperimentConfig
 from learned_koopman.control_experiment import (
     ControlExperimentProfile,
     run_control_experiment,
 )
 from learned_koopman.experiment import run_experiment, run_robustness_sweep
+from learned_koopman.hj_action import run_hj_action_audit
 from learned_koopman.invariant_experiment import run_invariant_experiment
 from learned_koopman.research_lab import run_research_lab
 from learned_koopman.trajectory import load_trajectory_csv, write_duffing_example
@@ -54,6 +61,15 @@ def _summary(result: dict[str, object]) -> str:
             }
         )
     return json.dumps(rows, indent=2)
+
+
+def _load_coordinate_model(path: Path):
+    payload = torch.load(path, map_location="cpu", weights_only=True)
+    if "hamiltonian_degree" in payload and "state_dict" in payload:
+        return load_canonical_model(path)
+    if "invariant_state_dict" in payload and "operator" in payload:
+        return load_mechanics_model(path)
+    raise ValueError("unsupported coordinate-model bundle")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -160,6 +176,51 @@ def build_parser() -> argparse.ArgumentParser:
     analyze.add_argument("--epochs", type=int)
     analyze.add_argument("--family-degree", type=int, choices=(0, 1, 2, 3))
     analyze.add_argument("--observable-degree", type=int, choices=(1, 2))
+    hj_audit = subparsers.add_parser(
+        "hj-audit",
+        aliases=["canonical-audit"],
+        help="Measure canonical action and test the Koopman/Hamilton-Jacobi bridge.",
+    )
+    hj_audit.add_argument("input", type=Path)
+    hj_audit.add_argument("--position-column", required=True)
+    hj_audit.add_argument("--momentum-column", required=True)
+    hj_audit.add_argument("--trajectory-column", default="trajectory_id")
+    hj_audit.add_argument("--time-column", default="time")
+    hj_audit.add_argument("--reference-column")
+    hj_audit.add_argument(
+        "--model",
+        type=Path,
+        help="Optional workbench or canonical model for coordinate calibration.",
+    )
+    hj_audit.add_argument("--output", type=Path, default=Path("results/hj-action"))
+    canonical = subparsers.add_parser(
+        "canonical-train",
+        aliases=["koopman-hj"],
+        help="Train an exact-symplectic canonical Koopman world model.",
+    )
+    canonical.add_argument("input", type=Path)
+    canonical.add_argument("--position-column", required=True)
+    canonical.add_argument("--momentum-column", required=True)
+    canonical.add_argument("--trajectory-column", default="trajectory_id")
+    canonical.add_argument("--time-column", default="time")
+    canonical.add_argument("--reference-column")
+    canonical.add_argument("--output", type=Path, default=Path("results/koopman-hj"))
+    canonical.add_argument("--seed", type=int, default=7)
+    canonical.add_argument("--quick", action="store_true")
+    canonical.add_argument("--epochs", type=int)
+    canonical_predict = subparsers.add_parser(
+        "canonical-predict",
+        help="Roll out a saved exact-symplectic canonical Koopman model.",
+    )
+    canonical_predict.add_argument("model", type=Path)
+    canonical_predict.add_argument("--initial", type=float, nargs=2, required=True)
+    canonical_predict.add_argument("--steps", type=int, default=200)
+    canonical_predict.add_argument("--allow-unsupported", action="store_true")
+    canonical_predict.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/canonical-prediction.csv"),
+    )
     predict = subparsers.add_parser(
         "predict",
         help="Roll out a saved mechanics-workbench model.",
@@ -238,6 +299,99 @@ def main() -> None:
         )
         print(f"Report: {args.output / 'report.html'}")
         print(f"Model: {args.output / 'model.pt'}")
+        return
+    if args.command in {"hj-audit", "canonical-audit"}:
+        dataset = load_trajectory_csv(
+            args.input,
+            state_columns=(args.position_column, args.momentum_column),
+            trajectory_column=args.trajectory_column,
+            time_column=args.time_column,
+            reference_column=args.reference_column,
+        )
+        model = _load_coordinate_model(args.model) if args.model else None
+        print(
+            f"Measuring canonical action on {dataset.trajectory_count} trajectories…"
+        )
+        result = run_hj_action_audit(dataset, args.output, model=model)
+        hj_identity = result["hj_identity"]
+        print(f"Audit status: {result['certificate']['status']}")
+        if hj_identity["available"]:
+            print(
+                "HJ identity dH/dJ = omega: "
+                f"{hj_identity['normalized_rmse']:.3%} normalized RMSE"
+            )
+        alignment = result["learned_coordinate_alignment"]
+        if alignment["available"]:
+            print(
+                "Model coordinate -> action (held-out monotone calibration): "
+                f"R² {alignment['calibration']['held_out_r2']:.4f}, "
+                f"|rank correlation| {alignment['absolute_rank_correlation']:.4f}"
+            )
+        print(f"Report: {args.output / 'report.html'}")
+        print(f"Manifest: {args.output / 'manifest.json'}")
+        return
+    if args.command in {"canonical-train", "koopman-hj"}:
+        if args.epochs is not None and args.epochs < 1:
+            parser.error("--epochs must be positive")
+        dataset = load_trajectory_csv(
+            args.input,
+            state_columns=(args.position_column, args.momentum_column),
+            trajectory_column=args.trajectory_column,
+            time_column=args.time_column,
+            reference_column=args.reference_column,
+        )
+        config = (
+            CanonicalExperimentConfig.quick(args.seed)
+            if args.quick
+            else CanonicalExperimentConfig.full(args.seed)
+        )
+        if args.epochs is not None:
+            config = replace(config, epochs=args.epochs)
+        print(
+            "Training an exact-symplectic conjugacy to Hamiltonian latent "
+            "rotation…"
+        )
+        result = run_canonical_experiment(dataset, args.output, config=config)
+        evaluation = result["held_out_evaluation"]
+        structure = result["structure_evaluation"]
+        print(f"Model status: {result['certificate']['status']}")
+        print(
+            "Held-out recursive rollout RMSE: "
+            f"{evaluation['normalized_rollout_rmse']:.5f}"
+        )
+        print(
+            "Symplectic defect: "
+            f"{structure['maximum_symplectic_defect']:.3e}; "
+            "observed Koopman residual: "
+            f"{structure['held_out_mean_koopman_eigenfunction_residual']:.5f}"
+        )
+        print(f"Report: {args.output / 'report.html'}")
+        print(f"Model: {args.output / 'model.pt'}")
+        return
+    if args.command == "canonical-predict":
+        if args.steps < 1:
+            parser.error("--steps must be positive")
+        model = load_canonical_model(args.model)
+        initial = np.asarray(args.initial, dtype=np.float64)
+        support = str(model.support_status(initial)[0])
+        if support != "supported" and not args.allow_unsupported:
+            parser.error(
+                f"prediction is unsupported ({support}); "
+                "pass --allow-unsupported to override"
+            )
+        prediction = model.rollout(
+            initial,
+            steps=args.steps,
+            allow_extrapolation=args.allow_unsupported,
+        )
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle, lineterminator="\n")
+            writer.writerow(("time", *model.state_columns))
+            for step, state in enumerate(prediction):
+                writer.writerow((step * model.network.dt, *state))
+        print(f"Prediction support: {support}")
+        print(f"Prediction: {args.output}")
         return
     if args.command == "predict":
         if args.steps < 1:

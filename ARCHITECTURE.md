@@ -1,5 +1,87 @@
 # Architecture
 
+## Canonical Koopman–HJ flow
+
+```text
+canonical trajectory CSV (q,p)
+  └─> complete-run train / held-out split
+       └─> exact symplectic encoder F_theta
+            ├─> translation
+            ├─> reciprocal canonical scaling
+            └─> alternating neural q- and p-shears
+                 └─> latent canonical state (Q,P)
+                      ├─> action I = (Q² + P²) / 2
+                      ├─> Hamiltonian h_psi(I)
+                      ├─> frequency omega(I) = dh_psi/dI
+                      └─> exact radial Hamiltonian rotation
+                           └─> analytic F_theta inverse
+                                └─> physical prediction (q',p')
+
+held-out physical trajectories
+  ├─> recursive rollout + persistence comparison
+  ├─> observed action drift
+  ├─> fiberwise Koopman phase residual
+  ├─> numerical inverse and symplectic checks
+  └─> empirical J = (2 pi)^-1 integral p dq
+       ├─> canonical gauge check I approximately equals J
+       ├─> physical HJ identity dH/dJ = omega
+       └─> learned h(I), dh/dI comparison
+            └─> certificate + report + loadable model
+```
+
+The flagship model is
+
+\[
+\Phi_{\Delta t}
+=F_\theta^{-1}\circ R_{\Delta t\,h_\psi'(I)}\circ F_\theta,
+\qquad
+I(Q,P)=\frac{Q^2+P^2}{2}.
+\]
+
+`SymplecticMap1D` is a composition of maps with analytic inverses:
+
+\[
+q\leftarrow q+f(p),\qquad
+p\leftarrow p+g(q),\qquad
+(q,p)\leftarrow(e^a q,e^{-a}p).
+\]
+
+Each component is canonical for every neural-network weight. The latent
+rotation is the exact time-\(\Delta t\) flow of the radial Hamiltonian
+\(h_\psi(I)\). Their composition is therefore symplectic by construction,
+not because a finite penalty happened to become small. The validator still
+computes a numerical Jacobian defect so implementation errors remain visible.
+
+The learned complex phase observable
+
+\[
+\psi_k(q,p)=
+\left(\frac{Q-iP}{\sqrt{Q^2+P^2}}\right)^k
+\]
+
+satisfies the fiberwise Koopman law
+
+\[
+\psi_k(x_{n+1})
+=e^{ik\omega(I)\Delta t}\psi_k(x_n)
+\]
+
+when the canonical normal form fits the observed trajectory. The eigenvalue is
+constant on an invariant action shell, not globally constant across a
+nonisochronous family.
+
+Training uses only ordered state samples and complete trajectory identity.
+Reference energy and the empirical action integral are post-fit tests. The
+closed-orbit area is decisive because a generic scalar invariant has arbitrary
+monotone gauge, whereas a symplectic transformation preserves phase-space
+area. Agreement between latent \(I\) and physical
+\((2\pi)^{-1}\oint p\,dq\) tests whether the model learned a genuinely
+canonical chart.
+
+The exported model carries its certificate and observed action range.
+`canonical-predict` refuses a rejected fit or action extrapolation unless the
+caller explicitly overrides the gate.
+
 ## Mechanics-workbench flow
 
 ```text
@@ -47,10 +129,12 @@ wins over both baselines. The loadable bundle also carries the fit certificate
 and refuses negative fits or unsupported initial states unless the caller
 explicitly overrides it.
 
-This first family is not exactly symplectic and does not claim a rigorous
-spectral certificate. Exact local symplectic maps, residual calibration,
-phase/frequency falsifiers, and chart gluing are the next architecture layer.
-See `PHYSICS_WORKBENCH.md`.
+This polynomial family is not exactly symplectic and does not claim a rigorous
+spectral certificate. It remains the more general path when supplied states
+are not known canonical coordinates. The canonical Koopman–HJ model above is
+the exact-symplectic one-degree-of-freedom path; residual-calibrated chart
+gluing and higher-dimensional tori remain future layers. See
+`KOOPMAN_HJ_FRONTIER.md` and `PHYSICS_WORKBENCH.md`.
 
 ## Research-lab flow
 

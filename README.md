@@ -5,65 +5,130 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.4%2B-EE4C2C)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Discover the hidden coordinates that organize nonlinear mechanical motion,
-then learn a simple evolution law on each coordinate fiber.**
+**Learn a canonical change of coordinates that turns nonlinear mechanical
+motion into an action-conditioned rotation.**
 
-Learned Koopman is a small, inspectable PyTorch workbench for repeated
-trajectory data. Give it free-response measurements from a low-dimensional
-mechanical system. It learns a candidate conserved coordinate, uses that
-coordinate to index a family of local Koopman operators, tests the model on
-complete unseen runs, and exports a predictor with an explicit support gate.
+This is a PyTorch research workbench for Koopman theory, Hamilton–Jacobi
+mechanics, and structure-preserving system identification. From repeated
+canonical trajectories \((q,p)\), its flagship model learns
 
-![The workbench discovers a trajectory coordinate, beats global quadratic
-EDMD on held-out rollouts, and exposes its fitted spectrum.](results/mechanics-workbench/overview.png)
+1. an exactly symplectic and analytically invertible map
+   \(F_\theta:(q,p)\mapsto(Q,P)\);
+2. the action \(I=(Q^2+P^2)/2\);
+3. a latent Hamiltonian \(h_\psi(I)\);
+4. the nonlinear frequency law \(\omega(I)=dh_\psi/dI\); and
+5. the fiberwise Koopman eigenfunctions \(e^{ik\phi}\).
 
-## Try it in five minutes
+Prediction is analytic in the learned canonical chart—no neural ODE solver and
+no unconstrained latent matrix:
 
-Install [`uv`](https://docs.astral.sh/uv/), then run the included conservative
-Duffing oscillator:
+\[
+x_{k+1}
+=F_\theta^{-1}
+\left(
+R_{\Delta t\,h_\psi'(I)}
+F_\theta(x_k)
+\right).
+\]
+
+![Held-out physical rollout, learned circular canonical chart, physical-action
+calibration, and training history.](results/koopman-hj/overview.png)
+
+## Run the canonical model
+
+Install [`uv`](https://docs.astral.sh/uv/) and use the included conservative
+Duffing data:
 
 ```bash
 git clone https://github.com/joseph-crowley/learned-koopman.git
 cd learned-koopman
 uv sync --extra dev
 
-uv run learned-koopman generate-example \
-  --output examples/my-duffing.csv
-
-uv run learned-koopman analyze examples/my-duffing.csv \
-  --state-columns position velocity \
+uv run learned-koopman canonical-train \
+  examples/duffing-trajectories.csv \
+  --position-column position \
+  --momentum-column velocity \
   --reference-column energy \
   --quick \
-  --output results/my-duffing
+  --output results/my-koopman-hj
 ```
 
-Open `results/my-duffing/report.html`. The run also writes:
+Open `results/my-koopman-hj/report.html`. The run writes a loadable model,
+machine-readable certificate, overview figure, and a nested canonical-action
+audit. The optional `energy` column is excluded from training and used only
+afterward to test the learned Hamiltonian.
 
-- `overview.png` — the learned coordinate, baseline comparison, held-out
-  trajectory, and fitted finite-operator spectrum;
-- `manifest.json` — the split, metrics, certificate, provenance, and artifact
-  fingerprints;
-- `model.pt` — a weights-only bundle for coordinate evaluation and rollout.
-
-Use the exported model:
+Use the exported world model:
 
 ```bash
-uv run learned-koopman predict results/my-duffing/model.pt \
-  --initial 1.2 0.0 \
-  --steps 300 \
-  --output results/my-duffing/prediction.csv
+uv run learned-koopman canonical-predict \
+  results/my-koopman-hj/model.pt \
+  --initial 1.1 0.0 \
+  --steps 400 \
+  --output results/my-koopman-hj/prediction.csv
 ```
 
-The predictor refuses a rejected fit or an initial state outside both the
-learned-coordinate range and the sampled training-state neighborhood. An
-explicit `--allow-unsupported` override keeps exploratory use possible.
+Prediction refuses an uncertified fit or a state outside the observed action
+range unless `--allow-unsupported` is explicit.
 
-## Bring your own trajectories
+## What the checked-in experiment establishes
+
+The promoted result uses 22 Duffing trajectories for training and eight
+complete trajectories for held-out evaluation. Energy and empirical action are
+never optimization targets.
+
+| Held-out or post-fit measurement | Result |
+|---|---:|
+| Recursive normalized rollout RMSE | **0.0551** |
+| Persistence rollout RMSE | 1.5636 |
+| Observed Koopman phase residual | **0.00053** |
+| Observed normalized action drift | **0.0092** |
+| Numerical symplectic defect | **3.58×10⁻⁷** |
+| Model-rollout action drift | **2.92×10⁻⁵** |
+| Latent action vs. \((2\pi)^{-1}\oint p\,dq\) | **R² 0.9999996** |
+| Physical-action calibration slope | **0.9987** |
+| Learned \(dh/dI\) vs. measured frequency | **1.77% error** |
+| Learned \(h(I)\) vs. energy shape | **0.49% error** |
+
+The [report](results/koopman-hj/report.html),
+[manifest](results/koopman-hj/manifest.json), and
+[action audit](results/koopman-hj/action-audit/report.html) carry the evidence
+and exact claim boundary. This is one synthetic system and one deterministic
+split—not yet a statistically powered research result or a hardware
+validation.
+
+## Why the Hamilton–Jacobi connection matters
+
+A generic learned invariant is free up to a nonlinear monotone reparameterization.
+That is enough to label orbit families, but it is not yet physical action.
+Symplecticity fixes the gauge: canonical maps preserve phase-space area, so the
+latent circle area \(I\) must agree with
+
+\[
+J=\frac{1}{2\pi}\oint p\,dq
+\]
+
+when the learned chart truly straightens the periodic orbits. In that chart the
+Hamiltonian depends only on action, the angle advances linearly, and the same
+coordinates simultaneously expose Hamilton–Jacobi and Koopman structure:
+
+\[
+H\circ F_\theta^{-1}=h(I),\qquad
+\dot I=0,\qquad
+\dot\phi=h'(I),\qquad
+\mathcal L e^{ik\phi}=ik\,h'(I)e^{ik\phi}.
+\]
+
+The implementation does not merely penalize symplectic error. Its translations,
+reciprocal scaling, neural canonical shears, radial Hamiltonian flow, and
+analytic inverse are symplectic by construction.
+
+## Bring measured trajectories
 
 The CSV contract is deliberately plain:
 
 ```csv
-trial_id,time,position,velocity
+trial_id,time,position,momentum
 run-01,0.000,0.800,0.000
 run-01,0.010,0.799,-0.021
 run-02,0.000,1.100,0.000
@@ -71,183 +136,140 @@ run-02,0.010,1.099,-0.030
 ```
 
 ```bash
-uv run learned-koopman analyze measurements.csv \
+uv run learned-koopman canonical-train measurements.csv \
   --trajectory-column trial_id \
   --time-column time \
-  --state-columns position velocity \
+  --position-column position \
+  --momentum-column momentum \
   --output results/my-rig
 ```
 
-The first workbench profile expects:
+The first canonical profile assumes:
 
-- at least six complete trajectories and 32 samples per trajectory;
-- a shared, approximately uniform sampling interval;
-- fully observed numerical state columns;
-- low-dimensional, autonomous, near-conservative motion.
+- one degree of freedom with correctly paired canonical \(q,p\);
+- autonomous, conservative, periodic motion away from a separatrix;
+- at least six complete trajectories with a shared near-uniform sample time;
+- enough duration to observe complete orbits for the post-fit action audit.
 
-Trajectories may have different lengths; the loader truncates them to the
-shortest complete run and records every original length. A reference column
-such as measured energy is optional. It is excluded from training and used
-only as a post-fit scientific check.
+Velocity equals canonical momentum only when the mass convention makes that
+true; otherwise convert it before fitting. Missing values, non-finite states,
+irregular time, incomplete orbit evidence, stale certificates, and unsupported
+prediction are rejected rather than silently repaired.
 
-## The mathematical idea
+## Use the action audit independently
 
-A conserved quantity is a zero-generator Koopman eigenfunction:
-
-$$
-U^t I=I,
-\qquad
-\mathcal L I=0.
-$$
-
-The neural coordinate $I_\theta(x)$ is trained from states and trajectory
-membership. It is encouraged to stay constant along each run, vary across
-runs, and remain smooth between neighboring trajectory sets. No energy,
-amplitude, phase, or frequency label enters this fit.
-
-The workbench then learns a transparent polynomial family:
-
-$$
-\psi(x_{k+1})
-\approx
-\psi(x_k)K(\hat c),
-\qquad
-K(\hat c)=K_0+\hat cK_1+\hat c^2K_2,
-\qquad
-c=I_\theta(x_0).
-$$
-
-Here $\psi$ is an explicit constant, linear, or quadratic observable
-dictionary, and $\hat c$ is the learned coordinate normalized on the training
-set. The invariant selects the local operator, and its value is computed from
-the initial state only. This fibered construction can represent an
-amplitude-dependent frequency law without forcing every trajectory through one
-global finite matrix.
-
-The deeper theory and product direction are in
-[`PHYSICS_WORKBENCH.md`](PHYSICS_WORKBENCH.md): phase and frequency recovery,
-symplectic local maps, chart overlap laws, residual-calibrated validity,
-controlled balance laws, and stochastic transfer.
-
-## What the checked-in run establishes
-
-The promoted Duffing result uses 22 training trajectories and eight complete
-held-out trajectories in one deterministic seed-7 split.
-
-| Held-out measurement | Result |
-|---|---:|
-| Learned-coordinate drift | **0.0024** |
-| Fibered quadratic EDMD rollout RMSE | **0.0755** |
-| Global quadratic EDMD rollout RMSE | 0.4240 |
-| Persistence rollout RMSE | 1.5636 |
-| Energy rank correlation after training | **1.000** |
-
-The optional energy column is absent from both optimization stages. The
-fibered model is evaluated recursively, conditioned only on each unseen
-initial state. The matched global quadratic EDMD error is 5.6 times larger on
-this split.
-
-The [human report](results/mechanics-workbench/report.html) and
-[machine-readable manifest](results/mechanics-workbench/manifest.json) contain
-the full evidence. This is a synthetic-mechanics result from one split. The
-next decisive test is a measured oscillator with units, sensor noise, and
-repeated trials.
-
-## Trust is part of the model
-
-The workbench treats a failed experiment as useful output:
-
-- train and test are separated by complete trajectory ID;
-- training normalization is fit on training trajectories only;
-- held-out forecasts use $I_\theta(x_0)$, never a future-state average;
-- promotion requires every held-out initial state to pass invariant-range and
-  sampled-state-distance gates;
-- the model bundle carries its certificate and refuses rollout after a
-  negative fit;
-- `scripts/check_workbench.py` reconstructs held-out errors from the source
-  CSV and exported model, then verifies the source, model, report, figure, and
-  clean source revision.
-
-## The research lab behind the workbench
-
-The repository also contains four compact experiments that stress different
-parts of the larger idea:
-
-- Label-free invariant — held-out energy $R^2=0.979$, rank $=1.000$, and
-  drift $=0.0053$ over five seeds. Tests whether grouped trajectories reveal
-  a conserved coordinate.
-- Two-chart separatrix atlas — valid time $3.98\pm0.06$, versus
-  $0.36\pm0.12$ for one chart. Shows why a coordinate singularity needs a
-  second local law.
-- Stochastic simplex transfer — positive row-stochastic structure passes,
-  while stronger baselines falsify the learned propagation. Preserves a
-  mathematically valid negative result.
-- Controlled crossing — actuator gain $0.35\rightarrow1.000$, with 9/12
-  real crossings recovered. A clean grey-box system-identification exercise.
-
-Run the CPU-sized integrated demonstration:
+The audit is a measurement instrument, not the model architecture:
 
 ```bash
-uv run learned-koopman lab --quick
+uv run learned-koopman hj-audit \
+  examples/duffing-trajectories.csv \
+  --position-column position \
+  --momentum-column velocity \
+  --reference-column energy \
+  --model results/koopman-hj/model.pt \
+  --output results/my-action-audit
 ```
 
-The research cells are auditable probes with separate mathematical contracts,
-baselines, and falsifiers. Their full results live in
-[`results/research-lab/manifest.json`](results/research-lab/manifest.json),
-[`results/atlas/robustness.json`](results/atlas/robustness.json), and
-[`SCIENTIFIC_SCOPE.md`](SCIENTIFIC_SCOPE.md).
+It measures closed-orbit area and period, tests \(dH/dJ=\omega\), and tells you
+whether a learned coordinate is merely monotone in action or actually fixed to
+the canonical gauge.
+
+## What this can become useful for
+
+The canonical model is intended as the conservative core of a mechanics
+workbench:
+
+- fast long-horizon surrogate simulation with no integration loop;
+- nonlinear normal-form identification and backbone/frequency–amplitude curves;
+- resonance, detuning, and modal-interaction analysis;
+- action-based parameter tracking, anomaly detection, and digital twins;
+- perturbation and control models that learn slow action drift around a
+  structure-preserving autonomous core;
+- reduced Hamilton–Jacobi–Bellman or reachability calculations in learned
+  intrinsic coordinates;
+- local chart atlases for separatrices, rotations, impacts, and other topology
+  changes.
+
+The full design, adjacent SOTA, differentiating hypotheses, experiment matrix,
+and publication threshold are in
+[`KOOPMAN_HJ_FRONTIER.md`](KOOPMAN_HJ_FRONTIER.md).
+
+## Other research paths in the repository
+
+The earlier invariant-conditioned mechanics workbench remains useful when
+states are not known to be canonical:
+
+```bash
+uv run learned-koopman analyze examples/duffing-trajectories.csv \
+  --state-columns position velocity \
+  --reference-column energy \
+  --quick \
+  --output results/my-invariant-model
+```
+
+It learns a label-free invariant and a transparent polynomial family of local
+Koopman operators, compares it with global EDMD and persistence on held-out
+runs, and exports a support-gated predictor.
+
+Its committed Duffing run reports learned-coordinate drift **0.0024**,
+fibered-operator rollout RMSE **0.0755**, global quadratic EDMD RMSE **0.4240**,
+and persistence RMSE **1.5636**. Those values describe the older nonsymplectic
+family; the canonical result above is the promoted model.
+
+The integrated research lab also contains:
+
+- a two-chart near-separatrix pendulum experiment, with five-seed high-energy
+  valid time $3.98\pm0.06$ versus $0.36\pm0.12$ for one chart;
+- label-free invariant discovery with held-out energy $R^2=0.979$, rank $=1.000$,
+  and drift $=0.0053$;
+- a deliberately falsifiable stochastic transfer operator, where stronger baselines falsify the learned propagation;
+- controlled actuator gain $0.35\rightarrow1.000$, with 9/12 real crossings recovered.
+
+Run it with `uv run learned-koopman lab --quick`.
 
 ## Python API
 
 ```python
 from pathlib import Path
 
+from learned_koopman.canonical_experiment import (
+    CanonicalExperimentConfig,
+    run_canonical_experiment,
+)
 from learned_koopman.trajectory import load_trajectory_csv
-from learned_koopman.workbench import WorkbenchConfig, run_mechanics_workbench
 
 data = load_trajectory_csv(
     Path("measurements.csv"),
+    state_columns=("position", "momentum"),
     trajectory_column="trial_id",
     time_column="time",
-    state_columns=("position", "velocity"),
 )
-
-manifest = run_mechanics_workbench(
+manifest = run_canonical_experiment(
     data,
-    Path("results/my-rig"),
-    config=WorkbenchConfig.full(seed=7),
+    Path("results/my-system"),
+    config=CanonicalExperimentConfig.full(seed=7),
 )
 print(manifest["certificate"]["status"])
 ```
 
-## Verify the repository
+## Verify everything
 
 ```bash
 uv run ruff check .
 uv run pytest
+uv run python scripts/check_canonical_model.py
+uv run python scripts/check_hj_action.py
 uv run python scripts/check_workbench.py
 uv run python scripts/check_research_lab.py
-uv run python scripts/check_portfolio_results.py
-uv run python scripts/check_atlas_results.py
 ```
-
-The project runs on CPU with Python 3.11+, PyTorch, NumPy, and Matplotlib.
 
 ## Read next
 
-- [Physics workbench](PHYSICS_WORKBENCH.md) — mathematical center, engineering
-  contract, adjacent research, and build sequence;
-- [Scientific scope](SCIENTIFIC_SCOPE.md) — exact claims, supplied structure,
-  learned structure, and present limits;
-- [Architecture](ARCHITECTURE.md) — implementation and experiment flow;
-- [Research roadmap](RESEARCH_ROADMAP.md) — prior art, novelty ladder, and
-  falsifiable next experiments;
-- [`legacy/2023-prototype`](legacy/2023-prototype) — the original exploratory
-  model that started the project.
+- [Koopman + HJ frontier](KOOPMAN_HJ_FRONTIER.md) — research landscape,
+  target system, experiments, applications, and publication bar;
+- [Architecture](ARCHITECTURE.md) — exact model composition and evidence flow;
+- [Scientific scope](SCIENTIFIC_SCOPE.md) — what is and is not established;
+- [Physics workbench](PHYSICS_WORKBENCH.md) — the broader mathematical program;
+- [Contributing](CONTRIBUTING.md) — reproducible development workflow.
 
-## Citation and license
-
-If this project contributes to your work, cite the repository using
-[`CITATION.cff`](CITATION.cff).
-
-[MIT](LICENSE)
+MIT licensed. If you build on the project, cite [`CITATION.cff`](CITATION.cff).

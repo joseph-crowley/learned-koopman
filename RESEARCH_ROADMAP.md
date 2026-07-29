@@ -1,5 +1,9 @@
 # Research roadmap
 
+> This v3 research-cell map is retained as project history. The implemented
+> canonical Koopman–Hamilton–Jacobi core and current research program are in
+> [`KOOPMAN_HJ_FRONTIER.md`](KOOPMAN_HJ_FRONTIER.md).
+
 ## The project-scale idea
 
 A nonlinear system rarely becomes globally simple in one finite latent space.

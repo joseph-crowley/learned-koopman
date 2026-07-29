@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learned-koopman"
-version = "3.1.0"
-description = "A PyTorch workbench for learned invariants and local Koopman laws in nonlinear mechanics."
+version = "3.2.0"
+description = "Exact-symplectic Koopman and Hamilton-Jacobi models for nonlinear mechanics."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

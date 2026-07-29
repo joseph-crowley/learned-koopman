@@ -2,7 +2,7 @@
 
 ## What is demonstrated
 
-The repository contains four generations of committed actual-run evidence:
+The repository contains five generations of committed actual-run evidence:
 
 - a broad-libration portfolio benchmark at seed 7, with a sensitivity sweep at
   seeds 7, 17, and 29;
@@ -12,6 +12,38 @@ The repository contains four generations of committed actual-run evidence:
   invariant discovery, stochastic transfer, and controlled crossings;
 - a non-pendulum mechanics-workbench run on 30 conservative Duffing
   trajectories at one deterministic seed-7 split, split by complete run.
+- an exact-symplectic canonical Koopman–Hamilton–Jacobi model on the same
+  Duffing dataset, again split by complete trajectory.
+
+The canonical Koopman–HJ experiment demonstrates that:
+
+- a neural canonical map composed only of translations, reciprocal scalings,
+  and alternating shears is analytically invertible and symplectic by
+  construction for every set of learned weights;
+- its latent Hamiltonian \(h(I)\), with \(I=(Q^2+P^2)/2\), generates an exact
+  action-conditioned rotation, so model action conservation is architectural
+  rather than a training penalty;
+- the model reaches normalized recursive rollout RMSE 0.0551 on eight complete
+  held-out trajectories, versus 1.5636 for persistence;
+- the held-out observed Koopman phase residual is 0.00053, observed normalized
+  action drift is 0.0092, numerical symplectic defect is
+  \(3.58\times10^{-7}\), and model-rollout action drift is
+  \(2.92\times10^{-5}\);
+- the learned latent action agrees with independently integrated physical
+  action \(J=(2\pi)^{-1}\oint p\,dq\) at affine \(R^2=0.9999996\), slope
+  0.9987, and intercept 0.00015;
+- without energy labels in training, \(dh/dI\) matches measured orbit
+  frequency at 1.77% normalized RMSE and \(h(I)\), after the physically
+  irrelevant additive energy offset, matches the reference-energy shape at
+  0.49% normalized RMSE;
+- the post-fit data themselves satisfy \(dH/dJ=\omega\) at 0.008% normalized
+  RMSE, validating the closed-orbit action ruler used to judge the model.
+
+These are actual-run results for one synthetic one-degree-of-freedom
+integrable system and one deterministic split. They establish that the
+implementation realizes the intended canonical normal form on this problem.
+They do not establish cross-system SOTA, seed robustness, measured-hardware
+performance, multi-degree integrability, or publication novelty.
 
 The mechanics workbench demonstrates that:
 
@@ -70,12 +102,24 @@ The new research cells demonstrate that:
 - replaying those controlled initial conditions without torque produces no
   crossings, and the simulator's energy change agrees with external work.
 
-Together these form a polished PyTorch research example. They do not yet form
-one new research method. The invariant result uses five optimization seeds;
-the stochastic transfer and controlled identification results currently use
-one seed each.
+Together these form a polished PyTorch research example. The canonical
+Koopman–HJ construction is now one coherent candidate method; its novelty and
+usefulness still require matched prior-art baselines, multiple systems,
+multiple seeds, noise and sampling studies, and measured data. The invariant
+result uses five optimization seeds; the canonical model, stochastic transfer,
+and controlled identification results currently use one seed each.
 
 ## What is supplied and what is learned
+
+The canonical model receives ordered canonical position-momentum trajectories,
+timestamps, and trajectory membership. It supplies the one-degree-of-freedom
+symplectic shear architecture, radial latent normal form, polynomial degree for
+\(\omega(I)\), and complete-trajectory split. The canonical transformation and
+Hamiltonian coefficients are learned. Reference energy and empirical
+closed-orbit action are excluded from optimization and used only after fitting.
+The system assumes that the supplied columns are truly canonical; it cannot
+infer mass scaling or a Legendre transformation from arbitrary position and
+velocity columns.
 
 The mechanics workbench receives numerical state trajectories, timestamps, and
 trajectory membership. It supplies state normalization, a constant/linear/
@@ -124,7 +168,14 @@ This project does not claim:
 - state-of-the-art forecasting or control performance;
 - a new theorem, a convergent Koopman spectral method, or publication novelty
   for encoder–operator–decoder models;
-- globally symplectic physical dynamics from a symplectic latent operator;
+- global action-angle coordinates through turning-point topology,
+  separatrices, rotations, or chaotic regions;
+- Liouville integrability or canonical identification for multiple degrees of
+  freedom;
+- that numerical success on Duffing proves a new theorem or a novel method;
+- a viscosity solution of a nonsmooth HJ PDE, HJB optimal-control solution, or
+  safety/reachability guarantee;
+- globally symplectic physical dynamics from the older learned-decoder models;
 - unsupervised discovery of chart boundaries or canonical transformations;
 - calibrated rare-event probabilities or a converged stochastic transfer
   discretization;
@@ -144,6 +195,9 @@ does work; it does not yet add learned rotational charts.
 The project studies the central Koopman modeling instinct: find observables
 whose evolution is simple. The fixed model uses one global linear operator.
 The conditioned model uses a fibered family—one rotation per invariant shell.
+The canonical model learns
+\(\psi_k=(Q-iP)^k/(Q^2+P^2)^{k/2}\), whose multiplier
+\(\exp(ik\omega(I)\Delta t)\) is constant on each action fiber.
 The atlas uses local structured operators and explicit switching. The
 stochastic cell learns a finite transfer operator over categorical
 memberships. These are related operator-learning experiments, not a claim that
@@ -180,19 +234,27 @@ supplied oracle or direct action-blind ablation.
 
 ## Research threshold from here
 
-A credible next method should connect at least two cells rather than merely add
-another demo. The highest-value routes are:
+A credible publication result must now test whether the canonical construction
+adds value beyond its closest neighbors rather than merely add another demo.
+The highest-value routes are:
 
-1. learn the invariant first, then use it in the conditioned model and measure
-   how much of the oracle-energy performance survives;
-2. learn rotational charts and residual-certified validity regions, with exact
+1. benchmark the canonical model against Action-Angle Networks, GFNN,
+   SympNets, HNN, neural ODE, EDMD, and a matched unconstrained invertible
+   conjugacy across hardening and softening Duffing, pendulum
+   libration/rotation, Toda/FPUT, and measured oscillators;
+2. run seed, sample-time, trajectory-length, noise, missing-state, parameter,
+   and long-horizon robustness with preregistered promotion thresholds;
+3. learn rotational charts and residual-certified validity regions, with exact
    overlap and symplectic-defect tests;
-3. use the controlled atlas in closed-loop swing-up and stabilization against
+4. extend the radial normal form to multi-action tori with Poisson-commuting
+   actions, frequency vectors, resonance detection, and atlas cocycles;
+5. use a controlled canonical core in closed-loop swing-up and stabilization against
    EDMDc, direct neural dynamics, energy shaping, and nonlinear MPC;
-4. replace supervised coarse states with metastable-state discovery and improve
+6. replace supervised coarse states with metastable-state discovery and improve
    Chapman–Kolmogorov consistency across lags and noise regimes;
-5. generalize one certified atlas across physical parameters, forcing,
+7. generalize one certified atlas across physical parameters, forcing,
    observation noise, and partial observation.
 
-The broader frontier map and prior art are in
-[`RESEARCH_ROADMAP.md`](RESEARCH_ROADMAP.md).
+The broader frontier map, prior art, differentiated contribution, and
+experiment sequence are in
+[`KOOPMAN_HJ_FRONTIER.md`](KOOPMAN_HJ_FRONTIER.md).

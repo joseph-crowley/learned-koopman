@@ -157,6 +157,22 @@ results/mechanics-workbench/*
 !results/mechanics-workbench/overview.png
 !results/mechanics-workbench/report.html
 !results/mechanics-workbench/model.pt
+!results/hj-action/
+results/hj-action/*
+!results/hj-action/manifest.json
+!results/hj-action/overview.png
+!results/hj-action/report.html
+!results/koopman-hj/
+results/koopman-hj/*
+!results/koopman-hj/manifest.json
+!results/koopman-hj/overview.png
+!results/koopman-hj/report.html
+!results/koopman-hj/model.pt
+!results/koopman-hj/action-audit/
+results/koopman-hj/action-audit/*
+!results/koopman-hj/action-audit/manifest.json
+!results/koopman-hj/action-audit/overview.png
+!results/koopman-hj/action-audit/report.html
 
 # Spyder project settings
 .spyderproject

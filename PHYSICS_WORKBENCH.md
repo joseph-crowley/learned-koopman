@@ -10,15 +10,17 @@ mechanics:
 > quantities, shows where the laws work, and exports a reduced model that
 > refuses to hide its unsupported regions.
 
-The highest-leverage path is not a larger global autoencoder. It is an
-**invariant-first, structure-preserving atlas of local Koopman laws with
-residual-calibrated validity**.
+The highest-leverage path is not a larger global autoencoder. It is a
+**gauge-fixed canonical Koopman atlas with residual-calibrated validity**.
 
-The first working slice now handles uniformly sampled, low-dimensional,
-near-conservative mechanical trajectories. It learns one label-free scalar
-coordinate, fits an invariant-conditioned polynomial Koopman family, compares
-it with global quadratic EDMD and persistence on complete held-out trials, writes an
-engineering report, and exports a loadable predictor.
+The flagship working slice now handles uniformly sampled, canonical
+one-degree-of-freedom conservative trajectories. It learns an exactly
+symplectic transformation, a physical action, and a Hamiltonian normal form;
+compares recursive prediction on complete held-out trials; checks action
+against closed-orbit phase-space area; writes an engineering report; and
+exports a support-gated predictor. The earlier label-free invariant and
+polynomial Koopman family remain useful when the measured state is not known to
+be canonical.
 
 The tool should not yet be described as hardware-ready, generally certified,
 or suitable for dissipative, forced, stochastic, partially observed, or
@@ -34,14 +36,15 @@ uv run learned-koopman generate-example \
   --output examples/duffing-trajectories.csv
 ```
 
-Analyze it:
+Train the canonical model:
 
 ```bash
-uv run learned-koopman analyze examples/duffing-trajectories.csv \
-  --state-columns position velocity \
+uv run learned-koopman canonical-train examples/duffing-trajectories.csv \
+  --position-column position \
+  --momentum-column velocity \
   --reference-column energy \
   --quick \
-  --output results/my-duffing
+  --output results/my-koopman-hj
 ```
 
 The `energy` column is optional and is excluded from training. When supplied,
@@ -50,10 +53,10 @@ it tests the discovered coordinate only after the model has been fit.
 Use the exported model:
 
 ```bash
-uv run learned-koopman predict results/my-duffing/model.pt \
+uv run learned-koopman canonical-predict results/my-koopman-hj/model.pt \
   --initial 1.2 0.0 \
   --steps 300 \
-  --output results/my-duffing/prediction.csv
+  --output results/my-koopman-hj/prediction.csv
 ```
 
 The Python entrypoint is:
@@ -61,12 +64,11 @@ The Python entrypoint is:
 ```python
 from pathlib import Path
 
-from learned_koopman.trajectory import load_trajectory_csv
-from learned_koopman.workbench import (
-    WorkbenchConfig,
-    load_mechanics_model,
-    run_mechanics_workbench,
+from learned_koopman.canonical_experiment import (
+    CanonicalExperimentConfig,
+    run_canonical_experiment,
 )
+from learned_koopman.trajectory import load_trajectory_csv
 
 data = load_trajectory_csv(
     Path("experiment.csv"),
@@ -74,14 +76,15 @@ data = load_trajectory_csv(
     trajectory_column="trial_id",
     time_column="time",
 )
-run_mechanics_workbench(
+run_canonical_experiment(
     data,
     Path("results/experiment"),
-    config=WorkbenchConfig.full(seed=7),
+    config=CanonicalExperimentConfig.full(seed=7),
 )
-model = load_mechanics_model(Path("results/experiment/model.pt"))
-prediction = model.rollout([1.2, 0.0], steps=300)
 ```
+
+See [`KOOPMAN_HJ_FRONTIER.md`](KOOPMAN_HJ_FRONTIER.md) for the exact model,
+closest prior art, practical systems, and research threshold.
 
 ## Mathematical center
 
@@ -179,8 +182,10 @@ then fixed. Future held-out samples never condition the forecast.
 
 This operator family is not automatically symplectic, stable, or exact. Its
 advantage is inspectability: every matrix, spectrum, residual, and baseline is
-visible. Exact local symplectic maps are a planned backend, informed by
-[generating-function neural networks](https://proceedings.mlr.press/v139/chen21r.html).
+visible. The new canonical backend is exactly symplectic and learns
+\(H\circ F^{-1}=h(I)\);
+[generating-function neural networks](https://proceedings.mlr.press/v139/chen21r.html)
+remain an important matched neighbor and baseline.
 
 ### Where an atlas becomes necessary
 
@@ -480,7 +485,7 @@ and Ulam comparisons.
 
 Verified locally:
 
-- v3.1 repository and test contracts, with source revision and artifact
+- v3.2 repository and test contracts, with source revision and artifact
   fingerprints recorded in the workbench manifest;
 - dimension-general invariant model;
 - Duffing CSV ingestion;
