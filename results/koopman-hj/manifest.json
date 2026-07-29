@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "package_version": "3.5.0",
+  "package_version": "3.5.1",
   "environment": {
     "python": "3.12.13",
     "platform": "macOS-26.6-arm64-arm-64bit",
@@ -8,7 +8,7 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "d0375e2472389e96bffc0069d4107578ed741598",
+    "git_commit": "e8ad7b95a2a7b1ce65ff59b6d9ab44cd4069ce11",
     "git_worktree_clean": true
   },
   "config": {
@@ -835,7 +835,7 @@
     "model_sha256": "570ac75fc1c5b3c6e560b579a8222e835a097350e64ad5197d06f78307b71e06",
     "overview_sha256": "18ceca86efa5c8429a4de0599af735ea7fa66276a2a47ae470d26d53d1ddb995",
     "report_sha256": "5eaeed693ba9b05e0bd9b6aff5f7d2c96edb2da0427db13a4661b500b25d829a",
-    "action_audit_manifest_sha256": "f0e5fdab2117f46992ca7bf814fd2521a7fe58c18be5672080d22ee5563feb40"
+    "action_audit_manifest_sha256": "1d79dc46da891e338404582373ceb29afa0a3a846d7c7461635ebf2df9213564"
   },
   "validation_checks": [
     "training and held-out trajectories are disjoint",
