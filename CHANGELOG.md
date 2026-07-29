@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.4.0 — 2026-07-29
+
+This release turns chart ambiguity from a roadmap warning into a runnable
+resonance-metrology experiment.
+
+### Added
+
+- exact twist-kick, canonical observation-chart, and adversarial-gauge
+  fixtures with inverse and area-preservation tests;
+- a trajectory-band complex residual estimator with weighted-Birkhoff
+  rotation profiles, per-bin support checks, and explicit resonance-crossing
+  abstention;
+- learned S1/S2 chart ensembles, raw/oracle/null/shuffled/wrong-harmonic
+  controls, kick-size detection sweeps, estimator-variant checks, and an exact
+  \(2m\) shared-bias stress;
+- `resonance-metrology`, a Python API, CLI, JSON/HTML/PNG evidence surface,
+  model/data artifacts, validator, and CI smoke;
+- a public resonance-metrology decision and mathematical convention record;
+- contributor guidance for evidence-bearing scientific changes.
+
+### Changed
+
+- demoted `chart-fidelity` from an empirical falsifier to the closed-form
+  oracle pipeline regression it actually implements;
+- fixed the action-slope sign hole, gated the affine intercept, and clamped
+  exported action support to the nonnegative physical range;
+- corrected Action-Angle Networks' prior-art description: its G-SympNet
+  Cartesian encoder is symplectic; the surviving distinction is canonical
+  area action, physical calibration, generated dynamics, and chart-error
+  metrology;
+- narrowed Duffing discretization and measured-data language to the evidence.
+
 ## 3.3.0 — 2026-07-28
 
 This release begins the transition from one integrable chart to a

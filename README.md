@@ -54,9 +54,9 @@ uv run learned-koopman canonical-train \
 ```
 
 Open `results/my-koopman-hj/report.html`. The run writes a loadable model,
-machine-readable certificate, overview figure, and a nested canonical-action
-audit. The optional `energy` column is excluded from training and used only
-afterward to test the learned Hamiltonian.
+machine-readable empirical-gate manifest, overview figure, and a nested
+canonical-action audit. The optional `energy` column is excluded from training
+and used only afterward to test the learned Hamiltonian.
 
 Use the exported world model:
 
@@ -68,10 +68,10 @@ uv run learned-koopman canonical-predict \
   --output results/my-koopman-hj/prediction.csv
 ```
 
-Prediction refuses an uncertified fit or a state outside the observed action
-range unless `--allow-unsupported` is explicit.
+Prediction refuses a fit that failed its current-dataset gates or a state
+outside the observed action range unless `--allow-unsupported` is explicit.
 
-## Diagnose the chart and try to break the research hypothesis
+## Diagnose the chart, then test whether its residual is identifiable
 
 An action-range check on one state cannot establish that a learned canonical
 chart is valid. Test complete trajectories against independent geometry,
@@ -86,19 +86,34 @@ uv run learned-koopman canonical-diagnose \
   --output results/koopman-hj/orbit-diagnostics.json
 ```
 
-Run the first chart-identifiability falsifier:
+Run the closed-form oracle pipeline regression:
 
 ```bash
 uv run learned-koopman chart-fidelity \
   --output results/chart-fidelity.json
 ```
 
-The experiment observes a known symplectic twist-kick map through a canonical
-shear, deliberately misspecifies the inverse chart, and compares recovery of
-the same residual harmonic on and off resonance. It is an oracle test of the
-cohomological mechanism—not evidence that an optimizer's learned-chart error
-obeys the same protection. The next decisive experiment replaces the known
-chart error with ensembles of learned charts.
+That experiment observes a known symplectic twist-kick map through a canonical
+shear and reproduces one analytic cohomological cancellation. It is useful as
+a convention and pipeline regression, but the result follows from a
+closed-form identity and is not a learned-chart falsifier.
+
+The empirical test trains independent exact-symplectic charts, estimates the
+residual from held-out trajectory transitions, and attacks apparent agreement
+with controlled exact canonical gauges:
+
+```bash
+uv run learned-koopman resonance-metrology \
+  --profile full \
+  --output results/my-resonance-metrology
+```
+
+The report returns a resonant generating coefficient and island-width estimate
+only when the band crosses the resonance and the ensemble, null, shuffled,
+wrong-harmonic, estimator-variant, detection-floor, and exact-gauge controls
+permit it. Otherwise it says why the quantity is unresolved. See
+[`RESIDUAL_METROLOGY.md`](RESIDUAL_METROLOGY.md) for the mathematics, API, and
+predeclared claim boundary.
 
 ## What the checked-in experiment establishes
 
@@ -127,7 +142,10 @@ The [report](results/koopman-hj/report.html),
 evidence and exact claim boundary. The independent
 [action audit](results/koopman-hj/action-audit/report.html) supplies the
 physical ruler. This is one synthetic system and one deterministic split—not
-yet a statistically powered research result or a hardware validation.
+yet a statistically powered research result or a hardware validation. The
+resonance-metrology result is reported separately because good integrable
+prediction does not by itself make a residual normal-form coefficient
+identifiable.
 
 ## Why the Hamilton–Jacobi connection matters
 
@@ -159,6 +177,12 @@ The implementation does not merely penalize symplectic error. Its translations,
 reciprocal scaling, neural canonical shears, radial Hamiltonian flow, and
 analytic inverse are symplectic by construction.
 
+The checked Duffing data comes from a velocity-Verlet map. A dt-versus-dt/10
+loop-area comparison found a roughly \(2.4\times10^{-4}\) median discrepancy,
+but that number combines integrator, polygon-quadrature, and cycle-closure
+effects. It is an empirical systematic at the same scale as the sharpest
+action-calibration metrics, not a formal modified-Hamiltonian bound.
+
 ## Bring measured trajectories
 
 The CSV contract is deliberately plain:
@@ -187,10 +211,16 @@ The first canonical profile assumes:
 - at least six complete trajectories with a shared near-uniform sample time;
 - enough duration to observe complete orbits for the post-fit action audit.
 
+Today that path is for noiseless, well-sampled trajectories. The phase advance
+per sample must remain below the angular Nyquist limit, and the current cycle
+detector is not hardened for sensor noise, missing samples, or ambiguous
+sections. Those cases require preprocessing and independent section-quality
+checks rather than an optimistic fit.
+
 Velocity equals canonical momentum only when the mass convention makes that
 true; otherwise convert it before fitting. Missing values, non-finite states,
-irregular time, incomplete orbit evidence, stale certificates, and unsupported
-prediction are rejected rather than silently repaired.
+irregular time, incomplete orbit evidence, stale result manifests, and
+unsupported prediction are rejected rather than silently repaired.
 
 ## Use the action audit independently
 
@@ -294,11 +324,15 @@ print(manifest["certificate"]["status"])
 uv run ruff check .
 uv run pytest
 uv run learned-koopman chart-fidelity --output results/chart-fidelity.json
+uv run learned-koopman resonance-metrology \
+  --profile ci --output results/ci-resonance-metrology
 uv run learned-koopman canonical-diagnose \
   results/koopman-hj/model.pt examples/duffing-trajectories.csv \
   --position-column position --momentum-column velocity \
   --output results/koopman-hj/orbit-diagnostics.json
 uv run python scripts/check_chart_fidelity.py
+uv run python scripts/check_resonance_metrology.py \
+  results/ci-resonance-metrology/manifest.json
 uv run python scripts/check_canonical_diagnostics.py
 uv run python scripts/check_canonical_model.py
 uv run python scripts/check_hj_action.py
@@ -313,6 +347,8 @@ uv run python scripts/check_research_lab.py
 - [Architecture](ARCHITECTURE.md) — exact model composition and evidence flow;
 - [Scientific scope](SCIENTIFIC_SCOPE.md) — what is and is not established;
 - [Physics workbench](PHYSICS_WORKBENCH.md) — the broader mathematical program;
+- [Resonance metrology](RESIDUAL_METROLOGY.md) — the learned-chart residual
+  instrument, exact-gauge stress, and abstention rules;
 - [Contributing](CONTRIBUTING.md) — reproducible development workflow.
 
 MIT licensed. If you build on the project, cite [`CITATION.cff`](CITATION.cff).

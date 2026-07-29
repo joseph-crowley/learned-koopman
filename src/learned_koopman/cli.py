@@ -32,6 +32,10 @@ from learned_koopman.experiment import run_experiment, run_robustness_sweep
 from learned_koopman.hj_action import run_hj_action_audit
 from learned_koopman.invariant_experiment import run_invariant_experiment
 from learned_koopman.research_lab import run_research_lab
+from learned_koopman.resonance_metrology import (
+    MetrologyConfig,
+    run_resonance_metrology,
+)
 from learned_koopman.trajectory import load_trajectory_csv, write_duffing_example
 from learned_koopman.transfer_experiment import run_transfer_experiment
 from learned_koopman.workbench import (
@@ -246,7 +250,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chart_fidelity = subparsers.add_parser(
         "chart-fidelity",
-        help="Run the controlled canonical-chart identifiability falsifier.",
+        help="Run the closed-form oracle chart-pipeline regression.",
     )
     chart_fidelity.add_argument(
         "--output",
@@ -255,6 +259,26 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chart_fidelity.add_argument("--angle-samples", type=int, default=8192)
     chart_fidelity.add_argument("--harmonic-order", type=int, default=4)
+    resonance = subparsers.add_parser(
+        "resonance-metrology",
+        help="Measure a resonant normal-form block across learned canonical charts.",
+    )
+    resonance.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/resonance-metrology"),
+    )
+    resonance.add_argument(
+        "--profile",
+        choices=("ci", "full"),
+        default="ci",
+        help="Use the non-decisive CI smoke or the frozen full experiment.",
+    )
+    resonance.add_argument(
+        "--epochs",
+        type=int,
+        help="Override training epochs for implementation smokes only.",
+    )
     predict = subparsers.add_parser(
         "predict",
         help="Roll out a saved mechanics-workbench model.",
@@ -464,6 +488,32 @@ def main() -> None:
         )
         _write_json(args.output, result)
         print(f"Chart-fidelity experiment: {args.output}")
+        return
+    if args.command == "resonance-metrology":
+        config = (
+            MetrologyConfig.full(args.output)
+            if args.profile == "full"
+            else MetrologyConfig.ci(args.output)
+        )
+        if args.epochs is not None:
+            if args.epochs < 1:
+                parser.error("--epochs must be positive")
+            config = replace(config, epochs=args.epochs)
+        print(
+            "Training exact-symplectic chart ensembles and measuring the "
+            "trajectory-sampled resonant block…"
+        )
+        result = run_resonance_metrology(config)
+        consensus = result["ensemble_consensus"]
+        print(f"Metrology status: {result['status']} ({result['status_reason']})")
+        print(
+            "Recovered generating amplitude: "
+            f"{consensus['generating_function_amplitude']:.6g}; "
+            "complex error: "
+            f"{consensus['complex_error']:.2%}"
+        )
+        print(f"Report: {args.output / 'report.html'}")
+        print(f"Manifest: {args.output / 'manifest.json'}")
         return
     if args.command == "predict":
         if args.steps < 1:

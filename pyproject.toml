@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learned-koopman"
-version = "3.3.0"
+version = "3.4.0"
 description = "Exact-symplectic Koopman and Hamilton-Jacobi models for nonlinear mechanics."
 readme = "README.md"
 requires-python = ">=3.11"

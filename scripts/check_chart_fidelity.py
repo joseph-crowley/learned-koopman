@@ -21,8 +21,8 @@ def main() -> None:
     rebuilt = run_chart_fidelity_experiment(ChartFidelityConfig(**config))
 
     assert committed["schema_version"] == 1
-    assert committed["experiment"] == "controlled_chart_fidelity_separation"
-    assert committed["comparison"]["passes_controlled_threefold_protection_gate"]
+    assert committed["experiment"] == "oracle_chart_pipeline_regression"
+    assert committed["comparison"]["oracle_pipeline_regression_gate"]
     assert committed["claim_boundary"]["next_falsifier"].startswith(
         "Repeat with learned chart ensembles"
     )
@@ -46,8 +46,8 @@ def main() -> None:
                 atol=1e-12,
             )
     print(
-        "chart-fidelity evidence is reproducible; controlled resonance protection "
-        "passes and learned-chart identifiability remains explicitly unresolved"
+        "oracle chart-pipeline regression is reproducible; learned-chart "
+        "identifiability is evaluated separately by resonance-metrology"
     )
 
 

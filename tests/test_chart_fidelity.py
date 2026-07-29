@@ -8,7 +8,7 @@ from learned_koopman.chart_fidelity import (
 )
 
 
-def test_controlled_chart_fidelity_experiment_separates_resonance() -> None:
+def test_oracle_chart_pipeline_reproduces_resonant_cancellation() -> None:
     result = run_chart_fidelity_experiment(
         ChartFidelityConfig(
             angle_samples=2048,
@@ -16,7 +16,7 @@ def test_controlled_chart_fidelity_experiment_separates_resonance() -> None:
         )
     )
 
-    assert result["comparison"]["passes_controlled_threefold_protection_gate"]
+    assert result["comparison"]["oracle_pipeline_regression_gate"]
     resonant = result["resonant_probe"]["measurements"]
     off_resonant = result["off_resonant_probe"]["measurements"]
     assert max(row["relative_amplitude_error"] for row in resonant) < 1e-6

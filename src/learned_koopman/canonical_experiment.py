@@ -499,6 +499,19 @@ def _chart_diagnostic_comparisons(structure: dict[str, Any]) -> dict[str, bool]:
     }
 
 
+def _action_alignment_passes(action_alignment: dict[str, Any]) -> bool:
+    empirical = np.asarray(
+        action_alignment["empirical_action"],
+        dtype=np.float64,
+    )
+    action_range = max(float(np.ptp(empirical)), 1e-12)
+    return (
+        action_alignment["affine_r2"] > 0.97
+        and 0.8 < action_alignment["affine_slope"] < 1.2
+        and abs(action_alignment["affine_intercept"]) < 0.02 * action_range
+    )
+
+
 def validate_canonical_manifest(manifest: dict[str, Any]) -> list[str]:
     if manifest.get("schema_version") != 1:
         raise ValueError("unsupported canonical Koopman experiment schema")
@@ -535,8 +548,7 @@ def validate_canonical_manifest(manifest: dict[str, Any]) -> list[str]:
             structure["maximum_model_rollout_action_drift"] < 2e-4
         ),
         "symplectic_gauge_matches_empirical_action": (
-            action_alignment["affine_r2"] > 0.97
-            and abs(abs(action_alignment["affine_slope"]) - 1.0) < 0.2
+            _action_alignment_passes(action_alignment)
         ),
         "learned_hamiltonian_matches_frequency": (
             learned_hamiltonian["frequency_normalized_rmse"] < 0.05
@@ -775,7 +787,10 @@ def run_canonical_experiment(
     provisional = CanonicalKoopmanModel(
         network=network,
         state_columns=(dataset.state_columns[0], dataset.state_columns[1]),
-        action_min=float(torch.min(training_action)) - action_padding,
+        action_min=max(
+            0.0,
+            float(torch.min(training_action)) - action_padding,
+        ),
         action_max=float(torch.max(training_action)) + action_padding,
         certificate_status="not_supported_by_current_dataset",
     )
@@ -819,8 +834,7 @@ def run_canonical_experiment(
             structure["maximum_model_rollout_action_drift"] < 2e-4
         ),
         "symplectic_gauge_matches_empirical_action": (
-            action_alignment["affine_r2"] > 0.97
-            and abs(abs(action_alignment["affine_slope"]) - 1.0) < 0.2
+            _action_alignment_passes(action_alignment)
         ),
         "learned_hamiltonian_matches_frequency": (
             learned_hamiltonian["frequency_normalized_rmse"] < 0.05

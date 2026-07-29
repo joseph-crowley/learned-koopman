@@ -1,0 +1,2002 @@
+from __future__ import annotations
+
+import hashlib
+import html
+import json
+import platform
+import random
+import subprocess
+import time
+from collections.abc import Sequence
+from dataclasses import asdict, dataclass, replace
+from pathlib import Path
+from typing import Any
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+from learned_koopman import __version__
+from learned_koopman.canonical_experiment import (
+    CanonicalExperimentConfig,
+    _fit_network,
+    _rollout_metrics,
+    _set_seed,
+    _split_indices,
+)
+from learned_koopman.canonical_model import (
+    CanonicalKoopmanModel,
+    CanonicalKoopmanNetwork,
+    save_canonical_model,
+)
+from learned_koopman.map_fixtures import (
+    ExactGauge,
+    KickHarmonic,
+    MapTrajectoryBundle,
+    ObservationChart,
+    TwistKickMap,
+    simulate_map_trajectories,
+    wrap_angle,
+    write_map_trajectory_csv,
+)
+from learned_koopman.trajectory import TrajectoryDataset, load_trajectory_csv
+
+
+@dataclass(frozen=True)
+class ArchitectureSpec:
+    hidden_dim: int
+    shear_layers: int
+
+    @property
+    def label(self) -> str:
+        return f"h{self.hidden_dim}-s{self.shear_layers}"
+
+
+@dataclass(frozen=True)
+class MetrologyConfig:
+    """Frozen execution profile for learned-chart resonance metrology."""
+
+    profile: str
+    output: Path
+    seeds: tuple[int, ...]
+    architectures: tuple[ArchitectureSpec, ...]
+    epochs: int
+    trajectories: int
+    steps: int
+    target_order: int = 3
+    base_frequency: float = 1.6
+    twist: float = 0.3
+    kick_amplitude: float = 0.0075
+    kick_phase: float = 0.9
+    action_band: tuple[float, float] = (0.7, 2.6)
+    bins: int = 14
+    max_order: int = 8
+    split_seed: int = 20260728
+    minimum_accepted_charts: int = 6
+
+    @classmethod
+    def full(cls, output: Path) -> MetrologyConfig:
+        return cls(
+            profile="full",
+            output=output,
+            seeds=(7, 17, 29, 41),
+            architectures=(
+                ArchitectureSpec(24, 6),
+                ArchitectureSpec(40, 8),
+            ),
+            epochs=600,
+            trajectories=48,
+            steps=400,
+        )
+
+    @classmethod
+    def ci(cls, output: Path) -> MetrologyConfig:
+        return cls(
+            profile="ci",
+            output=output,
+            seeds=(7, 17, 29, 41, 53, 67),
+            architectures=(ArchitectureSpec(24, 6),),
+            epochs=80,
+            trajectories=36,
+            steps=240,
+        )
+
+
+@dataclass(frozen=True)
+class SpectrumEstimate:
+    coefficient: complex
+    standard_error: float
+    normalized_remainder: float
+    condition_number: float
+    sample_count: int
+    angular_resultant: float
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _git_source_state() -> dict[str, Any]:
+    root = Path(__file__).resolve().parents[2]
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        dirty = bool(
+            subprocess.run(
+                ["git", "status", "--porcelain", "--untracked-files=no"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return {"git_commit": None, "git_worktree_clean": None}
+    return {"git_commit": commit, "git_worktree_clean": not dirty}
+
+
+def _fit_complex_spectrum(
+    angle: np.ndarray,
+    delta_action: np.ndarray,
+    *,
+    order: int,
+    max_order: int,
+) -> SpectrumEstimate:
+    phi = np.asarray(angle, dtype=np.float64).reshape(-1)
+    residual = np.asarray(delta_action, dtype=np.float64).reshape(-1)
+    if phi.shape != residual.shape:
+        raise ValueError("angle and residual must have matching shapes")
+    if order < 1 or order > max_order:
+        raise ValueError("order must be between one and max_order")
+    if len(phi) < 2 * max_order + 2:
+        raise ValueError("not enough samples for the spectrum")
+    columns = [np.ones_like(phi)]
+    for harmonic in range(1, max_order + 1):
+        columns.extend(
+            (np.sin(harmonic * phi), np.cos(harmonic * phi))
+        )
+    design = np.column_stack(columns)
+    coefficients, *_ = np.linalg.lstsq(design, residual, rcond=None)
+    prediction = design @ coefficients
+    remainder = residual - prediction
+    degrees = max(len(phi) - design.shape[1], 1)
+    variance = float(remainder @ remainder) / degrees
+    covariance = variance * np.linalg.pinv(design.T @ design)
+    sine_index = 2 * order - 1
+    cosine_index = 2 * order
+    coefficient = complex(
+        float(coefficients[sine_index]),
+        float(coefficients[cosine_index]),
+    )
+    standard_error = float(
+        np.sqrt(
+            max(
+                covariance[sine_index, sine_index]
+                + covariance[cosine_index, cosine_index],
+                0.0,
+            )
+        )
+    )
+    centered_scale = max(float(np.std(residual)), 1e-12)
+    return SpectrumEstimate(
+        coefficient=coefficient,
+        standard_error=standard_error,
+        normalized_remainder=float(np.sqrt(np.mean(remainder**2)))
+        / centered_scale,
+        condition_number=float(np.linalg.cond(design)),
+        sample_count=len(phi),
+        angular_resultant=float(abs(np.mean(np.exp(1j * order * phi)))),
+    )
+
+
+def weighted_birkhoff_mean(values: np.ndarray) -> float:
+    """Das–Yorke-style bump-weighted average of a scalar sequence."""
+
+    samples = np.asarray(values, dtype=np.float64).reshape(-1)
+    if len(samples) < 8:
+        raise ValueError("weighted Birkhoff average needs at least eight samples")
+    positions = (np.arange(len(samples), dtype=np.float64) + 0.5) / len(
+        samples
+    )
+    weights = np.exp(-1.0 / (positions * (1.0 - positions)))
+    weights /= weights.sum()
+    return float(weights @ samples)
+
+
+def _frequency_profile(
+    action: np.ndarray,
+    angle: np.ndarray,
+) -> dict[str, Any]:
+    mean_actions = []
+    weighted_frequencies = []
+    ordinary_frequencies = []
+    for orbit_action, orbit_angle in zip(action, angle, strict=True):
+        increments = wrap_angle(np.diff(orbit_angle))
+        if abs(float(increments.sum())) < 4.0 * np.pi:
+            continue
+        mean_actions.append(float(np.mean(orbit_action[:-1])))
+        weighted_frequencies.append(weighted_birkhoff_mean(increments))
+        ordinary_frequencies.append(float(np.mean(increments)))
+    if len(mean_actions) < 4:
+        return {
+            "status": "insufficient_circulating_orbits",
+            "circulating_orbits": len(mean_actions),
+        }
+    coefficients = np.polyfit(mean_actions, weighted_frequencies, 2)
+    prediction = np.polyval(coefficients, mean_actions)
+    return {
+        "status": "available",
+        "circulating_orbits": len(mean_actions),
+        "polynomial_coefficients_descending": coefficients.tolist(),
+        "weighted_frequencies": weighted_frequencies,
+        "ordinary_frequencies": ordinary_frequencies,
+        "mean_actions": mean_actions,
+        "weighted_vs_ordinary_max_difference": float(
+            np.max(
+                np.abs(
+                    np.asarray(weighted_frequencies)
+                    - np.asarray(ordinary_frequencies)
+                )
+            )
+        ),
+        "fit_rmse": float(
+            np.sqrt(
+                np.mean(
+                    (
+                        prediction
+                        - np.asarray(weighted_frequencies, dtype=np.float64)
+                    )
+                    ** 2
+                )
+            )
+        ),
+    }
+
+
+def _resonance_crossing(
+    frequency_coefficients: Sequence[float],
+    *,
+    order: int,
+    band: tuple[float, float],
+) -> tuple[bool, int, float]:
+    coefficients = np.asarray(frequency_coefficients, dtype=np.float64)
+    middle = 0.5 * (band[0] + band[1])
+    resonance_index = max(
+        1,
+        int(round(order * np.polyval(coefficients, middle) / (2.0 * np.pi))),
+    )
+    target = 2.0 * np.pi * resonance_index
+    values = order * np.polyval(coefficients, np.asarray(band)) - target
+    crossing = bool(values[0] == 0.0 or values[1] == 0.0 or values[0] * values[1] < 0)
+    roots = np.roots(
+        order * coefficients
+        - np.asarray((0.0, 0.0, target), dtype=np.float64)
+    )
+    real_roots = [
+        float(root.real)
+        for root in roots
+        if abs(root.imag) < 1e-8 and band[0] <= root.real <= band[1]
+    ]
+    location = real_roots[0] if real_roots else float("nan")
+    return crossing, resonance_index, location
+
+
+def _rotate_coefficient(coefficient: complex, offset: float, order: int) -> complex:
+    """Express a coefficient fitted at ``phi+offset`` in the ``phi`` gauge."""
+
+    sine = coefficient.real
+    cosine = coefficient.imag
+    phase = order * offset
+    return complex(
+        sine * np.cos(phase) - cosine * np.sin(phase),
+        sine * np.sin(phase) + cosine * np.cos(phase),
+    )
+
+
+def _per_bin_spectra(
+    action: np.ndarray,
+    angle: np.ndarray,
+    *,
+    order: int,
+    band: tuple[float, float],
+    bins: int,
+    max_order: int,
+    reference_angle: np.ndarray | None = None,
+) -> list[dict[str, Any]]:
+    current_action = action[:, :-1].reshape(-1)
+    current_angle = angle[:, :-1].reshape(-1)
+    delta_action = (action[:, 1:] - action[:, :-1]).reshape(-1)
+    reference = (
+        np.asarray(reference_angle, dtype=np.float64)[:, :-1].reshape(-1)
+        if reference_angle is not None
+        else None
+    )
+    edges = np.linspace(band[0], band[1], bins + 1)
+    rows = []
+    for index in range(bins):
+        mask = (current_action >= edges[index]) & (
+            current_action < edges[index + 1]
+        )
+        if int(mask.sum()) < 2 * max_order + 2:
+            continue
+        estimate = _fit_complex_spectrum(
+            current_angle[mask],
+            delta_action[mask],
+            order=order,
+            max_order=max_order,
+        )
+        alignment = 0.0
+        coefficient = estimate.coefficient
+        if reference is not None:
+            alignment = float(
+                np.angle(
+                    np.mean(
+                        np.exp(
+                            1j * (current_angle[mask] - reference[mask])
+                        )
+                    )
+                )
+            )
+            coefficient = _rotate_coefficient(coefficient, alignment, order)
+        rows.append(
+            {
+                "index": index,
+                "center": 0.5 * (edges[index] + edges[index + 1]),
+                "lower": edges[index],
+                "upper": edges[index + 1],
+                "coefficient": coefficient,
+                "standard_error": estimate.standard_error,
+                "normalized_remainder": estimate.normalized_remainder,
+                "condition_number": estimate.condition_number,
+                "sample_count": estimate.sample_count,
+                "angular_resultant": estimate.angular_resultant,
+                "alignment_offset": alignment,
+            }
+        )
+    return rows
+
+
+def _band_regression(
+    rows: list[dict[str, Any]],
+    frequency_coefficients: Sequence[float],
+    *,
+    order: int,
+    band: tuple[float, float],
+    chart_degree: int = 1,
+    weighted: bool = True,
+) -> dict[str, Any]:
+    crossing, resonance_index, resonance_action = _resonance_crossing(
+        frequency_coefficients,
+        order=order,
+        band=band,
+    )
+    if not crossing:
+        return {
+            "verdict": "no_resonance_crossing",
+            "resonance_index": resonance_index,
+            "resonance_action": resonance_action,
+        }
+    minimum_count = 8 * (2 * 8 + 1)
+    usable = [
+        row
+        for row in rows
+        if row["sample_count"] >= minimum_count
+        and row["condition_number"] <= 10.0
+        and row["angular_resultant"] <= 0.85
+        and row["normalized_remainder"] <= 0.8
+    ]
+    unknowns = 2 + 2 * (chart_degree + 1)
+    if len(usable) * 2 < unknowns + 2:
+        return {
+            "verdict": "insufficient_coverage",
+            "resonance_index": resonance_index,
+            "resonance_action": resonance_action,
+            "usable_bins": len(usable),
+        }
+    center = float(np.mean([row["center"] for row in usable]))
+    design_rows = []
+    targets = []
+    weights = []
+    for row in usable:
+        multiplier = np.exp(
+            1j
+            * order
+            * np.polyval(frequency_coefficients, row["center"])
+        ) - 1.0
+        powers = [
+            (row["center"] - center) ** degree
+            for degree in range(chart_degree + 1)
+        ]
+        real_row = [1.0, 0.0]
+        imag_row = [0.0, 1.0]
+        for power in powers:
+            real_row.extend(
+                (power * multiplier.real, -power * multiplier.imag)
+            )
+            imag_row.extend(
+                (power * multiplier.imag, power * multiplier.real)
+            )
+        design_rows.extend((real_row, imag_row))
+        targets.extend((row["coefficient"].real, row["coefficient"].imag))
+        weight = (
+            1.0 / max(float(row["standard_error"]), 1e-10)
+            if weighted
+            else 1.0
+        )
+        weights.extend((weight, weight))
+    design = np.asarray(design_rows, dtype=np.float64)
+    target = np.asarray(targets, dtype=np.float64)
+    weight_array = np.asarray(weights, dtype=np.float64)
+    weighted_design = design * weight_array[:, None]
+    weighted_target = target * weight_array
+    solution, *_ = np.linalg.lstsq(
+        weighted_design,
+        weighted_target,
+        rcond=None,
+    )
+    condition = float(np.linalg.cond(weighted_design))
+    coefficient = complex(float(solution[0]), float(solution[1]))
+    prediction = design @ solution
+    remainder = target - prediction
+    return {
+        "verdict": "value" if condition <= 25.0 else "ill_conditioned",
+        "coefficient": coefficient,
+        "condition_number": condition,
+        "resonance_index": resonance_index,
+        "resonance_action": resonance_action,
+        "usable_bins": len(usable),
+        "total_bins": len(rows),
+        "chart_degree": chart_degree,
+        "weighted": weighted,
+        "weighted_residual_rms": float(
+            np.sqrt(
+                np.mean(
+                    np.square(
+                        (target - prediction)
+                        * weight_array
+                    )
+                )
+            )
+        ),
+        "unweighted_residual_rms": float(np.sqrt(np.mean(remainder**2))),
+    }
+
+
+def estimate_resonant_block(
+    models: Sequence[CanonicalKoopmanModel | CanonicalKoopmanNetwork],
+    states: np.ndarray,
+    *,
+    order: int,
+    band: tuple[float, float],
+    bins: int = 14,
+    max_order: int = 8,
+    reference_actions: np.ndarray | None = None,
+    reference_angles: np.ndarray | None = None,
+) -> dict[str, Any]:
+    """Estimate one resonant block from shared trajectory transitions.
+
+    With oracle coordinates this returns truth-aligned synthetic evidence.
+    Without them, charts are aligned to the first chart and the floor remains
+    a pairwise lower bound; the function does not claim calibrated accuracy.
+    """
+
+    values = np.asarray(states, dtype=np.float64)
+    if values.ndim != 3 or values.shape[-1] != 2:
+        raise ValueError("states must have shape (trajectory, time, 2)")
+    if len(models) < 1:
+        return {
+            "order": order,
+            "band": list(band),
+            "oracle_alignment": reference_angles is not None,
+            "floor_multiplicative_basis": (
+                "oracle"
+                if reference_angles is not None
+                else "pairwise_lower_bound"
+            ),
+            "charts": [],
+            "successful_chart_count": 0,
+            "consensus_coefficient": None,
+            "componentwise_iqr": None,
+            "reference_action_available": reference_actions is not None,
+        }
+    resolved_networks = [
+        model.network if isinstance(model, CanonicalKoopmanModel) else model
+        for model in models
+    ]
+    chart_arrays = []
+    for network in resolved_networks:
+        with torch.no_grad():
+            tensor = torch.tensor(values, dtype=torch.float32)
+            action = network.action(tensor).numpy().astype(np.float64)
+            angle = network.angle(tensor).numpy().astype(np.float64)
+        chart_arrays.append((action, angle))
+    alignment_reference = (
+        np.asarray(reference_angles, dtype=np.float64)
+        if reference_angles is not None
+        else chart_arrays[0][1]
+    )
+    results = []
+    for index, (network, (action, angle)) in enumerate(
+        zip(resolved_networks, chart_arrays, strict=True)
+    ):
+        profile = _frequency_profile(action, angle)
+        if profile["status"] != "available":
+            results.append(
+                {
+                    "chart": index,
+                    "verdict": "insufficient_circulating_orbits",
+                }
+            )
+            continue
+        rows = _per_bin_spectra(
+            action,
+            angle,
+            order=order,
+            band=band,
+            bins=bins,
+            max_order=max_order,
+            reference_angle=alignment_reference,
+        )
+        learned_coefficients = (
+            network.hamiltonian.frequency_coefficients()
+            .detach()
+            .numpy()
+            .astype(np.float64)[::-1]
+        )
+        estimate = _band_regression(
+            rows,
+            profile["polynomial_coefficients_descending"],
+            order=order,
+            band=band,
+        )
+        learned_h_estimate = _band_regression(
+            rows,
+            learned_coefficients,
+            order=order,
+            band=band,
+        )
+        learned_frequency = []
+        if rows:
+            with torch.no_grad():
+                learned_frequency = (
+                    network.hamiltonian.frequency(
+                        torch.tensor(
+                            [row["center"] for row in rows],
+                            dtype=torch.float32,
+                        )
+                    )
+                    .numpy()
+                    .astype(np.float64)
+                    .tolist()
+                )
+        results.append(
+            {
+                "chart": index,
+                "verdict": estimate["verdict"],
+                "frequency_profile": profile,
+                "learned_frequency_at_bin_centers": learned_frequency,
+                "bins": rows,
+                "estimate": estimate,
+                "learned_h_estimate": learned_h_estimate,
+            }
+        )
+    successful = [
+        row
+        for row in results
+        if row["verdict"] == "value"
+    ]
+    coefficients = np.asarray(
+        [
+            [
+                row["estimate"]["coefficient"].real,
+                row["estimate"]["coefficient"].imag,
+            ]
+            for row in successful
+        ],
+        dtype=np.float64,
+    )
+    consensus = (
+        complex(*np.median(coefficients, axis=0))
+        if len(coefficients)
+        else None
+    )
+    spread = (
+        float(
+            np.linalg.norm(
+                np.percentile(coefficients, 75, axis=0)
+                - np.percentile(coefficients, 25, axis=0)
+            )
+        )
+        if len(coefficients)
+        else None
+    )
+    return {
+        "order": order,
+        "band": list(band),
+        "oracle_alignment": reference_angles is not None,
+        "floor_multiplicative_basis": (
+            "oracle" if reference_angles is not None else "pairwise_lower_bound"
+        ),
+        "charts": results,
+        "successful_chart_count": len(successful),
+        "consensus_coefficient": consensus,
+        "componentwise_iqr": spread,
+        "reference_action_available": reference_actions is not None,
+    }
+
+
+def _fixture(
+    config: MetrologyConfig,
+    *,
+    kick_scale: float,
+    initial_actions: np.ndarray,
+    initial_angles: np.ndarray,
+) -> tuple[TwistKickMap, ObservationChart, MapTrajectoryBundle]:
+    kick = KickHarmonic(
+        config.target_order,
+        config.kick_amplitude * kick_scale,
+        config.kick_phase,
+    )
+    system = TwistKickMap(
+        base_frequency=config.base_frequency,
+        twist=config.twist,
+        kicks=(kick,) if kick_scale != 0.0 else (),
+    )
+    chart = ObservationChart()
+    bundle = simulate_map_trajectories(
+        system,
+        chart,
+        initial_actions=initial_actions,
+        initial_angles=initial_angles,
+        steps=config.steps,
+    )
+    return system, chart, bundle
+
+
+def _model_label(seed: int, architecture: ArchitectureSpec) -> str:
+    return f"seed-{seed}-{architecture.label}"
+
+
+def _train_chart(
+    dataset: TrajectoryDataset,
+    *,
+    train_indices: np.ndarray,
+    test_indices: np.ndarray,
+    architecture: ArchitectureSpec,
+    seed: int,
+    epochs: int,
+    model_path: Path,
+) -> tuple[CanonicalKoopmanModel, dict[str, Any]]:
+    _set_seed(seed)
+    training = dataset.states[train_indices].reshape(-1, 2)
+    config = replace(
+        CanonicalExperimentConfig.quick(seed),
+        epochs=epochs,
+        batch_size=512,
+        rollout_horizon=4,
+        hidden_dim=architecture.hidden_dim,
+        shear_layers=architecture.shear_layers,
+    )
+    network = CanonicalKoopmanNetwork(
+        dt=1.0,
+        hidden_dim=architecture.hidden_dim,
+        shear_layers=architecture.shear_layers,
+        hamiltonian_degree=3,
+        initial_center=tuple(float(value) for value in training.mean(axis=0)),
+    )
+    started = time.perf_counter()
+    history = _fit_network(network, dataset, train_indices, config)
+    network.eval()
+    scale = training.std(axis=0)
+    training_metrics, _ = _rollout_metrics(
+        network,
+        dataset.states,
+        train_indices,
+        scale,
+    )
+    held_out_metrics, _ = _rollout_metrics(
+        network,
+        dataset.states,
+        test_indices,
+        scale,
+    )
+    with torch.no_grad():
+        training_action = (
+            network.action(
+                torch.tensor(dataset.states[train_indices], dtype=torch.float32)
+            )
+            .mean(dim=1)
+            .numpy()
+        )
+    padding = max(float(np.std(training_action)) * 0.15, 1e-6)
+    model = CanonicalKoopmanModel(
+        network=network,
+        state_columns=("position", "momentum"),
+        action_min=max(0.0, float(np.min(training_action)) - padding),
+        action_max=float(np.max(training_action)) + padding,
+        certificate_status="passed_current_dataset_gates",
+    )
+    save_canonical_model(model_path, model)
+    return model, {
+        "seed": seed,
+        "architecture": asdict(architecture),
+        "training": training_metrics,
+        "held_out": held_out_metrics,
+        "training_seconds": time.perf_counter() - started,
+        "history_final": history[-1],
+        "model": str(model_path.name),
+        "model_sha256": _sha256(model_path),
+    }
+
+
+def _fit_gauged_rotation(
+    network: CanonicalKoopmanNetwork,
+    states: np.ndarray,
+    gauge: ExactGauge,
+) -> np.ndarray:
+    with torch.no_grad():
+        tensor = torch.tensor(states, dtype=torch.float32)
+        action = network.action(tensor).numpy().astype(np.float64)
+        angle = network.angle(tensor).numpy().astype(np.float64)
+    transformed_action, transformed_angle = gauge.forward(action, angle)
+    increments = wrap_angle(
+        transformed_angle[:, 1:] - transformed_angle[:, :-1]
+    )
+    return np.polyfit(
+        transformed_action[:, :-1].reshape(-1),
+        increments.reshape(-1),
+        2,
+    )
+
+
+def _gauged_prediction_error(
+    network: CanonicalKoopmanNetwork,
+    train_states: np.ndarray,
+    held_out_states: np.ndarray,
+    gauge: ExactGauge,
+    state_scale: np.ndarray,
+) -> float:
+    frequency = _fit_gauged_rotation(network, train_states, gauge)
+    current = held_out_states[:, :-1]
+    truth = held_out_states[:, 1:]
+    with torch.no_grad():
+        tensor = torch.tensor(current, dtype=torch.float32)
+        latent = network.encode(tensor).numpy().astype(np.float64)
+    q, p = latent[..., 0], latent[..., 1]
+    action = 0.5 * (q * q + p * p)
+    angle = np.arctan2(-p, q)
+    transformed_action, transformed_angle = gauge.forward(action, angle)
+    predicted_angle = wrap_angle(
+        transformed_angle + np.polyval(frequency, transformed_action)
+    )
+    rebuilt_action, rebuilt_angle = gauge.inverse(
+        transformed_action,
+        predicted_angle,
+    )
+    radius = np.sqrt(2.0 * np.maximum(rebuilt_action, 1e-12))
+    predicted_latent = np.stack(
+        (
+            radius * np.cos(rebuilt_angle),
+            -radius * np.sin(rebuilt_angle),
+        ),
+        axis=-1,
+    )
+    with torch.no_grad():
+        prediction = (
+            network.decode(
+                torch.tensor(predicted_latent, dtype=torch.float32)
+            )
+            .numpy()
+            .astype(np.float64)
+        )
+    return float(
+        np.sqrt(np.mean(np.square((prediction - truth) / state_scale)))
+    )
+
+
+def _gauged_block(
+    network: CanonicalKoopmanNetwork,
+    states: np.ndarray,
+    gauge: ExactGauge,
+    *,
+    order: int,
+    band: tuple[float, float],
+    bins: int,
+    max_order: int,
+    reference_angle: np.ndarray,
+) -> dict[str, Any]:
+    with torch.no_grad():
+        tensor = torch.tensor(states, dtype=torch.float32)
+        action = network.action(tensor).numpy().astype(np.float64)
+        angle = network.angle(tensor).numpy().astype(np.float64)
+    transformed_action, transformed_angle = gauge.forward(action, angle)
+    profile = _frequency_profile(transformed_action, transformed_angle)
+    if profile["status"] != "available":
+        return {"verdict": profile["status"]}
+    rows = _per_bin_spectra(
+        transformed_action,
+        transformed_angle,
+        order=order,
+        band=band,
+        bins=bins,
+        max_order=max_order,
+        reference_angle=reference_angle,
+    )
+    return _band_regression(
+        rows,
+        profile["polynomial_coefficients_descending"],
+        order=order,
+        band=band,
+    )
+
+
+def _static_error_harmonics(
+    learned_action: np.ndarray,
+    learned_angle: np.ndarray,
+    true_action: np.ndarray,
+    true_angle: np.ndarray,
+    *,
+    target_order: int,
+) -> dict[str, float]:
+    relative_action_error = (
+        learned_action - true_action
+    ) / np.maximum(true_action, 1e-8)
+    phase_error = wrap_angle(learned_angle - true_angle)
+    action_spectrum = _fit_complex_spectrum(
+        true_angle.reshape(-1),
+        relative_action_error.reshape(-1),
+        order=target_order,
+        max_order=2 * target_order,
+    )
+    phase_spectrum = _fit_complex_spectrum(
+        true_angle.reshape(-1),
+        phase_error.reshape(-1),
+        order=2 * target_order,
+        max_order=2 * target_order,
+    )
+    return {
+        "relative_action_harmonic_m": abs(action_spectrum.coefficient),
+        "angle_error_harmonic_2m": abs(phase_spectrum.coefficient),
+    }
+
+
+def _complex_payload(value: complex | None) -> list[float] | None:
+    return [float(value.real), float(value.imag)] if value is not None else None
+
+
+def _json_safe(value: Any) -> Any:
+    if isinstance(value, complex):
+        return _complex_payload(value)
+    if isinstance(value, np.integer):
+        return int(value)
+    if isinstance(value, np.bool_):
+        return bool(value)
+    if isinstance(value, np.floating):
+        value = float(value)
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: _json_safe(child) for key, child in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(child) for child in value]
+    return value
+
+
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.write_text(
+        json.dumps(_json_safe(payload), indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
+    charts = manifest["ensemble"]["accepted"]
+    truth = manifest["oracle"]["kick_amplitude"]
+    figure, axes = plt.subplots(2, 2, figsize=(13, 9))
+    names = [row["label"] for row in charts]
+    one_step = [row["held_out_one_step_rmse"] for row in charts]
+    errors = [row["complex_error"] for row in charts]
+    axes[0, 0].scatter(one_step, errors, color="#4057c9", s=55)
+    for name, x_value, y_value in zip(names, one_step, errors, strict=True):
+        axes[0, 0].annotate(name.split("-")[1], (x_value, y_value), fontsize=8)
+    axes[0, 0].axhline(0.2, color="#b23a33", linestyle="--")
+    axes[0, 0].set(
+        title="Prediction quality vs resonant-block error",
+        xlabel="held-out normalized one-step RMSE",
+        ylabel="aligned complex relative error",
+    )
+
+    if charts:
+        coefficients = np.asarray(
+            [row["coefficient"] for row in charts],
+            dtype=np.float64,
+        )
+        axes[0, 1].scatter(
+            coefficients[:, 0],
+            coefficients[:, 1],
+            color="#2a8b68",
+            s=55,
+            label="learned charts",
+        )
+    oracle = np.asarray(manifest["oracle"]["coefficient"], dtype=np.float64)
+    axes[0, 1].scatter(
+        [oracle[0]],
+        [oracle[1]],
+        marker="*",
+        s=180,
+        color="#d85140",
+        label="oracle",
+    )
+    axes[0, 1].set(
+        title="Aligned complex kick coefficient",
+        xlabel="sine coefficient",
+        ylabel="cosine coefficient",
+    )
+    axes[0, 1].legend()
+
+    floor = [row["floor_total"] / truth for row in charts]
+    realized = [row["absolute_error"] / truth for row in charts]
+    positions = np.arange(len(charts))
+    axes[1, 0].bar(
+        positions - 0.18,
+        realized,
+        0.36,
+        color="#d85140",
+        label="realized error",
+    )
+    axes[1, 0].bar(
+        positions + 0.18,
+        np.asarray(floor) * 2.0,
+        0.36,
+        color="#4057c9",
+        label="2 x modeled floor",
+    )
+    axes[1, 0].set(
+        title="Error coverage by the empirical floor model",
+        xlabel="accepted chart",
+        ylabel="fraction of planted kick",
+    )
+    axes[1, 0].legend()
+
+    stress = manifest["controls"]["exact_2m_gauge_stress"]
+    ladder = stress["ladder"]
+    max_shift = [
+        max(
+            (
+                row["complex_shift"]
+                for row in stress["per_scale"][str(scale)]
+            ),
+            default=0.0,
+        )
+        for scale in ladder
+    ]
+    in_envelope = [
+        any(row["inside_prediction_envelope"] for row in stress["per_scale"][str(scale)])
+        for scale in ladder
+    ]
+    axes[1, 1].plot(ladder, max_shift, marker="o", color="#7c3fb7")
+    for scale, shift, inside in zip(ladder, max_shift, in_envelope, strict=True):
+        axes[1, 1].annotate("inside" if inside else "visible", (scale, shift))
+    axes[1, 1].axhline(0.2, color="#b23a33", linestyle="--")
+    axes[1, 1].set(
+        title="Exact 2m gauge identifiability stress",
+        xlabel="peak action fraction s",
+        ylabel="maximum complex-block shift",
+    )
+    for axis in axes.flat:
+        axis.grid(alpha=0.2)
+    figure.suptitle("Learned-chart resonance metrology", fontsize=16)
+    figure.tight_layout()
+    figure.savefig(path, dpi=180)
+    plt.close(figure)
+
+
+def _write_report(path: Path, manifest: dict[str, Any]) -> None:
+    accepted = manifest["ensemble"]["accepted"]
+    gates = manifest["empirical_gates"]
+    gate_rows = "\n".join(
+        f"<li class=\"{'pass' if row['passed'] else 'fail'}\">"
+        f"{'PASS' if row['passed'] else 'FAIL'} — "
+        f"{html.escape(name.replace('_', ' '))}: "
+        f"{html.escape(str(row['value']))}</li>"
+        for name, row in gates.items()
+    )
+    chart_rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(row['label'])}</td>"
+        f"<td>{row['held_out_one_step_rmse']:.5f}</td>"
+        f"<td>{row['complex_error']:.2%}</td>"
+        f"<td>{row['magnitude_error']:.2%}</td>"
+        f"<td>{row['floor_total']:.3e}</td>"
+        f"<td>{'yes' if row['covered'] else 'no'}</td>"
+        "</tr>"
+        for row in accepted
+    )
+    path.write_text(
+        f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resonance metrology</title><style>
+body {{margin:0;background:#f3f0e8;color:#20242b;font:17px/1.55 system-ui}}
+main {{max-width:1050px;margin:auto;padding:52px 24px 80px}}
+h1 {{font:700 clamp(40px,7vw,72px)/1.02 Georgia,serif;margin:.2em 0}}
+.eyebrow {{color:#4057c9;font-weight:800;letter-spacing:.08em;text-transform:uppercase}}
+.status {{display:inline-block;padding:8px 14px;border-radius:99px;background:#e5eaf7;
+font-weight:800}} .card {{background:white;border-radius:18px;padding:25px;margin:24px 0;
+box-shadow:0 12px 35px #1e263112}} img {{width:100%;border-radius:12px}}
+table {{width:100%;border-collapse:collapse}} th,td {{padding:9px;
+border-bottom:1px solid #ddd;text-align:right}}
+th:first-child,td:first-child {{text-align:left}}
+.pass {{color:#176e50}} .fail {{color:#ae352d}} code {{overflow-wrap:anywhere}}
+</style></head><body><main>
+<div class="eyebrow">learned-koopman · residual normal form</div>
+<h1>Can the resonance survive the chart?</h1>
+<p class="status">{html.escape(manifest['status'])}</p>
+<p>{html.escape(manifest['claim_boundary'])}</p>
+<div class="card"><img src="overview.png"
+alt="Resonance-metrology diagnostics"></div>
+<div class="card"><h2>Predeclared gates</h2><ul>{gate_rows}</ul></div>
+<div class="card"><h2>Accepted learned charts</h2><table><thead><tr>
+<th>chart</th><th>one-step RMSE</th><th>complex error</th>
+<th>magnitude error</th><th>floor</th><th>covered</th></tr></thead>
+<tbody>{chart_rows}</tbody></table></div>
+<h2>What the number means</h2>
+<p>The primary estimator fits the complex residual harmonic across an action
+band that crosses the target resonance. It separates a smooth physical block
+from the chart's coboundary-shaped detuning signature. Results are aligned on
+shared states, checked against an oracle only in this synthetic reference run,
+and stress-tested with exact symplectic chart gauges.</p>
+<h2>What it does not mean</h2>
+<p>No formal KAM, torus, interval, probability, noise, hardware, or
+coordinate-global guarantee is claimed. Static action ripple is a chart
+diagnostic, not an island-width floor. The empirical floor model is promoted
+only if its predeclared coverage and detection checks pass.</p>
+<p>Artifacts: <code>manifest.json</code>, <code>overview.png</code>,
+<code>s1-trajectories.csv</code>, <code>s2-null-trajectories.csv</code>, and
+the saved chart ensemble under <code>models/</code>.</p>
+</main></body></html>
+""",
+        encoding="utf-8",
+    )
+
+
+def _analyze_coordinate_arrays(
+    action: np.ndarray,
+    angle: np.ndarray,
+    *,
+    order: int,
+    band: tuple[float, float],
+    bins: int,
+    max_order: int,
+    reference_angle: np.ndarray | None = None,
+) -> dict[str, Any]:
+    profile = _frequency_profile(action, angle)
+    if profile["status"] != "available":
+        return {"verdict": profile["status"], "frequency_profile": profile}
+    rows = _per_bin_spectra(
+        action,
+        angle,
+        order=order,
+        band=band,
+        bins=bins,
+        max_order=max_order,
+        reference_angle=reference_angle,
+    )
+    estimate = _band_regression(
+        rows,
+        profile["polynomial_coefficients_descending"],
+        order=order,
+        band=band,
+    )
+    return {
+        "verdict": estimate["verdict"],
+        "frequency_profile": profile,
+        "bins": rows,
+        "estimate": estimate,
+    }
+
+
+def _consensus(values: Sequence[complex]) -> complex:
+    components = np.asarray(
+        [[value.real, value.imag] for value in values],
+        dtype=np.float64,
+    )
+    median = np.median(components, axis=0)
+    return complex(float(median[0]), float(median[1]))
+
+
+def _variant_panel(
+    accepted_rows: list[dict[str, Any]],
+    *,
+    order: int,
+    band: tuple[float, float],
+) -> dict[str, Any]:
+    variants: dict[str, list[complex]] = {
+        "primary_linear": [],
+        "constant_chart": [],
+        "quadratic_chart": [],
+        "inner_band": [],
+        "learned_h_frequency": [],
+        "unweighted": [],
+    }
+    for row in accepted_rows:
+        chart = row["analysis"]
+        bins = chart["bins"]
+        wba_coefficients = chart["frequency_profile"][
+            "polynomial_coefficients_descending"
+        ]
+        primary = chart["estimate"]
+        if primary["verdict"] != "value":
+            continue
+        variants["primary_linear"].append(primary["coefficient"])
+        constant = _band_regression(
+            bins,
+            wba_coefficients,
+            order=order,
+            band=band,
+            chart_degree=0,
+        )
+        quadratic = _band_regression(
+            bins,
+            wba_coefficients,
+            order=order,
+            band=band,
+            chart_degree=2,
+        )
+        inner_rows = [
+            item for item in bins if 0.89 <= item["center"] <= 2.41
+        ]
+        inner = _band_regression(
+            inner_rows,
+            wba_coefficients,
+            order=order,
+            band=(0.89, 2.41),
+        )
+        learned_h = chart["learned_h_estimate"]
+        unweighted = _band_regression(
+            bins,
+            wba_coefficients,
+            order=order,
+            band=band,
+            weighted=False,
+        )
+        for name, estimate in (
+            ("constant_chart", constant),
+            ("quadratic_chart", quadratic),
+            ("inner_band", inner),
+            ("learned_h_frequency", learned_h),
+            ("unweighted", unweighted),
+        ):
+            if estimate["verdict"] == "value":
+                variants[name].append(estimate["coefficient"])
+    payload = {}
+    primary_consensus = _consensus(variants["primary_linear"])
+    for name, values in variants.items():
+        consensus = _consensus(values) if values else None
+        deviation = (
+            abs(consensus - primary_consensus)
+            / max(abs(primary_consensus), 1e-12)
+            if consensus is not None
+            else None
+        )
+        payload[name] = {
+            "chart_count": len(values),
+            "consensus": consensus,
+            "relative_deviation_from_primary": deviation,
+        }
+    trigger_names = (
+        "primary_linear",
+        "quadratic_chart",
+        "inner_band",
+        "learned_h_frequency",
+    )
+    maximum = max(
+        float(payload[name]["relative_deviation_from_primary"] or 0.0)
+        for name in trigger_names
+    )
+    return {
+        "variants": payload,
+        "maximum_trigger_deviation": maximum,
+        "blocks_supported_status": maximum <= 0.2,
+        "warning": maximum > 0.1,
+    }
+
+
+def run_resonance_metrology(
+    config: MetrologyConfig,
+) -> dict[str, Any]:
+    """Train chart ensembles and run the frozen resonance-metrology protocol."""
+
+    if config.profile not in {"ci", "full"}:
+        raise ValueError("profile must be 'ci' or 'full'")
+    if config.target_order < 1 or config.max_order < config.target_order:
+        raise ValueError("invalid harmonic orders")
+    if config.bins < 6 or config.epochs < 1:
+        raise ValueError("bins and epochs must be positive")
+    if len(config.seeds) * len(config.architectures) < 6:
+        raise ValueError("resonance metrology requires at least six charts")
+    started = time.perf_counter()
+    config.output.mkdir(parents=True, exist_ok=True)
+    model_dir = config.output / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    random.seed(config.split_seed)
+    rng = np.random.default_rng(config.split_seed)
+    initial_actions = np.linspace(
+        config.action_band[0] + 0.05,
+        config.action_band[1] - 0.05,
+        config.trajectories,
+    )
+    initial_angles = rng.uniform(-np.pi, np.pi, config.trajectories)
+    system, observation, s1_bundle = _fixture(
+        config,
+        kick_scale=1.0,
+        initial_actions=initial_actions,
+        initial_angles=initial_angles,
+    )
+    _, _, s2_bundle = _fixture(
+        config,
+        kick_scale=0.0,
+        initial_actions=initial_actions,
+        initial_angles=initial_angles,
+    )
+    s1_csv = write_map_trajectory_csv(
+        config.output / "s1-trajectories.csv",
+        s1_bundle,
+    )
+    s2_csv = write_map_trajectory_csv(
+        config.output / "s2-null-trajectories.csv",
+        s2_bundle,
+    )
+    s1_dataset = load_trajectory_csv(
+        s1_csv,
+        state_columns=("position", "momentum"),
+    )
+    s2_dataset = load_trajectory_csv(
+        s2_csv,
+        state_columns=("position", "momentum"),
+    )
+    train_indices, test_indices = _split_indices(
+        config.trajectories,
+        0.75,
+        config.split_seed,
+    )
+    trained: dict[str, dict[str, CanonicalKoopmanModel]] = {"s1": {}, "s2": {}}
+    training_rows: dict[str, list[dict[str, Any]]] = {"s1": [], "s2": []}
+    for system_name, dataset in (("s1", s1_dataset), ("s2", s2_dataset)):
+        for architecture in config.architectures:
+            for seed in config.seeds:
+                label = _model_label(seed, architecture)
+                model, metrics = _train_chart(
+                    dataset,
+                    train_indices=train_indices,
+                    test_indices=test_indices,
+                    architecture=architecture,
+                    seed=seed,
+                    epochs=config.epochs,
+                    model_path=model_dir / f"{system_name}-{label}.pt",
+                )
+                trained[system_name][label] = model
+                metrics["label"] = label
+                training_rows[system_name].append(metrics)
+    best_error = min(
+        row["held_out"]["normalized_one_step_rmse"]
+        for row in training_rows["s1"]
+    )
+    acceptance_limit = 1.5 * best_error
+    accepted_labels = []
+    for row in training_rows["s1"]:
+        held_out = row["held_out"]
+        relative_quality = (
+            held_out["normalized_one_step_rmse"] <= acceptance_limit
+        )
+        absolute_quality = (
+            held_out["normalized_one_step_rmse"] < 0.25
+            and held_out["normalized_one_step_rmse"]
+            < held_out["persistence_normalized_rollout_rmse"]
+        )
+        if relative_quality and (
+            absolute_quality or config.profile != "full"
+        ):
+            accepted_labels.append(row["label"])
+    dropped = [
+        {
+            "label": row["label"],
+            "held_out_one_step_rmse": row["held_out"][
+                "normalized_one_step_rmse"
+            ],
+        }
+        for row in training_rows["s1"]
+        if row["label"] not in accepted_labels
+    ]
+    ensemble_healthy = len(accepted_labels) >= config.minimum_accepted_charts
+    accepted_models = [trained["s1"][label] for label in accepted_labels]
+    held_out_states = s1_bundle.states[test_indices]
+    held_out_actions = s1_bundle.actions[test_indices]
+    held_out_angles = s1_bundle.angles[test_indices]
+    primary = estimate_resonant_block(
+        accepted_models,
+        held_out_states,
+        order=config.target_order,
+        band=config.action_band,
+        bins=config.bins,
+        max_order=config.max_order,
+        reference_actions=held_out_actions,
+        reference_angles=held_out_angles,
+    )
+    truth = config.kick_amplitude * np.exp(1j * config.kick_phase)
+    oracle = _analyze_coordinate_arrays(
+        held_out_actions,
+        held_out_angles,
+        order=config.target_order,
+        band=config.action_band,
+        bins=config.bins,
+        max_order=config.max_order,
+        reference_angle=held_out_angles,
+    )
+    raw_action = 0.5 * np.square(held_out_states).sum(axis=-1)
+    raw_angle = np.arctan2(
+        -held_out_states[..., 1],
+        held_out_states[..., 0],
+    )
+    raw = _analyze_coordinate_arrays(
+        raw_action,
+        raw_angle,
+        order=config.target_order,
+        band=config.action_band,
+        bins=config.bins,
+        max_order=config.max_order,
+        reference_angle=held_out_angles,
+    )
+    primary_by_label = {
+        label: row
+        for label, row in zip(
+            accepted_labels,
+            primary["charts"],
+            strict=True,
+        )
+    }
+    null_results: dict[str, dict[str, Any]] = {}
+    accepted_rows = []
+    training_by_label = {
+        row["label"]: row for row in training_rows["s1"]
+    }
+    for label in accepted_labels:
+        model = trained["s1"][label]
+        chart_result = primary_by_label[label]
+        null = estimate_resonant_block(
+            [trained["s2"][label]],
+            s2_bundle.states[test_indices],
+            order=config.target_order,
+            band=config.action_band,
+            bins=config.bins,
+            max_order=config.max_order,
+            reference_actions=s2_bundle.actions[test_indices],
+            reference_angles=s2_bundle.angles[test_indices],
+        )
+        null_results[label] = null
+        estimate = chart_result["estimate"]
+        if estimate["verdict"] != "value":
+            continue
+        coefficient = estimate["coefficient"]
+        null_coefficient = (
+            null["charts"][0]["estimate"]["coefficient"]
+            if null["charts"][0]["verdict"] == "value"
+            else 0.0j
+        )
+        with torch.no_grad():
+            tensor = torch.tensor(held_out_states, dtype=torch.float32)
+            learned_action = model.network.action(tensor).numpy()
+            learned_angle = model.network.angle(tensor).numpy()
+        harmonics = _static_error_harmonics(
+            learned_action,
+            learned_angle,
+            held_out_actions,
+            held_out_angles,
+            target_order=config.target_order,
+        )
+        floor_additive = abs(null_coefficient)
+        floor_second_order = (
+            2.34
+            * harmonics["relative_action_harmonic_m"] ** 2
+            * abs(coefficient)
+        )
+        floor_multiplicative = (
+            2.3
+            * harmonics["angle_error_harmonic_2m"]
+            * abs(coefficient)
+        )
+        floor_total = (
+            floor_additive + floor_second_order + floor_multiplicative
+        )
+        absolute_error = abs(coefficient - truth)
+        frequency_coefficients = (
+            model.network.hamiltonian.frequency_coefficients()
+            .detach()
+            .numpy()
+            .astype(np.float64)[::-1]
+        )
+        accepted_rows.append(
+            {
+                "label": label,
+                "coefficient": _complex_payload(coefficient),
+                "held_out_one_step_rmse": training_by_label[label][
+                    "held_out"
+                ]["normalized_one_step_rmse"],
+                "complex_error": absolute_error / abs(truth),
+                "magnitude_error": abs(abs(coefficient) - abs(truth))
+                / abs(truth),
+                "location_error_radians": abs(np.angle(coefficient / truth))
+                / config.target_order,
+                "absolute_error": absolute_error,
+                "floor_additive": floor_additive,
+                "floor_second_order": floor_second_order,
+                "floor_multiplicative": floor_multiplicative,
+                "floor_total": floor_total,
+                "covered": absolute_error <= 2.0 * floor_total,
+                "chart_error_harmonics": harmonics,
+                "analysis": chart_result,
+                "frequency_coefficients_descending": (
+                    frequency_coefficients.tolist()
+                ),
+            }
+        )
+    successful_coefficients = [
+        complex(*row["coefficient"]) for row in accepted_rows
+    ]
+    consensus = (
+        _consensus(successful_coefficients)
+        if successful_coefficients
+        else 0.0j
+    )
+    consensus_complex_error = abs(consensus - truth) / abs(truth)
+    consensus_magnitude_error = abs(abs(consensus) - abs(truth)) / abs(truth)
+    consensus_location_error = (
+        abs(np.angle(consensus / truth)) / config.target_order
+    )
+    coverage_fraction = (
+        float(np.mean([row["covered"] for row in accepted_rows]))
+        if accepted_rows
+        else 0.0
+    )
+
+    wrong_harmonics = {}
+    for wrong_order in (2, 4, 6, 8):
+        wrong_harmonics[str(wrong_order)] = estimate_resonant_block(
+            accepted_models,
+            held_out_states,
+            order=wrong_order,
+            band=config.action_band,
+            bins=config.bins,
+            max_order=config.max_order,
+            reference_actions=held_out_actions,
+            reference_angles=held_out_angles,
+        )
+
+    shuffled_results = []
+    shuffle_rng = np.random.default_rng(20260728)
+    for model in accepted_models:
+        with torch.no_grad():
+            tensor = torch.tensor(held_out_states, dtype=torch.float32)
+            action = model.network.action(tensor).numpy().astype(np.float64)
+            angle = model.network.angle(tensor).numpy().astype(np.float64)
+        shuffled = angle.copy().reshape(-1)
+        shuffled = shuffled[shuffle_rng.permutation(len(shuffled))].reshape(
+            angle.shape
+        )
+        shuffled_results.append(
+            _analyze_coordinate_arrays(
+                action,
+                shuffled,
+                order=config.target_order,
+                band=config.action_band,
+                bins=config.bins,
+                max_order=config.max_order,
+                reference_angle=held_out_angles,
+            )
+        )
+
+    state_scale = s1_bundle.states[train_indices].reshape(-1, 2).std(axis=0)
+    gauge_ladder = (0.01, 0.02, 0.04, 0.10)
+    stress_per_scale: dict[str, list[dict[str, Any]]] = {}
+    prediction_envelope = acceptance_limit
+    for scale in gauge_ladder:
+        rows = []
+        for phase in (0.0, 0.5 * np.pi):
+            gauge = ExactGauge(
+                amplitude=scale / (2 * config.target_order),
+                order=2 * config.target_order,
+                phase=phase,
+            )
+            for label in accepted_labels:
+                model = trained["s1"][label]
+                prediction_error = _gauged_prediction_error(
+                    model.network,
+                    s1_bundle.states[train_indices],
+                    held_out_states,
+                    gauge,
+                    state_scale,
+                )
+                block = _gauged_block(
+                    model.network,
+                    held_out_states,
+                    gauge,
+                    order=config.target_order,
+                    band=config.action_band,
+                    bins=config.bins,
+                    max_order=config.max_order,
+                    reference_angle=held_out_angles,
+                )
+                base = primary_by_label[label]["estimate"]
+                shift = (
+                    abs(block["coefficient"] - base["coefficient"])
+                    / max(abs(base["coefficient"]), 1e-12)
+                    if block["verdict"] == "value"
+                    and base["verdict"] == "value"
+                    else 1e9
+                )
+                magnitude_shift = (
+                    abs(
+                        abs(block["coefficient"])
+                        - abs(base["coefficient"])
+                    )
+                    / max(abs(base["coefficient"]), 1e-12)
+                    if block["verdict"] == "value"
+                    and base["verdict"] == "value"
+                    else 1e9
+                )
+                rows.append(
+                    {
+                        "label": label,
+                        "phase": phase,
+                        "prediction_error": prediction_error,
+                        "inside_prediction_envelope": (
+                            prediction_error <= prediction_envelope
+                        ),
+                        "block_verdict": block["verdict"],
+                        "complex_shift": shift,
+                        "magnitude_shift": magnitude_shift,
+                    }
+                )
+        stress_per_scale[str(scale)] = rows
+    visible_scales = [
+        scale
+        for scale in gauge_ladder
+        if any(
+            not row["inside_prediction_envelope"]
+            for row in stress_per_scale[str(scale)]
+        )
+    ]
+    in_envelope_rows = [
+        row
+        for scale in gauge_ladder
+        for row in stress_per_scale[str(scale)]
+        if row["inside_prediction_envelope"]
+    ]
+    maximum_in_envelope_complex_shift = max(
+        (row["complex_shift"] for row in in_envelope_rows),
+        default=1e9,
+    )
+    maximum_in_envelope_magnitude_shift = max(
+        (row["magnitude_shift"] for row in in_envelope_rows),
+        default=1e9,
+    )
+    gauge_stress_passed = (
+        maximum_in_envelope_complex_shift <= 0.20
+        and maximum_in_envelope_magnitude_shift <= 0.15
+    )
+    variant_panel = (
+        _variant_panel(
+            accepted_rows,
+            order=config.target_order,
+            band=config.action_band,
+        )
+        if accepted_rows
+        else {
+            "variants": {},
+            "maximum_trigger_deviation": 1e9,
+            "blocks_supported_status": False,
+            "warning": True,
+        }
+    )
+
+    shuffled_coefficients = [
+        row["estimate"]["coefficient"]
+        for row in shuffled_results
+        if row["verdict"] == "value"
+    ]
+    shuffled_level = (
+        abs(_consensus(shuffled_coefficients)) / abs(truth)
+        if shuffled_coefficients
+        else 0.0
+    )
+    wrong_traps_pass = True
+    for wrong_order, result in wrong_harmonics.items():
+        order_value = int(wrong_order)
+        if order_value in (2, 4):
+            wrong_traps_pass &= all(
+                row["verdict"] == "no_resonance_crossing"
+                for row in result["charts"]
+            )
+        else:
+            values = [
+                row["estimate"]["coefficient"]
+                for row in result["charts"]
+                if row["verdict"] == "value"
+            ]
+            wrong_traps_pass &= not values or (
+                abs(_consensus(values)) <= 0.2 * abs(truth)
+            )
+    false_positive_passed = wrong_traps_pass and shuffled_level <= 0.2
+
+    modeled_floor = (
+        float(np.median([row["floor_total"] for row in accepted_rows]))
+        if accepted_rows
+        else config.kick_amplitude
+    )
+    sweep_levels: dict[str, Any] = {}
+    detected_scale = None
+    for scale in (0.0, 0.25, 0.5, 1.0, 2.0):
+        _, _, sweep_bundle = _fixture(
+            config,
+            kick_scale=scale,
+            initial_actions=initial_actions,
+            initial_angles=initial_angles,
+        )
+        sweep = estimate_resonant_block(
+            accepted_models,
+            sweep_bundle.states[test_indices],
+            order=config.target_order,
+            band=config.action_band,
+            bins=config.bins,
+            max_order=config.max_order,
+            reference_actions=sweep_bundle.actions[test_indices],
+            reference_angles=sweep_bundle.angles[test_indices],
+        )
+        values = [
+            row["estimate"]["coefficient"]
+            for row in sweep["charts"]
+            if row["verdict"] == "value"
+        ]
+        magnitude = abs(_consensus(values)) if values else None
+        detected = magnitude is not None and magnitude > 2.0 * modeled_floor
+        if detected and detected_scale is None and scale > 0.0:
+            detected_scale = scale
+        sweep_levels[str(scale)] = {
+            "consensus_magnitude": magnitude,
+            "detected_above_two_floors": detected,
+        }
+    predicted_scale = (
+        2.0 * modeled_floor / config.kick_amplitude
+    )
+    roc_ratio = (
+        detected_scale / max(predicted_scale, 1e-12)
+        if detected_scale is not None
+        else 1e9
+    )
+    roc_passed = roc_ratio <= 3.0
+
+    empirical_gates = {
+        "G1_complex_recovery": {
+            "value": consensus_complex_error,
+            "threshold": 0.20,
+            "passed": consensus_complex_error <= 0.20,
+        },
+        "G2_magnitude_recovery": {
+            "value": consensus_magnitude_error,
+            "threshold": 0.15,
+            "passed": consensus_magnitude_error <= 0.15,
+        },
+        "G3_location": {
+            "value": consensus_location_error,
+            "threshold": 2.0 * np.pi / (8.0 * config.target_order),
+            "passed": (
+                consensus_location_error
+                <= 2.0 * np.pi / (8.0 * config.target_order)
+            ),
+        },
+        "G4_floor_coverage": {
+            "value": coverage_fraction,
+            "threshold": 0.80,
+            "passed": coverage_fraction >= 0.80,
+        },
+        "G5_false_positives": {
+            "value": {
+                "wrong_harmonics_passed": wrong_traps_pass,
+                "shuffled_over_truth": shuffled_level,
+            },
+            "threshold": "zero reports after abstention; shuffled <= 0.2",
+            "passed": false_positive_passed,
+        },
+        "G6_detection_roc": {
+            "value": roc_ratio,
+            "threshold": 3.0,
+            "passed": roc_passed,
+        },
+        "G7_trajectory_vs_circle": {
+            "value": consensus_complex_error,
+            "threshold": 0.20,
+            "passed": consensus_complex_error <= 0.20,
+        },
+        "G8_exact_gauge_stress": {
+            "value": {
+                "maximum_in_envelope_complex_shift": (
+                    maximum_in_envelope_complex_shift
+                ),
+                "maximum_in_envelope_magnitude_shift": (
+                    maximum_in_envelope_magnitude_shift
+                ),
+            },
+            "threshold": {"complex": 0.20, "magnitude": 0.15},
+            "passed": gauge_stress_passed,
+        },
+        "G9_variant_stability": {
+            "value": variant_panel["maximum_trigger_deviation"],
+            "threshold": 0.20,
+            "passed": variant_panel["blocks_supported_status"],
+        },
+    }
+    decision_gates = [
+        empirical_gates[f"G{index}_{name}"]["passed"]
+        for index, name in (
+            (1, "complex_recovery"),
+            (2, "magnitude_recovery"),
+            (3, "location"),
+            (4, "floor_coverage"),
+            (5, "false_positives"),
+            (6, "detection_roc"),
+            (8, "exact_gauge_stress"),
+            (9, "variant_stability"),
+        )
+    ]
+    passed_empirical_gates = ensemble_healthy and all(decision_gates)
+    status_reason = "gate_failure_1x_2x"
+    if not ensemble_healthy:
+        status = "invalid_ensemble"
+        status_reason = "invalid_ensemble"
+    elif config.profile != "full":
+        status = "not_resolved_abstained"
+        status_reason = "non_decisive_profile"
+    elif not gauge_stress_passed:
+        status = "not_resolved_abstained"
+        status_reason = "gauge_freedom"
+    elif not variant_panel["blocks_supported_status"]:
+        status = "not_resolved_abstained"
+        status_reason = "truncation_instability"
+    elif not false_positive_passed:
+        status = "not_resolved_abstained"
+        status_reason = "false_positive_control"
+    elif passed_empirical_gates:
+        status = "resolved_supported"
+        status_reason = "all_predeclared_gates_passed"
+    else:
+        severe = (
+            consensus_complex_error > 0.40
+            or consensus_magnitude_error > 0.30
+        )
+        status = "resolved_refuted" if severe else "not_resolved_abstained"
+    manifest: dict[str, Any] = {
+        "schema_version": 1,
+        "experiment": "resonance-metrology",
+        "package_version": __version__,
+        "profile": config.profile,
+        "status": status,
+        "status_reason": status_reason,
+        "passed_empirical_gates": passed_empirical_gates,
+        "matches_reference_precision": False,
+        "config": asdict(config),
+        "environment": {
+            "python": platform.python_version(),
+            "platform": platform.platform(),
+            "numpy": np.__version__,
+            "torch": torch.__version__,
+        },
+        "source_revision": _git_source_state(),
+        "fixture": {
+            "map": {
+                "base_frequency": config.base_frequency,
+                "twist": config.twist,
+                "kick_order": config.target_order,
+                "kick_amplitude": config.kick_amplitude,
+                "kick_phase": config.kick_phase,
+                "resonant_action": system.resonance_action(
+                    config.target_order
+                ),
+                "island_half_width": system.island_half_width(
+                    config.target_order
+                ),
+            },
+            "observation_chart": asdict(observation),
+            "paired_initial_conditions": True,
+            "training_trajectory_ids": [
+                s1_bundle.trajectory_ids[index] for index in train_indices
+            ],
+            "held_out_trajectory_ids": [
+                s1_bundle.trajectory_ids[index] for index in test_indices
+            ],
+        },
+        "ensemble": {
+            "acceptance_limit": acceptance_limit,
+            "minimum_accepted_charts": config.minimum_accepted_charts,
+            "accepted_count": len(accepted_rows),
+            "accepted": accepted_rows,
+            "dropped": dropped,
+            "training": training_rows,
+        },
+        "oracle": {
+            "coefficient": _complex_payload(truth),
+            "kick_amplitude": config.kick_amplitude,
+            "generating_function_amplitude": (
+                config.kick_amplitude / config.target_order
+            ),
+            "island_half_width": system.island_half_width(config.target_order),
+            "analysis": oracle,
+        },
+        "raw_coordinate_baseline": raw,
+        "ensemble_consensus": {
+            "coefficient": _complex_payload(consensus),
+            "complex_error": consensus_complex_error,
+            "magnitude_error": consensus_magnitude_error,
+            "location_error_radians": consensus_location_error,
+            "generating_function_amplitude": abs(consensus)
+            / config.target_order,
+            "island_half_width": 2.0
+            * np.sqrt(
+                (abs(consensus) / config.target_order) / abs(config.twist)
+            ),
+        },
+        "empirical_gates": empirical_gates,
+        "controls": {
+            "null_runs": null_results,
+            "wrong_harmonics": wrong_harmonics,
+            "shuffled_angle_over_truth": shuffled_level,
+            "kick_sweep": {
+                "levels": sweep_levels,
+                "modeled_floor": modeled_floor,
+                "predicted_detection_scale": predicted_scale,
+                "observed_detection_scale": detected_scale,
+                "observed_to_predicted_ratio": roc_ratio,
+            },
+            "exact_2m_gauge_stress": {
+                "ladder": list(gauge_ladder),
+                "phases": [0.0, 0.5 * np.pi],
+                "prediction_envelope": prediction_envelope,
+                "per_scale": stress_per_scale,
+                "smallest_visible_scale": (
+                    min(visible_scales) if visible_scales else None
+                ),
+                "maximum_in_envelope_complex_shift": (
+                    maximum_in_envelope_complex_shift
+                ),
+                "maximum_in_envelope_magnitude_shift": (
+                    maximum_in_envelope_magnitude_shift
+                ),
+            },
+            "variant_stability": variant_panel,
+        },
+        "ledgers": {
+            "structural": {
+                "fixture_map": "exact symplectic kick-drift",
+                "observation_chart": "exact canonical shears plus SL(2)",
+                "learned_charts": "exact symplectic by construction",
+            },
+            "empirical": {
+                "passed_empirical_gates": passed_empirical_gates,
+                "scope": "one noiseless synthetic return-map fixture",
+            },
+            "stability": {
+                "accepted_charts": len(accepted_rows),
+                "shared_bias_stress": "exact 2m gauge ladder",
+            },
+            "certification": {
+                "formal_guarantees": "none",
+                "explicitly_not_claimed": [
+                    "KAM or a-posteriori torus proof",
+                    "interval bounds",
+                    "calibrated probabilities",
+                    "noise robustness",
+                    "measured-system validation",
+                ],
+            },
+        },
+        "claim_boundary": (
+            "On one noiseless synthetic exact-symplectic kicked twist map "
+            "observed through a fixed nontrivial canonical chart, the "
+            f"trajectory-band ensemble returned {status!r} under the frozen "
+            "learned-chart, control, and exact-gauge stress gates."
+        ),
+        "not_supported": [
+            "formal identifiability",
+            "transfer beyond the tested synthetic map",
+            "measured vibration data",
+            "noise, irregular sampling, or partial observation",
+            "physical coefficients at harmonics without an in-band resonance crossing",
+        ],
+        "next_falsifier": (
+            "Repeat only after preserving this result: independent systems, "
+            "noise/sampling sweeps, and a measured return map."
+        ),
+        "runtime_seconds": time.perf_counter() - started,
+        "artifacts": {
+            "manifest": "manifest.json",
+            "report": "report.html",
+            "overview": "overview.png",
+            "s1_data": s1_csv.name,
+            "s2_data": s2_csv.name,
+        },
+    }
+    safe_manifest = _json_safe(manifest)
+    _plot_report(config.output / "overview.png", safe_manifest)
+    _write_report(config.output / "report.html", safe_manifest)
+    safe_manifest["artifacts"].update(
+        {
+            "report_sha256": _sha256(config.output / "report.html"),
+            "overview_sha256": _sha256(config.output / "overview.png"),
+            "s1_data_sha256": _sha256(s1_csv),
+            "s2_data_sha256": _sha256(s2_csv),
+        }
+    )
+    _write_json(config.output / "manifest.json", safe_manifest)
+    return safe_manifest
+
+
+def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
+    if manifest.get("schema_version") != 1:
+        raise ValueError("unsupported resonance-metrology schema")
+    if manifest.get("experiment") != "resonance-metrology":
+        raise ValueError("not a resonance-metrology manifest")
+    serialized = json.dumps(manifest, allow_nan=False)
+    if not serialized:
+        raise ValueError("empty manifest")
+    valid_statuses = {
+        "resolved_supported",
+        "resolved_refuted",
+        "not_resolved_abstained",
+        "invalid_ensemble",
+    }
+    if manifest["status"] not in valid_statuses:
+        raise ValueError("unknown metrology status")
+    if manifest["profile"] != "full" and manifest["status"] in {
+        "resolved_supported",
+        "resolved_refuted",
+    }:
+        raise ValueError("non-full profile emitted a decisive scientific status")
+    if "passed_empirical_gates" not in manifest:
+        raise ValueError("empirical-gate status is missing")
+    artifacts = manifest["artifacts"]
+    root = Path(manifest.get("_artifact_root", "."))
+    for name in ("report", "overview", "s1_data", "s2_data"):
+        digest = artifacts.get(f"{name}_sha256")
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise ValueError(f"{name} artifact digest is missing")
+        target = root / artifacts[name]
+        if target.is_file() and _sha256(target) != digest:
+            raise ValueError(f"{name} artifact digest is stale")
+    accepted = manifest["ensemble"]["accepted"]
+    if len(accepted) != manifest["ensemble"]["accepted_count"]:
+        raise ValueError("accepted-chart count is stale")
+    if any(row["complex_error"] < 0.0 for row in accepted):
+        raise ValueError("chart error cannot be negative")
+    for width in (
+        manifest["oracle"]["island_half_width"],
+        manifest["ensemble_consensus"]["island_half_width"],
+    ):
+        if width < 0.0:
+            raise ValueError("island halfwidth cannot be negative")
+    return [
+        "profile semantics and status are consistent",
+        "accepted-chart ledger is internally consistent",
+        "all report/data artifact hashes are present",
+        "island widths use nonnegative generating amplitudes",
+    ]

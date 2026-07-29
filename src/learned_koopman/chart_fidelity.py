@@ -10,7 +10,7 @@ from learned_koopman.canonical_diagnostics import fit_residual_spectrum
 
 @dataclass(frozen=True)
 class ChartFidelityConfig:
-    """Controlled first-order identifiability experiment."""
+    """Controlled oracle regression for the cohomological mechanism."""
 
     harmonic_order: int = 4
     kick_amplitude: float = 0.01
@@ -181,27 +181,27 @@ def run_chart_fidelity_experiment(
     minimum_protection = min(ratios)
     return {
         "schema_version": 1,
-        "experiment": "controlled_chart_fidelity_separation",
+        "experiment": "oracle_chart_pipeline_regression",
         "config": asdict(resolved),
         "resonant_probe": resonant,
         "off_resonant_probe": off_resonant,
         "comparison": {
             "off_to_resonant_error_ratio_by_nonzero_chart_error": ratios,
             "minimum_off_to_resonant_error_ratio": minimum_protection,
-            "passes_controlled_threefold_protection_gate": minimum_protection >= 3.0,
+            "oracle_pipeline_regression_gate": minimum_protection >= 3.0,
         },
         "claim_boundary": {
             "supported": (
-                "For this known canonical shear and synthetic symplectic map, "
-                "the target residual harmonic is substantially more stable at resonance."
+                "The implementation reproduces the closed-form cancellation for "
+                "this known chart, map, and harmonic convention."
             ),
             "not_supported": (
                 "The experiment does not show that optimizer error in a learned chart "
                 "obeys the same bound or that measured-system residuals are identifiable."
             ),
             "next_falsifier": (
-                "Repeat with learned chart ensembles and adversarial chart errors at a "
-                "fixed held-out map error."
+                "Use the trajectory-sampled learned-chart ensemble and exact-gauge "
+                "stress in resonance-metrology."
             ),
         },
     }

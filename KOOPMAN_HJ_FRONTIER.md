@@ -111,7 +111,7 @@ The checked-in result is an `actual_run` on synthetic data:
 
 Training excludes the reference energy, empirical action, and complete
 held-out trajectories. The action and learned-Hamiltonian checks are evaluated
-on the held-out trajectory IDs in the top-level certificate. The physical
+on the held-out trajectory IDs in the top-level empirical-gate manifest. The physical
 \(dH/dJ=\omega\) audit also reports the denser all-trajectory numerical ruler.
 
 Evidence artifacts:
@@ -122,26 +122,28 @@ Evidence artifacts:
 - `results/koopman-hj/orbit-diagnostics.json`
 - `results/koopman-hj/action-audit/manifest.json`
 - `results/chart-fidelity.json`
+- `results/resonance-metrology/manifest.json`
 
 This evidence supports “the construction works on this problem.” It does not
 support “state of the art,” “novel,” “general,” “robust,” “hardware-ready,” or
 “safe for control.”
 
-## Delegate Inputs
+## Independent review and correction loop
 
-The July 28 design review included a two-round Claude Opus 5 critique after
-Fable 5 was quota-blocked before inference. The critique generated candidate
-experiments and then retracted several of its own first-pass claims when the
-experiments failed. Codex reran the accepted probes locally. Delegate agreement
-is not evidence: promoted claims below are tied to repository behavior,
+The July 28–29 design review used three max-effort Fable 5 exchanges with a
+Codex verification pass after every numerical probe. Several attractive
+claims were withdrawn: the original chart-fidelity headline reduced to a
+closed-form regression identity, an approximate gauge was not symplectic at
+the order being measured, an island-width formula mixed kick and generating
+amplitudes, and a sampling-leakage check was tautological. Delegate agreement
+is not evidence; the surviving claims are tied to repository behavior,
 controlled numerical tests, and primary literature.
 
-The most important surviving correction is that **chart error is the first
-research obstacle**. In the controlled probe, a 5% chart misspecification
-caused roughly 6.8% leading-harmonic error while much larger coordinate noise
-had less effect. The promoted `chart-fidelity` command now isolates the expected
-resonant cohomological cancellation in a known-chart oracle experiment. The
-learned-chart version remains deliberately unresolved.
+The key surviving result is a sharper question: **can a resonant normal-form
+block be recovered from occupied trajectories with an error budget that
+survives independently learned charts and controlled exact-symplectic gauge
+attacks?** `resonance-metrology` implements that test. `chart-fidelity` remains
+as the closed-form oracle pipeline regression, not as empirical evidence.
 
 ## Repo Current-State Map
 
@@ -222,12 +224,14 @@ evolution is linear. It reports efficient prediction without higher-order
 integration and good scaling to time jumps.
 
 **What it owns:** action-angle networks as fast learned simulators for
-integrable systems.
+integrable systems, with a Cartesian encoder composed from G-SympNet
+symplectic layers.
 
-**Opening here:** exact symplecticity, area-based action gauge fixing,
-\(h(I)\)-derived frequency rather than an unconstrained frequency law,
-fiberwise Koopman residuals, charted topology, and mechanics-facing
-certification.
+**Opening here:** canonical area action \((Q^2+P^2)/2\) rather than the
+paper's radial readout, calibration against \((2\pi)^{-1}\oint p\,dq\),
+\(h(I)\)-generated evolution, fiberwise residual gates, and an explicit
+learned-chart identifiability and error-budget program. Exact symplecticity of
+the encoder is shared prior machinery, not a differentiating claim.
 
 ### 3. Neural canonical transformations
 
