@@ -8,8 +8,8 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "e2dbe24ab42eef2694c0df80048475d96b79e2ec",
-    "git_worktree_clean": false
+    "git_commit": "8e47a7b3b2922445fd67d423a287701e2bfbf87a",
+    "git_worktree_clean": true
   },
   "config": {
     "profile": "quick",
