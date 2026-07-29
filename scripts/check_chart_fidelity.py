@@ -24,7 +24,7 @@ def main() -> None:
     assert committed["experiment"] == "oracle_chart_pipeline_regression"
     assert committed["comparison"]["oracle_pipeline_regression_gate"]
     assert committed["claim_boundary"]["next_falsifier"].startswith(
-        "Repeat with learned chart ensembles"
+        "Use the trajectory-sampled learned-chart ensemble"
     )
 
     for probe in ("resonant_probe", "off_resonant_probe"):

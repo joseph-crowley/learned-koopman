@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "experiment": "controlled_chart_fidelity_separation",
+  "experiment": "oracle_chart_pipeline_regression",
   "config": {
     "harmonic_order": 4,
     "kick_amplitude": 0.01,
@@ -127,11 +127,11 @@
       307755014.14141047
     ],
     "minimum_off_to_resonant_error_ratio": 307755014.14141047,
-    "passes_controlled_threefold_protection_gate": true
+    "oracle_pipeline_regression_gate": true
   },
   "claim_boundary": {
-    "supported": "For this known canonical shear and synthetic symplectic map, the target residual harmonic is substantially more stable at resonance.",
+    "supported": "The implementation reproduces the closed-form cancellation for this known chart, map, and harmonic convention.",
     "not_supported": "The experiment does not show that optimizer error in a learned chart obeys the same bound or that measured-system residuals are identifiable.",
-    "next_falsifier": "Repeat with learned chart ensembles and adversarial chart errors at a fixed held-out map error."
+    "next_falsifier": "Use the trajectory-sampled learned-chart ensemble and exact-gauge stress in resonance-metrology."
   }
 }
