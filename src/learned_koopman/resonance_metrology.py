@@ -1184,9 +1184,20 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
     )
     axes[1, 0].set(
         title="Error coverage by the empirical floor model",
-        xlabel="accepted chart",
+        xlabel="estimable chart",
         ylabel="fraction of planted kick",
     )
+    for position, row in zip(positions, charts, strict=True):
+        if row["floor_total"] is None:
+            axes[1, 0].annotate(
+                "floor unavailable",
+                (position + 0.18, 0.01),
+                rotation=90,
+                ha="center",
+                va="bottom",
+                color="#4057c9",
+                fontsize=8,
+            )
     axes[1, 0].set_xticks(positions, short_names, rotation=25, ha="right")
     axes[1, 0].legend()
 
