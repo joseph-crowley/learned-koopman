@@ -94,20 +94,20 @@ only as a post-fit scientific check.
 
 A conserved quantity is a zero-generator Koopman eigenfunction:
 
-\[
+$$
 U^t I=I,
 \qquad
 \mathcal L I=0.
-\]
+$$
 
-The neural coordinate \(I_\theta(x)\) is trained from states and trajectory
+The neural coordinate $I_\theta(x)$ is trained from states and trajectory
 membership. It is encouraged to stay constant along each run, vary across
 runs, and remain smooth between neighboring trajectory sets. No energy,
 amplitude, phase, or frequency label enters this fit.
 
 The workbench then learns a transparent polynomial family:
 
-\[
+$$
 \psi(x_{k+1})
 \approx
 \psi(x_k)K(\hat c),
@@ -115,10 +115,10 @@ The workbench then learns a transparent polynomial family:
 K(\hat c)=K_0+\hat cK_1+\hat c^2K_2,
 \qquad
 c=I_\theta(x_0).
-\]
+$$
 
-Here \(\psi\) is an explicit constant, linear, or quadratic observable
-dictionary, and \(\hat c\) is the learned coordinate normalized on the training
+Here $\psi$ is an explicit constant, linear, or quadratic observable
+dictionary, and $\hat c$ is the learned coordinate normalized on the training
 set. The invariant selects the local operator, and its value is computed from
 the initial state only. This fibered construction can represent an
 amplitude-dependent frequency law without forcing every trajectory through one
@@ -159,7 +159,7 @@ The workbench treats a failed experiment as useful output:
 
 - train and test are separated by complete trajectory ID;
 - training normalization is fit on training trajectories only;
-- held-out forecasts use \(I_\theta(x_0)\), never a future-state average;
+- held-out forecasts use $I_\theta(x_0)$, never a future-state average;
 - promotion requires every held-out initial state to pass invariant-range and
   sampled-state-distance gates;
 - the model bundle carries its certificate and refuses rollout after a
@@ -173,16 +173,16 @@ The workbench treats a failed experiment as useful output:
 The repository also contains four compact experiments that stress different
 parts of the larger idea:
 
-- Label-free invariant — held-out energy \(R^2=0.979\), rank \(=1.000\), and
-  drift \(=0.0053\) over five seeds. Tests whether grouped trajectories reveal
+- Label-free invariant — held-out energy $R^2=0.979$, rank $=1.000$, and
+  drift $=0.0053$ over five seeds. Tests whether grouped trajectories reveal
   a conserved coordinate.
-- Two-chart separatrix atlas — valid time \(3.98\pm0.06\), versus
-  \(0.36\pm0.12\) for one chart. Shows why a coordinate singularity needs a
+- Two-chart separatrix atlas — valid time $3.98\pm0.06$, versus
+  $0.36\pm0.12$ for one chart. Shows why a coordinate singularity needs a
   second local law.
 - Stochastic simplex transfer — positive row-stochastic structure passes,
   while stronger baselines falsify the learned propagation. Preserves a
   mathematically valid negative result.
-- Controlled crossing — actuator gain \(0.35\rightarrow1.000\), with 9/12
+- Controlled crossing — actuator gain $0.35\rightarrow1.000$, with 9/12
   real crossings recovered. A clean grey-box system-identification exercise.
 
 Run the CPU-sized integrated demonstration:
