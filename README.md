@@ -113,7 +113,15 @@ only when the band crosses the resonance and the ensemble, null, shuffled,
 wrong-harmonic, estimator-variant, detection-floor, and exact-gauge controls
 permit it. Otherwise it says why the quantity is unresolved. See
 [`RESIDUAL_METROLOGY.md`](RESIDUAL_METROLOGY.md) for the mathematics, API, and
-predeclared claim boundary.
+predeclared claim boundary. Rotation-law initialization uses only circular
+phase increments from the training trajectories; the manifest records that
+optimization seed separately from the held-out result.
+
+For an existing measured return-map CSV and two or more independently trained
+canonical models, `learned-koopman resonance-estimate` runs the same
+trajectory-band estimator without oracle coordinates. It refuses failed model
+fits and labels ensemble spread as a lower bound on chart ambiguity rather
+than calibrated physical error.
 
 ## What the checked-in experiment establishes
 

@@ -5,10 +5,20 @@ from dataclasses import replace
 
 import numpy as np
 import pytest
+import torch
 
+from learned_koopman.canonical_model import CanonicalKoopmanNetwork
+from learned_koopman.map_fixtures import (
+    KickHarmonic,
+    ObservationChart,
+    TwistKickMap,
+)
 from learned_koopman.resonance_metrology import (
     MetrologyConfig,
     _analyze_coordinate_arrays,
+    _circle_probe,
+    _observed_frequency_initialization,
+    _shuffled_angle_control,
     run_resonance_metrology,
     validate_resonance_manifest,
     weighted_birkhoff_mean,
@@ -64,6 +74,79 @@ def test_weighted_birkhoff_and_band_estimator_recover_known_map() -> None:
         rel=1e-9,
         abs=1e-11,
     )
+
+
+def test_observed_frequency_initializer_uses_no_oracle_and_escapes_unit_basin() -> None:
+    actions, angles = _twist_kick_trajectories()
+    radius = np.sqrt(2.0 * actions)
+    states = np.stack(
+        (radius * np.cos(angles), -radius * np.sin(angles)),
+        axis=-1,
+    )
+
+    coefficients, diagnostics = _observed_frequency_initialization(
+        states,
+        np.arange(len(states)),
+        degree=3,
+    )
+
+    assert diagnostics["uses_oracle_coordinates"] is False
+    assert diagnostics["minimum_circular_concentration"] > 0.99
+    assert diagnostics["orbit_fit_rmse_radians_per_step"] < 0.002
+    assert coefficients[0] == pytest.approx(1.6, abs=0.01)
+    assert coefficients[1] == pytest.approx(0.3, abs=0.01)
+    assert abs(coefficients[0] - 1.0) > 0.5
+
+
+def test_circle_probe_and_within_bin_shuffle_are_independent_controls() -> None:
+    actions, angles = _twist_kick_trajectories()
+
+    network = CanonicalKoopmanNetwork(dt=1.0)
+    network.hamiltonian.raw_base_frequency.data.fill_(
+        float(np.log(np.expm1(1.6 - 1e-4)))
+    )
+    network.hamiltonian.higher_frequency_coefficients.data.copy_(
+        torch.tensor((0.3, 0.0))
+    )
+    for parameter in network.canonical_map.parameters():
+        parameter.data.zero_()
+    system = TwistKickMap(
+        1.6,
+        0.3,
+        (KickHarmonic(3, 0.0075, 0.9),),
+    )
+    circle = _circle_probe(
+        network,
+        system,
+        ObservationChart(
+            action_shears=(),
+            angle_offset=0.0,
+            angle_twist=0.0,
+            linear_q_q=1.0,
+            linear_q_p=0.0,
+            linear_p_q=0.0,
+        ),
+        action=system.resonance_action(3),
+        order=3,
+        max_order=8,
+    )
+    shuffled = _shuffled_angle_control(
+        actions,
+        angles,
+        order=3,
+        band=(0.7, 2.6),
+        bins=14,
+        max_order=8,
+        rng=np.random.default_rng(20260728),
+    )
+
+    assert circle["coefficient"] == pytest.approx(
+        0.0075 * np.exp(0.9j),
+        rel=2e-5,
+    )
+    assert circle["uses_oracle_for_phase_alignment"] is True
+    assert shuffled["permutation"] == "current angles within fixed action bins"
+    assert shuffled["median_bin_coefficient_magnitude"] < 0.2 * 0.0075
 
 
 def test_ci_profile_is_real_but_cannot_emit_a_decisive_status(tmp_path) -> None:

@@ -34,6 +34,8 @@ from learned_koopman.invariant_experiment import run_invariant_experiment
 from learned_koopman.research_lab import run_research_lab
 from learned_koopman.resonance_metrology import (
     MetrologyConfig,
+    _json_safe,
+    estimate_resonant_block,
     run_resonance_metrology,
 )
 from learned_koopman.trajectory import load_trajectory_csv, write_duffing_example
@@ -279,6 +281,40 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help="Override training epochs for implementation smokes only.",
     )
+    resonance_estimate = subparsers.add_parser(
+        "resonance-estimate",
+        help="Estimate a harmonic from measured trajectories and saved charts.",
+    )
+    resonance_estimate.add_argument("input", type=Path)
+    resonance_estimate.add_argument(
+        "--model",
+        action="append",
+        type=Path,
+        required=True,
+        help="Saved canonical chart; repeat for an ensemble.",
+    )
+    resonance_estimate.add_argument("--position-column", required=True)
+    resonance_estimate.add_argument("--momentum-column", required=True)
+    resonance_estimate.add_argument(
+        "--trajectory-column",
+        default="trajectory_id",
+    )
+    resonance_estimate.add_argument("--time-column", default="time")
+    resonance_estimate.add_argument("--order", type=int, required=True)
+    resonance_estimate.add_argument(
+        "--band",
+        type=float,
+        nargs=2,
+        metavar=("ACTION_MIN", "ACTION_MAX"),
+        required=True,
+    )
+    resonance_estimate.add_argument("--bins", type=int, default=14)
+    resonance_estimate.add_argument("--max-order", type=int, default=8)
+    resonance_estimate.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/resonance-estimate.json"),
+    )
     predict = subparsers.add_parser(
         "predict",
         help="Roll out a saved mechanics-workbench model.",
@@ -514,6 +550,86 @@ def main() -> None:
         )
         print(f"Report: {args.output / 'report.html'}")
         print(f"Manifest: {args.output / 'manifest.json'}")
+        return
+    if args.command == "resonance-estimate":
+        if args.order < 1:
+            parser.error("--order must be positive")
+        if args.max_order < args.order:
+            parser.error("--max-order must be at least --order")
+        if args.bins < 6:
+            parser.error("--bins must be at least 6")
+        if args.band[0] >= args.band[1]:
+            parser.error("--band requires ACTION_MIN < ACTION_MAX")
+        if len(args.model) < 2:
+            parser.error("repeat --model with at least two independent charts")
+        if len({path.resolve() for path in args.model}) != len(args.model):
+            parser.error("--model paths must be distinct")
+        dataset = load_trajectory_csv(
+            args.input,
+            state_columns=(args.position_column, args.momentum_column),
+            trajectory_column=args.trajectory_column,
+            time_column=args.time_column,
+        )
+        models = [load_canonical_model(path) for path in args.model]
+        requested_columns = (args.position_column, args.momentum_column)
+        mismatched_columns = [
+            str(path)
+            for path, model in zip(args.model, models, strict=True)
+            if tuple(model.state_columns) != requested_columns
+        ]
+        if mismatched_columns:
+            parser.error(
+                "model state-column contract does not match the input: "
+                + ", ".join(mismatched_columns)
+            )
+        unhealthy = [
+            str(path)
+            for path, model in zip(args.model, models, strict=True)
+            if model.certificate_status
+            not in {
+                "supported_on_held_out_trajectories",
+            }
+        ]
+        if unhealthy:
+            parser.error(
+                "refusing charts that failed their own held-out fit gates: "
+                + ", ".join(unhealthy)
+            )
+        estimate = estimate_resonant_block(
+            models,
+            dataset.states,
+            order=args.order,
+            band=tuple(args.band),
+            bins=args.bins,
+            max_order=args.max_order,
+        )
+        result = {
+            "schema_version": 1,
+            "experiment": "resonance-estimate",
+            "status": (
+                "value_with_pairwise_chart_spread"
+                if estimate["successful_chart_count"] >= 2
+                else "not_resolved_abstained"
+            ),
+            "input": str(args.input),
+            "input_sha256": dataset.source_sha256,
+            "models": [str(path) for path in args.model],
+            "model_fit_statuses": [
+                model.certificate_status for model in models
+            ],
+            "state_columns": [args.position_column, args.momentum_column],
+            "order": args.order,
+            "band": list(args.band),
+            "estimate": estimate,
+            "claim_boundary": (
+                "No oracle chart was supplied. Ensemble disagreement is a "
+                "pairwise lower bound on chart ambiguity, not calibrated "
+                "physical accuracy or a formal certificate."
+            ),
+        }
+        _write_json(args.output, _json_safe(result))
+        print(f"Resonance estimate: {result['status']}")
+        print(f"Result: {args.output}")
         return
     if args.command == "predict":
         if args.steps < 1:

@@ -666,6 +666,71 @@ def _model_label(seed: int, architecture: ArchitectureSpec) -> str:
     return f"seed-{seed}-{architecture.label}"
 
 
+def _observed_frequency_initialization(
+    states: np.ndarray,
+    trajectory_indices: np.ndarray,
+    *,
+    degree: int,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Seed the rotation law from trajectory-level raw polar increments.
+
+    This uses only observed states from the training split. Averaging the unit
+    phase increments around each orbit suppresses periodic chart distortion
+    while retaining the winding rate. The initializer is deliberately not an
+    estimator of the final canonical action or residual coefficient.
+    """
+
+    selected = np.asarray(states, dtype=np.float64)[trajectory_indices]
+    if selected.ndim != 3 or selected.shape[-1] != 2:
+        raise ValueError("states must have shape (trajectory, time, 2)")
+    if degree < 1:
+        raise ValueError("frequency degree must be positive")
+    q, p = selected[..., 0], selected[..., 1]
+    raw_action = 0.5 * (q * q + p * p)
+    raw_angle = np.arctan2(-p, q)
+    increments = wrap_angle(np.diff(raw_angle, axis=1))
+    phasors = np.mean(np.exp(1j * increments), axis=1)
+    concentration = np.abs(phasors)
+    frequencies = np.angle(phasors)
+    mean_action = raw_action[:, :-1].mean(axis=1)
+    order = np.argsort(mean_action)
+    unwrapped_frequency = np.unwrap(frequencies[order])
+    fit_degree = min(degree - 1, len(mean_action) - 1)
+    descending = np.polyfit(
+        mean_action[order],
+        unwrapped_frequency,
+        fit_degree,
+    )
+    prediction = np.polyval(descending, mean_action[order])
+    coefficients = np.zeros(degree, dtype=np.float64)
+    coefficients[: fit_degree + 1] = descending[::-1]
+    sampled_prediction = np.polynomial.polynomial.polyval(
+        mean_action,
+        coefficients,
+    )
+    if coefficients[0] <= 1e-4 or np.any(sampled_prediction <= 0.0):
+        raise ValueError(
+            "observed winding is nonpositive or crosses the angular branch; "
+            "this profile requires positive sub-Nyquist phase advance"
+        )
+    return coefficients, {
+        "method": "training_orbit_circular_mean_raw_polar_increment",
+        "uses_oracle_coordinates": False,
+        "trajectory_count": int(len(mean_action)),
+        "polynomial_degree": int(fit_degree),
+        "frequency_coefficients_ascending": coefficients.tolist(),
+        "orbit_fit_rmse_radians_per_step": float(
+            np.sqrt(np.mean(np.square(prediction - unwrapped_frequency)))
+        ),
+        "minimum_circular_concentration": float(np.min(concentration)),
+        "maximum_circular_concentration": float(np.max(concentration)),
+        "claim_boundary": (
+            "Optimization initializer only; not a canonical action, frequency "
+            "certificate, or residual estimate."
+        ),
+    }
+
+
 def _train_chart(
     dataset: TrajectoryDataset,
     *,
@@ -693,6 +758,18 @@ def _train_chart(
         hamiltonian_degree=3,
         initial_center=tuple(float(value) for value in training.mean(axis=0)),
     )
+    initial_frequency, initialization = _observed_frequency_initialization(
+        dataset.states,
+        train_indices,
+        degree=network.hamiltonian.degree,
+    )
+    base_frequency = float(initial_frequency[0])
+    inverse_softplus = float(np.log(np.expm1(base_frequency - 1e-4)))
+    with torch.no_grad():
+        network.hamiltonian.raw_base_frequency.fill_(inverse_softplus)
+        network.hamiltonian.higher_frequency_coefficients.copy_(
+            torch.tensor(initial_frequency[1:], dtype=torch.float32)
+        )
     started = time.perf_counter()
     history = _fit_network(network, dataset, train_indices, config)
     network.eval()
@@ -718,12 +795,21 @@ def _train_chart(
             .numpy()
         )
     padding = max(float(np.std(training_action)) * 0.15, 1e-6)
+    fit_supported = (
+        held_out_metrics["normalized_one_step_rmse"] < 0.25
+        and held_out_metrics["normalized_one_step_rmse"]
+        < held_out_metrics["persistence_normalized_rollout_rmse"]
+    )
     model = CanonicalKoopmanModel(
         network=network,
         state_columns=("position", "momentum"),
         action_min=max(0.0, float(np.min(training_action)) - padding),
         action_max=float(np.max(training_action)) + padding,
-        certificate_status="passed_current_dataset_gates",
+        certificate_status=(
+            "supported_on_held_out_trajectories"
+            if fit_supported
+            else "fit_not_supported"
+        ),
     )
     save_canonical_model(model_path, model)
     return model, {
@@ -732,6 +818,8 @@ def _train_chart(
         "training": training_metrics,
         "held_out": held_out_metrics,
         "training_seconds": time.perf_counter() - started,
+        "frequency_initialization": initialization,
+        "model_fit_status": model.certificate_status,
         "history_final": history[-1],
         "model": str(model_path.name),
         "model_sha256": _sha256(model_path),
@@ -869,6 +957,120 @@ def _static_error_harmonics(
     }
 
 
+def _circle_probe(
+    network: CanonicalKoopmanNetwork,
+    system: TwistKickMap,
+    observation: ObservationChart,
+    *,
+    action: float,
+    order: int,
+    max_order: int,
+    samples: int = 4096,
+) -> dict[str, Any]:
+    """Measure one chart on a uniformly sampled oracle circle.
+
+    This is synthetic evaluation evidence only. The chart receives observed
+    states; oracle angle is used afterward solely to align the complex phase.
+    """
+
+    reference_angle = np.linspace(-np.pi, np.pi, samples, endpoint=False)
+    reference_action = np.full(samples, action, dtype=np.float64)
+    next_action, next_angle = system.step(reference_action, reference_angle)
+    current_states = observation.observe(reference_action, reference_angle)
+    next_states = observation.observe(next_action, next_angle)
+    with torch.no_grad():
+        current = torch.tensor(current_states, dtype=torch.float32)
+        following = torch.tensor(next_states, dtype=torch.float32)
+        learned_action = network.action(current).numpy().astype(np.float64)
+        learned_next_action = (
+            network.action(following).numpy().astype(np.float64)
+        )
+        learned_angle = network.angle(current).numpy().astype(np.float64)
+    estimate = _fit_complex_spectrum(
+        learned_angle,
+        learned_next_action - learned_action,
+        order=order,
+        max_order=max_order,
+    )
+    alignment = float(
+        np.angle(np.mean(np.exp(1j * (learned_angle - reference_angle))))
+    )
+    coefficient = _rotate_coefficient(
+        estimate.coefficient,
+        alignment,
+        order,
+    )
+    return {
+        "coefficient": coefficient,
+        "alignment_offset": alignment,
+        "standard_error": estimate.standard_error,
+        "normalized_remainder": estimate.normalized_remainder,
+        "condition_number": estimate.condition_number,
+        "sample_count": estimate.sample_count,
+        "uses_oracle_for_phase_alignment": True,
+        "claim_boundary": (
+            "Uniform-circle synthetic diagnostic; not used to fit or accept "
+            "the chart and unavailable on unreferenced measured data."
+        ),
+    }
+
+
+def _shuffled_angle_control(
+    action: np.ndarray,
+    angle: np.ndarray,
+    *,
+    order: int,
+    band: tuple[float, float],
+    bins: int,
+    max_order: int,
+    rng: np.random.Generator,
+) -> dict[str, Any]:
+    """Permute current angles within action bins while retaining WBA geometry."""
+
+    profile = _frequency_profile(action, angle)
+    if profile["status"] != "available":
+        return {"verdict": profile["status"], "frequency_profile": profile}
+    shuffled = np.asarray(angle, dtype=np.float64).copy()
+    current_action = np.asarray(action, dtype=np.float64)[:, :-1].reshape(-1)
+    current_angle = shuffled[:, :-1].reshape(-1).copy()
+    edges = np.linspace(band[0], band[1], bins + 1)
+    for lower, upper in zip(edges[:-1], edges[1:], strict=True):
+        indices = np.flatnonzero(
+            (current_action >= lower) & (current_action < upper)
+        )
+        if len(indices):
+            current_angle[indices] = current_angle[rng.permutation(indices)]
+    shuffled[:, :-1] = current_angle.reshape(shuffled[:, :-1].shape)
+    rows = _per_bin_spectra(
+        action,
+        shuffled,
+        order=order,
+        band=band,
+        bins=bins,
+        max_order=max_order,
+    )
+    estimate = _band_regression(
+        rows,
+        profile["polynomial_coefficients_descending"],
+        order=order,
+        band=band,
+    )
+    magnitudes = [abs(row["coefficient"]) for row in rows]
+    return {
+        "verdict": estimate["verdict"],
+        "frequency_profile": profile,
+        "bins": rows,
+        "estimate": estimate,
+        "permutation": "current angles within fixed action bins",
+        "median_bin_coefficient_magnitude": (
+            float(np.median(magnitudes)) if magnitudes else None
+        ),
+        "maximum_bin_coefficient_magnitude": (
+            float(np.max(magnitudes)) if magnitudes else None
+        ),
+    }
+
+
 def _complex_payload(value: complex | None) -> list[float] | None:
     return [float(value.real), float(value.imag)] if value is not None else None
 
@@ -978,6 +1180,7 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
             (
                 row["complex_shift"]
                 for row in stress["per_scale"][str(scale)]
+                if row.get("comparable_block", False)
             ),
             default=0.0,
         )
@@ -1007,6 +1210,54 @@ def _plot_report(path: Path, manifest: dict[str, Any]) -> None:
 def _write_report(path: Path, manifest: dict[str, Any]) -> None:
     accepted = manifest["ensemble"]["accepted"]
     gates = manifest["empirical_gates"]
+    initializers = [
+        row["frequency_initialization"]
+        for row in manifest["ensemble"]["training"]["s1"]
+    ]
+    initialization_rmse = float(
+        np.median(
+            [
+                row["orbit_fit_rmse_radians_per_step"]
+                for row in initializers
+            ]
+        )
+    )
+    status_explanations = {
+        "resolved_supported": (
+            "The planted block survived every frozen recovery, control, "
+            "stability, and exact-gauge gate on this synthetic fixture."
+        ),
+        "resolved_refuted": (
+            "A frozen falsifier failed by the predeclared decisive margin. "
+            "The claimed residual precision is refuted on this fixture."
+        ),
+        "not_resolved_abstained": (
+            "The instrument withheld the coefficient because a support, "
+            "control, truncation, or gauge condition was unresolved."
+        ),
+        "invalid_ensemble": (
+            "Too few learned charts passed the prediction precondition, so "
+            "no residual coefficient was interpreted."
+        ),
+    }
+    consensus = manifest["ensemble_consensus"]
+    oracle = manifest["oracle"]
+    stress = manifest["controls"]["exact_2m_gauge_stress"]
+    visible_scale = stress["smallest_visible_scale"]
+    visible_text = (
+        f"{visible_scale:.3g}" if visible_scale is not None else "not observed"
+    )
+    variant_rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(name)}</td>"
+        f"<td>{row['chart_count']}</td>"
+        f"<td>{html.escape(str(row['consensus']))}</td>"
+        f"<td>{html.escape(str(row['relative_deviation_from_primary']))}</td>"
+        "</tr>"
+        for name, row in manifest["controls"]["variant_stability"][
+            "variants"
+        ].items()
+    )
     gate_rows = "\n".join(
         f"<li class=\"{'pass' if row['passed'] else 'fail'}\">"
         f"{'PASS' if row['passed'] else 'FAIL'} — "
@@ -1045,13 +1296,46 @@ th:first-child,td:first-child {{text-align:left}}
 <h1>Can the resonance survive the chart?</h1>
 <p class="status">{html.escape(manifest['status'])}</p>
 <p>{html.escape(manifest['claim_boundary'])}</p>
+<p><strong>{html.escape(status_explanations[manifest['status']])}</strong></p>
+<p>The rotation law was initialized from circular-mean raw polar increments
+on the training trajectories only (median orbit-fit RMSE
+{initialization_rmse:.3g} rad/step). That seed uses no oracle coordinates or
+planted map parameters and is recorded separately from the learned result.</p>
 <div class="card"><img src="overview.png"
 alt="Resonance-metrology diagnostics"></div>
+<div class="card"><h2>Five-layer output</h2>
+<table><tbody>
+<tr><th>prediction-accepted charts</th>
+<td>{manifest['ensemble']['accepted_count']} /
+{len(manifest['ensemble']['training']['s1'])}</td></tr>
+<tr><th>charts with an estimable block</th>
+<td>{manifest['ensemble']['estimable_count']}</td></tr>
+<tr><th>action-kick coefficient (sine, cosine)</th>
+<td>{html.escape(str(consensus['coefficient']))}</td></tr>
+<tr><th>generating amplitude</th>
+<td>{consensus['generating_function_amplitude']:.6g}</td></tr>
+<tr><th>leading island halfwidth</th>
+<td>{consensus['island_half_width']:.6g}</td></tr>
+<tr><th>synthetic oracle generating amplitude</th>
+<td>{oracle['generating_function_amplitude']:.6g}</td></tr>
+</tbody></table></div>
 <div class="card"><h2>Predeclared gates</h2><ul>{gate_rows}</ul></div>
 <div class="card"><h2>Accepted learned charts</h2><table><thead><tr>
 <th>chart</th><th>one-step RMSE</th><th>complex error</th>
 <th>magnitude error</th><th>floor</th><th>covered</th></tr></thead>
 <tbody>{chart_rows}</tbody></table></div>
+<div class="card"><h2>Identifiability margin</h2>
+<p>Smallest exact-gauge rung leaving the prediction envelope:
+<strong>{visible_text}</strong>. Maximum in-envelope complex shift:
+<strong>{stress['maximum_in_envelope_complex_shift']}</strong>; magnitude
+shift: <strong>{stress['maximum_in_envelope_magnitude_shift']}</strong>.</p>
+<p>A non-comparable gauge fit forces abstention; only a measured comparable
+shift beyond twice the frozen tolerance can produce a gauge refutation.</p>
+</div>
+<div class="card"><h2>Estimator variants</h2><table><thead><tr>
+<th>variant</th><th>charts</th><th>consensus</th>
+<th>relative deviation</th></tr></thead><tbody>{variant_rows}</tbody></table>
+</div>
 <h2>What the number means</h2>
 <p>The primary estimator fits the complex residual harmonic across an action
 band that crosses the target resonance. It separates a smooth physical block
@@ -1295,6 +1579,7 @@ def run_resonance_metrology(
         for row in training_rows["s1"]
     )
     acceptance_limit = 1.5 * best_error
+    absolute_acceptance_limit = 0.25
     accepted_labels = []
     for row in training_rows["s1"]:
         held_out = row["held_out"]
@@ -1302,7 +1587,8 @@ def run_resonance_metrology(
             held_out["normalized_one_step_rmse"] <= acceptance_limit
         )
         absolute_quality = (
-            held_out["normalized_one_step_rmse"] < 0.25
+            held_out["normalized_one_step_rmse"]
+            < absolute_acceptance_limit
             and held_out["normalized_one_step_rmse"]
             < held_out["persistence_normalized_rollout_rmse"]
         )
@@ -1316,6 +1602,12 @@ def run_resonance_metrology(
             "held_out_one_step_rmse": row["held_out"][
                 "normalized_one_step_rmse"
             ],
+            "relative_limit": acceptance_limit,
+            "absolute_limit": absolute_acceptance_limit,
+            "beats_persistence": (
+                row["held_out"]["normalized_one_step_rmse"]
+                < row["held_out"]["persistence_normalized_rollout_rmse"]
+            ),
         }
         for row in training_rows["s1"]
         if row["label"] not in accepted_labels
@@ -1427,6 +1719,16 @@ def run_resonance_metrology(
             .numpy()
             .astype(np.float64)[::-1]
         )
+        circle_probe = _circle_probe(
+            model.network,
+            system,
+            observation,
+            action=system.resonance_action(config.target_order),
+            order=config.target_order,
+            max_order=config.max_order,
+        )
+        circle_coefficient = circle_probe["coefficient"]
+        circle_error = abs(circle_coefficient - truth) / abs(truth)
         accepted_rows.append(
             {
                 "label": label,
@@ -1439,6 +1741,11 @@ def run_resonance_metrology(
                 / abs(truth),
                 "location_error_radians": abs(np.angle(coefficient / truth))
                 / config.target_order,
+                "circle_probe": {
+                    **circle_probe,
+                    "coefficient": _complex_payload(circle_coefficient),
+                    "complex_error": circle_error,
+                },
                 "absolute_error": absolute_error,
                 "floor_additive": floor_additive,
                 "floor_second_order": floor_second_order,
@@ -1470,6 +1777,28 @@ def run_resonance_metrology(
         if accepted_rows
         else 0.0
     )
+    modeled_floor = (
+        float(np.median([row["floor_total"] for row in accepted_rows]))
+        if accepted_rows
+        else config.kick_amplitude
+    )
+    circle_errors = [
+        row["circle_probe"]["complex_error"] for row in accepted_rows
+    ]
+    circle_median_error = (
+        float(np.median(circle_errors)) if circle_errors else 1e9
+    )
+    trajectory_to_circle_ratio = (
+        consensus_complex_error / max(circle_median_error, 1e-12)
+    )
+    trajectory_vs_circle_passed = (
+        bool(circle_errors)
+        and (
+            consensus_complex_error <= 0.20
+            or trajectory_to_circle_ratio <= 2.5
+        )
+    )
+    prototype_circle_transfer_passed = circle_median_error <= 0.02
 
     wrong_harmonics = {}
     for wrong_order in (2, 4, 6, 8):
@@ -1483,6 +1812,17 @@ def run_resonance_metrology(
             reference_actions=held_out_actions,
             reference_angles=held_out_angles,
         )
+    off_band = (config.action_band[0], 1.35)
+    off_band_control = estimate_resonant_block(
+        accepted_models,
+        held_out_states,
+        order=config.target_order,
+        band=off_band,
+        bins=config.bins,
+        max_order=config.max_order,
+        reference_actions=held_out_actions,
+        reference_angles=held_out_angles,
+    )
 
     shuffled_results = []
     shuffle_rng = np.random.default_rng(20260728)
@@ -1491,26 +1831,25 @@ def run_resonance_metrology(
             tensor = torch.tensor(held_out_states, dtype=torch.float32)
             action = model.network.action(tensor).numpy().astype(np.float64)
             angle = model.network.angle(tensor).numpy().astype(np.float64)
-        shuffled = angle.copy().reshape(-1)
-        shuffled = shuffled[shuffle_rng.permutation(len(shuffled))].reshape(
-            angle.shape
-        )
         shuffled_results.append(
-            _analyze_coordinate_arrays(
+            _shuffled_angle_control(
                 action,
-                shuffled,
+                angle,
                 order=config.target_order,
                 band=config.action_band,
                 bins=config.bins,
                 max_order=config.max_order,
-                reference_angle=held_out_angles,
+                rng=shuffle_rng,
             )
         )
 
     state_scale = s1_bundle.states[train_indices].reshape(-1, 2).std(axis=0)
     gauge_ladder = (0.01, 0.02, 0.04, 0.10)
     stress_per_scale: dict[str, list[dict[str, Any]]] = {}
-    prediction_envelope = acceptance_limit
+    prediction_envelope = min(
+        acceptance_limit,
+        absolute_acceptance_limit,
+    )
     for scale in gauge_ladder:
         rows = []
         for phase in (0.0, 0.5 * np.pi):
@@ -1539,11 +1878,14 @@ def run_resonance_metrology(
                     reference_angle=held_out_angles,
                 )
                 base = primary_by_label[label]["estimate"]
+                comparable = (
+                    block["verdict"] == "value"
+                    and base["verdict"] == "value"
+                )
                 shift = (
                     abs(block["coefficient"] - base["coefficient"])
                     / max(abs(base["coefficient"]), 1e-12)
-                    if block["verdict"] == "value"
-                    and base["verdict"] == "value"
+                    if comparable
                     else 1e9
                 )
                 magnitude_shift = (
@@ -1552,8 +1894,7 @@ def run_resonance_metrology(
                         - abs(base["coefficient"])
                     )
                     / max(abs(base["coefficient"]), 1e-12)
-                    if block["verdict"] == "value"
-                    and base["verdict"] == "value"
+                    if comparable
                     else 1e9
                 )
                 rows.append(
@@ -1565,6 +1906,7 @@ def run_resonance_metrology(
                             prediction_error <= prediction_envelope
                         ),
                         "block_verdict": block["verdict"],
+                        "comparable_block": comparable,
                         "complex_shift": shift,
                         "magnitude_shift": magnitude_shift,
                     }
@@ -1596,6 +1938,16 @@ def run_resonance_metrology(
         maximum_in_envelope_complex_shift <= 0.20
         and maximum_in_envelope_magnitude_shift <= 0.15
     )
+    gauge_stress_refuted = (
+        any(
+            row["comparable_block"]
+            and (
+                row["complex_shift"] > 0.40
+                or row["magnitude_shift"] > 0.30
+            )
+            for row in in_envelope_rows
+        )
+    )
     variant_panel = (
         _variant_panel(
             accepted_rows,
@@ -1611,14 +1963,14 @@ def run_resonance_metrology(
         }
     )
 
-    shuffled_coefficients = [
-        row["estimate"]["coefficient"]
+    shuffled_magnitudes = [
+        row["median_bin_coefficient_magnitude"]
         for row in shuffled_results
-        if row["verdict"] == "value"
+        if row["median_bin_coefficient_magnitude"] is not None
     ]
     shuffled_level = (
-        abs(_consensus(shuffled_coefficients)) / abs(truth)
-        if shuffled_coefficients
+        float(np.median(shuffled_magnitudes)) / abs(truth)
+        if shuffled_magnitudes
         else 0.0
     )
     wrong_traps_pass = True
@@ -1636,14 +1988,39 @@ def run_resonance_metrology(
                 if row["verdict"] == "value"
             ]
             wrong_traps_pass &= not values or (
-                abs(_consensus(values)) <= 0.2 * abs(truth)
+                abs(_consensus(values)) <= 2.0 * modeled_floor
             )
-    false_positive_passed = wrong_traps_pass and shuffled_level <= 0.2
-
-    modeled_floor = (
-        float(np.median([row["floor_total"] for row in accepted_rows]))
-        if accepted_rows
-        else config.kick_amplitude
+    off_band_passed = all(
+        row["verdict"] == "no_resonance_crossing"
+        for row in off_band_control["charts"]
+    )
+    null_coefficients = [
+        result["charts"][0]["estimate"]["coefficient"]
+        for result in null_results.values()
+        if result["charts"]
+        and result["charts"][0]["verdict"] == "value"
+    ]
+    null_level = (
+        abs(_consensus(null_coefficients)) if null_coefficients else 0.0
+    )
+    null_fit_healthy = sum(
+        row["held_out"]["normalized_one_step_rmse"] < 0.25
+        and row["held_out"]["normalized_one_step_rmse"]
+        < row["held_out"]["persistence_normalized_rollout_rmse"]
+        for row in training_rows["s2"]
+        if row["label"] in accepted_labels
+    )
+    null_instrument_available = (
+        len(null_coefficients) >= config.minimum_accepted_charts
+        and null_fit_healthy >= config.minimum_accepted_charts
+    )
+    null_passed = null_level <= 2.0 * modeled_floor
+    false_positive_passed = (
+        wrong_traps_pass
+        and off_band_passed
+        and null_instrument_available
+        and null_passed
+        and shuffled_level <= 0.2
     )
     sweep_levels: dict[str, Any] = {}
     detected_scale = None
@@ -1713,10 +2090,20 @@ def run_resonance_metrology(
         },
         "G5_false_positives": {
             "value": {
+                "null_consensus_magnitude": null_level,
+                "null_successful_chart_count": len(null_coefficients),
+                "null_prediction_healthy_count": null_fit_healthy,
+                "null_instrument_available": null_instrument_available,
+                "null_below_two_floors": null_passed,
                 "wrong_harmonics_passed": wrong_traps_pass,
+                "off_band_abstained": off_band_passed,
                 "shuffled_over_truth": shuffled_level,
             },
-            "threshold": "zero reports after abstention; shuffled <= 0.2",
+            "threshold": (
+                "at least 6 prediction-healthy/estimable null charts; "
+                "null/crossed traps <= 2 floors; no-crossing and off-band "
+                "controls abstain; shuffled <= 0.2 of truth"
+            ),
             "passed": false_positive_passed,
         },
         "G6_detection_roc": {
@@ -1725,9 +2112,19 @@ def run_resonance_metrology(
             "passed": roc_passed,
         },
         "G7_trajectory_vs_circle": {
-            "value": consensus_complex_error,
-            "threshold": 0.20,
-            "passed": consensus_complex_error <= 0.20,
+            "value": {
+                "trajectory_complex_error": consensus_complex_error,
+                "circle_median_complex_error": circle_median_error,
+                "trajectory_to_circle_ratio": trajectory_to_circle_ratio,
+                "prototype_circle_transfer_passed": (
+                    prototype_circle_transfer_passed
+                ),
+            },
+            "threshold": (
+                "trajectory error <= 0.20 or <= 2.5x circle error; "
+                "prototype transfer requires circle median <= 0.02"
+            ),
+            "passed": trajectory_vs_circle_passed,
         },
         "G8_exact_gauge_stress": {
             "value": {
@@ -1768,6 +2165,9 @@ def run_resonance_metrology(
     elif config.profile != "full":
         status = "not_resolved_abstained"
         status_reason = "non_decisive_profile"
+    elif gauge_stress_refuted:
+        status = "resolved_refuted"
+        status_reason = "gauge_freedom"
     elif not gauge_stress_passed:
         status = "not_resolved_abstained"
         status_reason = "gauge_freedom"
@@ -1828,8 +2228,11 @@ def run_resonance_metrology(
         },
         "ensemble": {
             "acceptance_limit": acceptance_limit,
+            "absolute_acceptance_limit": absolute_acceptance_limit,
             "minimum_accepted_charts": config.minimum_accepted_charts,
-            "accepted_count": len(accepted_rows),
+            "accepted_count": len(accepted_labels),
+            "accepted_labels": accepted_labels,
+            "estimable_count": len(accepted_rows),
             "accepted": accepted_rows,
             "dropped": dropped,
             "training": training_rows,
@@ -1860,7 +2263,9 @@ def run_resonance_metrology(
         "controls": {
             "null_runs": null_results,
             "wrong_harmonics": wrong_harmonics,
+            "off_band": off_band_control,
             "shuffled_angle_over_truth": shuffled_level,
+            "shuffled_angle_runs": shuffled_results,
             "kick_sweep": {
                 "levels": sweep_levels,
                 "modeled_floor": modeled_floor,
@@ -1896,7 +2301,8 @@ def run_resonance_metrology(
                 "scope": "one noiseless synthetic return-map fixture",
             },
             "stability": {
-                "accepted_charts": len(accepted_rows),
+                "accepted_charts": len(accepted_labels),
+                "estimable_charts": len(accepted_rows),
                 "shared_bias_stress": "exact 2m gauge ladder",
             },
             "certification": {
@@ -1984,10 +2390,32 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
         if target.is_file() and _sha256(target) != digest:
             raise ValueError(f"{name} artifact digest is stale")
     accepted = manifest["ensemble"]["accepted"]
-    if len(accepted) != manifest["ensemble"]["accepted_count"]:
-        raise ValueError("accepted-chart count is stale")
+    if len(accepted) != manifest["ensemble"]["estimable_count"]:
+        raise ValueError("estimable-chart count is stale")
+    accepted_labels = manifest["ensemble"]["accepted_labels"]
+    if len(accepted_labels) != manifest["ensemble"]["accepted_count"]:
+        raise ValueError("prediction-accepted chart count is stale")
+    if any(row["label"] not in accepted_labels for row in accepted):
+        raise ValueError("an estimable chart was not prediction-accepted")
     if any(row["complex_error"] < 0.0 for row in accepted):
         raise ValueError("chart error cannot be negative")
+    for system_name in ("s1", "s2"):
+        for row in manifest["ensemble"]["training"][system_name]:
+            initialization = row.get("frequency_initialization", {})
+            if initialization.get("uses_oracle_coordinates") is not False:
+                raise ValueError("frequency initialization must be observation-only")
+            coefficients = initialization.get(
+                "frequency_coefficients_ascending"
+            )
+            if not isinstance(coefficients, list) or not coefficients:
+                raise ValueError("frequency initialization is missing")
+            if not np.isfinite(coefficients).all():
+                raise ValueError("frequency initialization is non-finite")
+    if (
+        manifest["profile"] == "full"
+        and manifest["source_revision"].get("git_worktree_clean") is not True
+    ):
+        raise ValueError("full-profile evidence must come from a clean source revision")
     for width in (
         manifest["oracle"]["island_half_width"],
         manifest["ensemble_consensus"]["island_half_width"],
@@ -1997,6 +2425,7 @@ def validate_resonance_manifest(manifest: dict[str, Any]) -> list[str]:
     return [
         "profile semantics and status are consistent",
         "accepted-chart ledger is internally consistent",
+        "all chart initializers are observation-only and finite",
         "all report/data artifact hashes are present",
         "island widths use nonnegative generating amplitudes",
     ]

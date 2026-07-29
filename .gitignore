@@ -138,6 +138,11 @@ venv.bak/
 # Local experiment outputs; only the verified portfolio figure and metrics are committed.
 results/*
 !results/chart-fidelity.json
+!results/resonance-metrology/
+results/resonance-metrology/*
+!results/resonance-metrology/manifest.json
+!results/resonance-metrology/overview.png
+!results/resonance-metrology/report.html
 !results/portfolio/
 results/portfolio/*
 !results/portfolio/metrics.json

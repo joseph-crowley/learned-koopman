@@ -21,6 +21,15 @@ map, hides it behind a nontrivial canonical observation chart, and trains eight
 independent exact-symplectic Koopman charts without giving them the oracle
 action, angle, or kick.
 
+Map rotations are periodic optimization variables: an arbitrary 1-radian
+initializer can converge to the wrong wrapped-frequency basin even when the
+data advances by roughly 2 radians per sample. The tool therefore initializes
+each rotation polynomial from the circular mean of raw polar phase increments
+on each training orbit, regressed against raw radial action. This is a
+data-only optimization seed, not a canonical coordinate or a residual
+measurement; its coefficients, circular concentration, and orbit-fit error
+are recorded in the manifest. The held-out prediction gates remain unchanged.
+
 On held-out trajectories it then:
 
 1. pools the learned \((\hat I,\hat\phi,\Delta\hat I)\) transitions into fixed
@@ -73,6 +82,24 @@ result = estimate_resonant_block(
 Without an oracle or external chart bound, the multiplicative error floor is
 only a pairwise lower bound. The API records that fact and does not claim
 calibrated physical accuracy.
+
+For a measured return-map CSV and an independently trained chart ensemble:
+
+```bash
+uv run learned-koopman resonance-estimate measurements.csv \
+  --model results/chart-seed-7/model.pt \
+  --model results/chart-seed-17/model.pt \
+  --position-column position \
+  --momentum-column momentum \
+  --order 3 \
+  --band 0.7 2.6 \
+  --output results/my-resonance-estimate.json
+```
+
+This path refuses models that failed their own held-out fit gates and requires
+at least two charts. Without an oracle chart or external chart-error bound it
+reports only a pairwise chart-spread lower bound; it cannot promote calibrated
+physical precision.
 
 ## Abstention is part of the result
 
