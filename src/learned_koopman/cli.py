@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -53,6 +54,21 @@ def _write_json(path: Path, result: dict[str, object]) -> None:
         json.dumps(result, indent=2, allow_nan=False) + "\n",
         encoding="utf-8",
     )
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _independent_model_digests(paths: list[Path]) -> list[str]:
+    digests = [_sha256(path) for path in paths]
+    if len(set(digests)) != len(digests):
+        raise ValueError("model files must contain distinct fitted charts")
+    return digests
 
 
 def _summary(result: dict[str, object]) -> str:
@@ -564,6 +580,10 @@ def main() -> None:
             parser.error("repeat --model with at least two independent charts")
         if len({path.resolve() for path in args.model}) != len(args.model):
             parser.error("--model paths must be distinct")
+        try:
+            model_digests = _independent_model_digests(args.model)
+        except ValueError as error:
+            parser.error(f"--{error}")
         dataset = load_trajectory_csv(
             args.input,
             state_columns=(args.position_column, args.momentum_column),
@@ -614,6 +634,7 @@ def main() -> None:
             "input": str(args.input),
             "input_sha256": dataset.source_sha256,
             "models": [str(path) for path in args.model],
+            "model_sha256": model_digests,
             "model_fit_statuses": [
                 model.certificate_status for model in models
             ],

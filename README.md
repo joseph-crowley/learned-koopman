@@ -120,8 +120,9 @@ optimization seed separately from the held-out result.
 For an existing measured return-map CSV and two or more independently trained
 canonical models, `learned-koopman resonance-estimate` runs the same
 trajectory-band estimator without oracle coordinates. It refuses failed model
-fits and labels ensemble spread as a lower bound on chart ambiguity rather
-than calibrated physical error.
+fits and byte-identical copied charts, records every model digest, and labels
+ensemble spread as a lower bound on chart ambiguity rather than calibrated
+physical error.
 
 ## Checked resonance result: prediction is not identifiability
 

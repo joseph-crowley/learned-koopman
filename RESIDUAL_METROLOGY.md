@@ -96,10 +96,11 @@ uv run learned-koopman resonance-estimate measurements.csv \
   --output results/my-resonance-estimate.json
 ```
 
-This path refuses models that failed their own held-out fit gates and requires
-at least two charts. Without an oracle chart or external chart-error bound it
-reports only a pairwise chart-spread lower bound; it cannot promote calibrated
-physical precision.
+This path refuses models that failed their own held-out fit gates, rejects
+byte-identical copied model files, records every model digest, and requires at
+least two distinct fitted charts. Without an oracle chart or external
+chart-error bound it reports only a pairwise chart-spread lower bound; it
+cannot promote calibrated physical precision.
 
 ## Abstention is part of the result
 

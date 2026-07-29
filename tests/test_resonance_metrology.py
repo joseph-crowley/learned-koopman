@@ -8,6 +8,7 @@ import pytest
 import torch
 
 from learned_koopman.canonical_model import CanonicalKoopmanNetwork
+from learned_koopman.cli import _independent_model_digests
 from learned_koopman.map_fixtures import (
     KickHarmonic,
     ObservationChart,
@@ -96,6 +97,19 @@ def test_observed_frequency_initializer_uses_no_oracle_and_escapes_unit_basin() 
     assert coefficients[0] == pytest.approx(1.6, abs=0.01)
     assert coefficients[1] == pytest.approx(0.3, abs=0.01)
     assert abs(coefficients[0] - 1.0) > 0.5
+
+
+def test_user_instrument_rejects_copied_chart_files(tmp_path) -> None:
+    first = tmp_path / "first.pt"
+    copied = tmp_path / "copied.pt"
+    distinct = tmp_path / "distinct.pt"
+    first.write_bytes(b"one fitted chart")
+    copied.write_bytes(first.read_bytes())
+    distinct.write_bytes(b"a different fitted chart")
+
+    with pytest.raises(ValueError, match="distinct fitted charts"):
+        _independent_model_digests([first, copied])
+    assert len(set(_independent_model_digests([first, distinct]))) == 2
 
 
 def test_circle_probe_and_within_bin_shuffle_are_independent_controls() -> None:
