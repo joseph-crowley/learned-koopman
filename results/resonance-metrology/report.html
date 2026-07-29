@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resonance metrology</title><style>
+body {margin:0;background:#f3f0e8;color:#20242b;font:17px/1.55 system-ui}
+main {max-width:1050px;margin:auto;padding:52px 24px 80px}
+h1 {font:700 clamp(40px,7vw,72px)/1.02 Georgia,serif;margin:.2em 0}
+.eyebrow {color:#4057c9;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.status {display:inline-block;padding:8px 14px;border-radius:99px;background:#e5eaf7;
+font-weight:800} .card {background:white;border-radius:18px;padding:25px;margin:24px 0;
+box-shadow:0 12px 35px #1e263112} img {width:100%;border-radius:12px}
+table {width:100%;border-collapse:collapse} th,td {padding:9px;
+border-bottom:1px solid #ddd;text-align:right}
+th:first-child,td:first-child {text-align:left}
+.pass {color:#176e50} .fail {color:#ae352d} code {overflow-wrap:anywhere}
+</style></head><body><main>
+<div class="eyebrow">learned-koopman · residual normal form</div>
+<h1>Can the resonance survive the chart?</h1>
+<p class="status">resolved_refuted</p>
+<p>On one noiseless synthetic exact-symplectic kicked twist map observed through a fixed nontrivial canonical chart, the trajectory-band ensemble returned &#x27;resolved_refuted&#x27; under the frozen learned-chart, control, and exact-gauge stress gates.</p>
+<p><strong>A frozen falsifier failed by the predeclared decisive margin. The claimed residual precision is refuted on this fixture.</strong></p>
+<p>The rotation law was initialized from circular-mean raw polar increments
+on the training trajectories only (median orbit-fit RMSE
+0.0012 rad/step). That seed uses no oracle coordinates or
+planted map parameters and is recorded separately from the learned result.</p>
+<div class="card"><img src="overview.png"
+alt="Resonance-metrology diagnostics"></div>
+<div class="card"><h2>Five-layer output</h2>
+<table><tbody>
+<tr><th>prediction-accepted charts</th>
+<td>8 /
+8</td></tr>
+<tr><th>charts with an estimable block</th>
+<td>5</td></tr>
+<tr><th>action-kick coefficient (sine, cosine)</th>
+<td>[0.006013516857630817, 0.005299431092746741]</td></tr>
+<tr><th>generating amplitude</th>
+<td>0.00267179</td></tr>
+<tr><th>leading island halfwidth</th>
+<td>0.188743</td></tr>
+<tr><th>synthetic oracle generating amplitude</th>
+<td>0.0025</td></tr>
+</tbody></table></div>
+<div class="card"><h2>Predeclared gates</h2><ul><li class="pass">PASS — G1 complex recovery: 0.19585118376742347</li>
+<li class="pass">PASS — G2 magnitude recovery: 0.06871765238142351</li>
+<li class="pass">PASS — G3 location: 0.059213103305705346</li>
+<li class="fail">FAIL — G4 floor coverage: 0.2</li>
+<li class="fail">FAIL — G5 false positives: {&#x27;null_consensus_magnitude&#x27;: 0.0006372143331024892, &#x27;null_successful_chart_count&#x27;: 5, &#x27;null_prediction_healthy_count&#x27;: 8, &#x27;null_instrument_available&#x27;: False, &#x27;null_below_two_floors&#x27;: True, &#x27;wrong_harmonics_passed&#x27;: True, &#x27;off_band_abstained&#x27;: True, &#x27;shuffled_over_truth&#x27;: 0.3722591485889717}</li>
+<li class="pass">PASS — G6 detection roc: 1.4010279616038028</li>
+<li class="pass">PASS — G7 trajectory vs circle: {&#x27;trajectory_complex_error&#x27;: 0.19585118376742347, &#x27;circle_median_complex_error&#x27;: 0.028178274153663335, &#x27;trajectory_to_circle_ratio&#x27;: 6.950432191105704, &#x27;prototype_circle_transfer_passed&#x27;: False}</li>
+<li class="fail">FAIL — G8 exact gauge stress: {&#x27;noncomparable_in_envelope_count&#x27;: 21, &#x27;maximum_in_envelope_complex_shift&#x27;: 0.441626479957525, &#x27;maximum_in_envelope_magnitude_shift&#x27;: 0.4328859331672065}</li>
+<li class="pass">PASS — G9 variant stability: 0.034196295007790485</li></ul></div>
+<div class="card"><h2>Accepted learned charts</h2><table><thead><tr>
+<th>chart</th><th>one-step RMSE</th><th>complex error</th>
+<th>magnitude error</th><th>floor</th><th>covered</th></tr></thead>
+<tbody><tr><td>seed-29-h24-s6</td><td>0.04786</td><td>26.82%</td><td>12.75%</td><td>6.692e-04</td><td>no</td></tr>
+<tr><td>seed-7-h40-s8</td><td>0.04645</td><td>32.34%</td><td>12.19%</td><td>1.030e-03</td><td>no</td></tr>
+<tr><td>seed-17-h40-s8</td><td>0.04600</td><td>11.96%</td><td>7.10%</td><td>8.774e-04</td><td>yes</td></tr>
+<tr><td>seed-29-h40-s8</td><td>0.04530</td><td>14.36%</td><td>2.75%</td><td>1.919e-04</td><td>no</td></tr>
+<tr><td>seed-41-h40-s8</td><td>0.04761</td><td>20.44%</td><td>5.58%</td><td>2.498e-05</td><td>no</td></tr></tbody></table></div>
+<div class="card"><h2>Identifiability margin</h2>
+<p>Smallest exact-gauge rung leaving the prediction envelope:
+<strong>0.1</strong>. Maximum in-envelope complex shift:
+<strong>0.441626479957525</strong>; magnitude
+shift: <strong>0.4328859331672065</strong>.</p>
+<p>In-envelope gauge fits without a comparable block:
+<strong>21</strong>. A non-comparable
+fit forbids support; only a measured comparable shift beyond twice the frozen
+tolerance can produce a gauge refutation.</p>
+</div>
+<div class="card"><h2>Estimator variants</h2><table><thead><tr>
+<th>variant</th><th>charts</th><th>consensus</th>
+<th>relative deviation</th></tr></thead><tbody><tr><td>primary_linear</td><td>5</td><td>[0.006013516857630817, 0.005299431092746741]</td><td>0.0</td></tr>
+<tr><td>constant_chart</td><td>5</td><td>[0.004327901887423644, 0.005181032146413739]</td><td>0.21081565289250098</td></tr>
+<tr><td>quadratic_chart</td><td>0</td><td>None</td><td>None</td></tr>
+<tr><td>inner_band</td><td>4</td><td>[0.005740465455481483, 0.0052755196350259895]</td><td>0.034196295007790485</td></tr>
+<tr><td>learned_h_frequency</td><td>5</td><td>[0.006023558716289015, 0.005296987419926601]</td><td>0.001289385110815217</td></tr>
+<tr><td>unweighted</td><td>5</td><td>[0.005994144826424463, 0.005300220790005713]</td><td>0.0024188640673442363</td></tr></tbody></table>
+</div>
+<h2>What the number means</h2>
+<p>The primary estimator fits the complex residual harmonic across an action
+band that crosses the target resonance. It separates a smooth physical block
+from the chart's coboundary-shaped detuning signature. Results are aligned on
+shared states, checked against an oracle only in this synthetic reference run,
+and stress-tested with exact symplectic chart gauges.</p>
+<h2>What it does not mean</h2>
+<p>No formal KAM, torus, interval, probability, noise, hardware, or
+coordinate-global guarantee is claimed. Static action ripple is a chart
+diagnostic, not an island-width floor. The empirical floor model is promoted
+only if its predeclared coverage and detection checks pass.</p>
+<p>Artifacts: <code>manifest.json</code>, <code>overview.png</code>,
+<code>s1-trajectories.csv</code>, <code>s2-null-trajectories.csv</code>, and
+the saved chart ensemble under <code>models/</code>.</p>
+</main></body></html>
