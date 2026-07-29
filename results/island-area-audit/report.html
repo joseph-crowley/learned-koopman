@@ -18,9 +18,8 @@ code { background: #f3f4f6; padding: .1rem .25rem; }
 </head>
 <body>
 <h1>Gauge-invariant resonant-island area</h1>
-<p class="verdict"><strong>resolved_supported</strong> (gauge_invariant_island_area). On this frozen
-synthetic fixture, the coordinate-dependent resonant coefficient failed its
-exact-gauge test, while bounded-libration area survived it.</p>
+<p class="verdict"><strong>resolved_supported</strong> (gauge_invariant_island_area).
+On this frozen synthetic reference profile, the coordinate-dependent resonant coefficient failed its exact-gauge test, while bounded-libration area survived it.</p>
 <img src="overview.png"
 alt="Island-area membership, chart estimates, exact-gauge stress, and controls">
 <h2>What was measured</h2>
@@ -40,7 +39,8 @@ physical or learned canonical mesh, not from a fitted coefficient.</p>
 <td>4.955%</td></tr>
 <tr><td>learned-chart consensus</td>
 <td>1.453772</td>
-<td>0.082%</td></tr>
+<td>0.082% vs direct mesh</td></tr>
+<tr><td>direct physical/oracle refined mesh</td><td>1.460938</td><td>0.024% vs leading</td></tr>
 </table>
 <h2>Independent learned charts</h2>
 <table>
@@ -57,9 +57,11 @@ physical or learned canonical mesh, not from a fitted coefficient.</p>
 <h2>Adversarial controls</h2>
 <p>Maximum exact-gauge area shift:
 <strong>0.0044%</strong>.
-The deliberately noncanonical 1.2× area scale moved the answer by
+Exact-canonical area invariance is structural; the empirical content is that
+the learned winding membership and numerical quadrature also survive. The
+deliberately noncanonical 1.2× area-scaling plumbing check moved the answer by
 <strong>20.00%</strong>,
-so the audit is not simply insensitive to coordinate changes.</p>
+as it must by construction.</p>
 <table>
 <tr><th>gate</th><th>value</th><th>threshold</th><th>verdict</th></tr>
 <tr><td>direct_map_matches_leading_area</td><td>0.003850437023236711</td><td>&lt;= 0.03</td><td>pass</td></tr>
@@ -67,12 +69,14 @@ so the audit is not simply insensitive to coordinate changes.</p>
 <tr><td>every_chart_matches_direct_area</td><td>0.0008248895111526758</td><td>&lt;= 0.03</td><td>pass</td></tr>
 <tr><td>membership_matches_direct_topology</td><td>0.9991742361684558</td><td>&gt;= 0.98</td><td>pass</td></tr>
 <tr><td>exact_gauges_preserve_area</td><td>4.398410916543219e-05</td><td>&lt;= 0.005</td><td>pass</td></tr>
-<tr><td>null_area_stays_below_resolution_floor</td><td>0.04958669479000232</td><td>&lt;= 0.1</td><td>pass</td></tr>
-<tr><td>noncanonical_control_moves_area</td><td>0.20000000000000184</td><td>&gt;= 0.15</td><td>pass</td></tr>
+<tr><td>null_area_stays_within_resolution_fraction_ceiling</td><td>0.04958669479000232</td><td>&lt;= 0.1</td><td>pass</td></tr>
+<tr><td>noncanonical_area_scaling_plumbing</td><td>0.20000000000000184</td><td>&gt;= 0.15</td><td>pass</td></tr>
+<tr><td>learned_charts_preserve_domain_area</td><td>1.1968927316222883e-06</td><td>&lt;= 0.001</td><td>pass</td></tr>
+<tr><td>probe_mesh_within_model_support</td><td>True</td><td>all charts true</td><td>pass</td></tr>
 <tr><td>learned_chart_beats_raw_polar_baseline</td><td>0.0011980003246316873</td><td>&lt; 0.07208758736680676</td><td>pass</td></tr>
 </table>
 <h2>Claim boundary</h2>
-<p>On one noiseless synthetic kicked twist map and one fixed dense physical initial-condition mesh, bounded-libration area recovered from independently trained exact-symplectic charts agreed with direct physical/oracle area and survived the frozen exact-gauge ladder. The dense probe states were not used for chart training, but the protocol was developed on this fixture. This supports an invariant quotient on this retrospective fixture only; it does not establish prospective transfer, measured-system robustness, general transport recovery, calibrated uncertainty, or a theorem.</p>
+<p>On one noiseless synthetic kicked twist map and one fixed dense physical initial-condition mesh, bounded-libration area recovered from independently trained exact-symplectic charts agreed with direct physical/oracle area and survived the frozen exact-gauge ladder. The dense probe states were not used for chart training, but the protocol was developed on this fixture. Exact-gauge area preservation is structural; the empirical content is same-mesh winding membership and quadrature agreement. This supports an invariant quotient on this retrospective fixture only; it does not establish absolute continuum accuracy, prospective transfer, measured-system robustness, general transport recovery, calibrated uncertainty, or a theorem.</p>
 <p>The probe states were not used for chart training, but this was the
 method-development fixture. The frozen protocol still needs prospective
 confirmation on a second system.</p>

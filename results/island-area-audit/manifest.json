@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "experiment": "island-area-audit",
-  "package_version": "3.5.0",
+  "package_version": "3.5.1",
   "status": "resolved_supported",
   "status_reason": "gauge_invariant_island_area",
   "config": {
@@ -22,7 +22,9 @@
       0.0,
       1.5707963267948966
     ],
-    "libration_span_limit": 6.283185307179586
+    "libration_span_limit": 6.283185307179586,
+    "profile": "reference",
+    "is_reference_profile": true
   },
   "environment": {
     "python": "3.12.13",
@@ -31,7 +33,7 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "0b0d4c6b21105afba2375d1a54c369226e61d475",
+    "git_commit": "a87a6800c2049c60de6d62dfbf8961c1de94f5cb",
     "git_worktree_clean": true
   },
   "protocol_posture": {
@@ -64,7 +66,17 @@
     "physical_domain_area": 4.397346565402016,
     "physical_domain_relative_quadrature_error": 0.00020079661157252038,
     "classification": "bounded unwrapped resonant angle: span(m*angle) < 6.28318530718",
-    "physical_cell_weights": true
+    "physical_cell_weights": true,
+    "mesh_refinement": {
+      "available": true,
+      "radial_cells": 123,
+      "angular_cells": 360,
+      "steps": 800,
+      "direct_physical_area": 1.4609376487717523,
+      "relative_error_vs_leading": 0.00023563167606037905,
+      "relative_change_from_reference_mesh": 0.004085106118895411,
+      "interpretation": "Post-review direct-only mesh refinement. Learned-vs-direct errors remain same-mesh consistency measurements."
+    }
   },
   "reference": {
     "leading_total_island_area": 1.4605934866804429,
@@ -113,6 +125,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397342030097921,
         "domain_area_relative_error": 1.0313729035202843e-06,
+        "probe_action_range": [
+          1.269264904977494,
+          2.023697956035566
+        ],
+        "model_action_support": [
+          0.7124424070119858,
+          2.6352080017328263
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.11642378171811885,
           "median_span": 120.71179697006872,
@@ -140,6 +161,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397343082753493,
         "domain_area_relative_error": 7.919886392076225e-07,
+        "probe_action_range": [
+          1.2785804449810314,
+          2.025937783266194
+        ],
+        "model_action_support": [
+          0.7123283803462982,
+          2.6354565560817718
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.11121958097348994,
           "median_span": 120.71021440167885,
@@ -167,6 +197,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.3973435475926035,
         "domain_area_relative_error": 6.862796386999291e-07,
+        "probe_action_range": [
+          1.2693518862123025,
+          2.0191458058038236
+        ],
+        "model_action_support": [
+          0.7121852815151215,
+          2.635333222150803
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.1516340414630335,
           "median_span": 120.70670560091664,
@@ -194,6 +233,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.3973431359112505,
         "domain_area_relative_error": 7.799000406592802e-07,
+        "probe_action_range": [
+          1.2787355959487403,
+          2.0226812202312665
+        ],
+        "model_action_support": [
+          0.7122115284204483,
+          2.635164460539818
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.13554757436643428,
           "median_span": 120.7182251502096,
@@ -221,6 +269,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397342942925938,
         "domain_area_relative_error": 8.237868049397095e-07,
+        "probe_action_range": [
+          1.2649407657768674,
+          2.028926868935521
+        ],
+        "model_action_support": [
+          0.7122516751289367,
+          2.6350616693496702
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.14314860502351934,
           "median_span": 120.71257324209273,
@@ -248,6 +305,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397342331241449,
         "domain_area_relative_error": 9.628898937294489e-07,
+        "probe_action_range": [
+          1.2718355517589925,
+          2.0284781637655485
+        ],
+        "model_action_support": [
+          0.7126097410917283,
+          2.634927836060524
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.1111514488961376,
           "median_span": 120.71215211887821,
@@ -275,6 +341,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397343163294277,
         "domain_area_relative_error": 7.736728702269114e-07,
+        "probe_action_range": [
+          1.2733054038212472,
+          2.034440353660111
+        ],
+        "model_action_support": [
+          0.7122739672660827,
+          2.635254967212677
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.10234450500270498,
           "median_span": 120.7056533276008,
@@ -302,6 +377,15 @@
         "membership_disagreement_fraction": 0.000273224043715847,
         "domain_area": 4.397341302249873,
         "domain_area_relative_error": 1.1968927316222883e-06,
+        "probe_action_range": [
+          1.27619731769677,
+          2.0277754427101744
+        ],
+        "model_action_support": [
+          0.7128025084733963,
+          2.6348244160413743
+        ],
+        "probe_within_model_support": true,
         "classification": {
           "minimum_span": 0.115669004132954,
           "median_span": 120.71742567707761,
@@ -926,7 +1010,7 @@
       "phase_space_scale": 1.2,
       "island_area": 1.7459634761321188,
       "relative_area_shift": 0.20000000000000184,
-      "interpretation": "A deliberately noncanonical uniform phase-space scale must move the area and proves that the audit is sensitive."
+      "interpretation": "A deliberately noncanonical uniform phase-space scale is an exact 20% area-scaling plumbing check, not an empirical learned-chart stress test."
     }
   },
   "thresholds": {
@@ -936,7 +1020,8 @@
     "minimum_membership_jaccard": 0.98,
     "maximum_exact_gauge_area_shift": 0.005,
     "maximum_null_fraction": 0.1,
-    "minimum_noncanonical_area_shift": 0.15
+    "minimum_noncanonical_area_shift": 0.15,
+    "maximum_domain_area_relative_error": 0.001
   },
   "measurements": {
     "direct_vs_leading_error": 0.003850437023236711,
@@ -945,7 +1030,9 @@
     "minimum_membership_jaccard": 0.9991742361684558,
     "maximum_exact_gauge_area_shift": 4.398410916543219e-05,
     "maximum_null_fraction": 0.04958669479000232,
-    "noncanonical_area_shift": 0.20000000000000184
+    "noncanonical_area_shift": 0.20000000000000184,
+    "maximum_domain_area_relative_error": 1.1968927316222883e-06,
+    "all_probes_within_model_support": true
   },
   "empirical_gates": {
     "direct_map_matches_leading_area": {
@@ -973,14 +1060,24 @@
       "threshold": "<= 0.005",
       "passed": true
     },
-    "null_area_stays_below_resolution_floor": {
+    "null_area_stays_within_resolution_fraction_ceiling": {
       "value": 0.04958669479000232,
       "threshold": "<= 0.1",
       "passed": true
     },
-    "noncanonical_control_moves_area": {
+    "noncanonical_area_scaling_plumbing": {
       "value": 0.20000000000000184,
       "threshold": ">= 0.15",
+      "passed": true
+    },
+    "learned_charts_preserve_domain_area": {
+      "value": 1.1968927316222883e-06,
+      "threshold": "<= 0.001",
+      "passed": true
+    },
+    "probe_mesh_within_model_support": {
+      "value": true,
+      "threshold": "all charts true",
       "passed": true
     },
     "learned_chart_beats_raw_polar_baseline": {
@@ -989,7 +1086,7 @@
       "passed": true
     }
   },
-  "claim_boundary": "On one noiseless synthetic kicked twist map and one fixed dense physical initial-condition mesh, bounded-libration area recovered from independently trained exact-symplectic charts agreed with direct physical/oracle area and survived the frozen exact-gauge ladder. The dense probe states were not used for chart training, but the protocol was developed on this fixture. This supports an invariant quotient on this retrospective fixture only; it does not establish prospective transfer, measured-system robustness, general transport recovery, calibrated uncertainty, or a theorem.",
+  "claim_boundary": "On one noiseless synthetic kicked twist map and one fixed dense physical initial-condition mesh, bounded-libration area recovered from independently trained exact-symplectic charts agreed with direct physical/oracle area and survived the frozen exact-gauge ladder. The dense probe states were not used for chart training, but the protocol was developed on this fixture. Exact-gauge area preservation is structural; the empirical content is same-mesh winding membership and quadrature agreement. This supports an invariant quotient on this retrospective fixture only; it does not establish absolute continuum accuracy, prospective transfer, measured-system robustness, general transport recovery, calibrated uncertainty, or a theorem.",
   "not_supported": [
     "measured-rig validation",
     "noise, irregular sampling, or partial observation",
@@ -998,12 +1095,12 @@
     "superiority to classical phase-space methods beyond this fixture"
   ],
   "next_falsifier": "Repeat the coefficient and invariant-area protocols on a second map family and one measured return map with noise, sampling, and classical frequency-map baselines frozen in advance.",
-  "runtime_seconds": 58.57937595807016,
+  "runtime_seconds": 54.630328624974936,
   "artifacts": {
     "manifest": "manifest.json",
     "report": "report.html",
     "overview": "overview.png",
-    "overview_sha256": "68f3b720f0c0e1514e2ce0f2813a79b0337d3d0099ebd2d20f4ceb255f4294d8",
-    "report_sha256": "9208e9e620d02e0786a50370c2ee361aab280bd20074f46b2fbe138e62be7abc"
+    "overview_sha256": "4a6a50b99d241de50d75987b50c0754e59af719535a12a799d74a6e6536d498d",
+    "report_sha256": "ebf8faf4711150944b44c46a09753faad5464c8a7ddea978710d2995f133ceda"
   }
 }
