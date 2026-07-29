@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "package_version": "3.3.0",
+  "package_version": "3.4.0",
   "environment": {
     "python": "3.12.13",
     "platform": "macOS-26.6-arm64-arm-64bit",
@@ -8,8 +8,8 @@
     "torch": "2.13.0"
   },
   "source_revision": {
-    "git_commit": "07c51cd5f8fd84a9534f8ffe9f63e9637b726b6d",
-    "git_worktree_clean": true
+    "git_commit": "477bc439b1d3f82dc5b73b9235a592c200ed8e2c",
+    "git_worktree_clean": false
   },
   "config": {
     "profile": "full",
@@ -93,7 +93,7 @@
       -0.009432578459382057
     ],
     "action_support": [
-      -0.09565718844532967,
+      0.0,
       2.9190515279769897
     ]
   },
@@ -832,10 +832,10 @@
     "report": "report.html",
     "manifest": "manifest.json",
     "action_audit_manifest": "action-audit/manifest.json",
-    "model_sha256": "95b436ce1efd733f5496c6be4b37c575aba9acc39791eaabdbcbcd566d23043f",
+    "model_sha256": "570ac75fc1c5b3c6e560b579a8222e835a097350e64ad5197d06f78307b71e06",
     "overview_sha256": "18ceca86efa5c8429a4de0599af735ea7fa66276a2a47ae470d26d53d1ddb995",
     "report_sha256": "5eaeed693ba9b05e0bd9b6aff5f7d2c96edb2da0427db13a4661b500b25d829a",
-    "action_audit_manifest_sha256": "05bf89c05315e84cd9759db3944e0e9cce1d26a4bd7f797e67ec5f766559b2b6"
+    "action_audit_manifest_sha256": "c25e1629946a9acd31d7be482767701e5c66d20fefecd3a147abd25eebb115d8"
   },
   "validation_checks": [
     "training and held-out trajectories are disjoint",

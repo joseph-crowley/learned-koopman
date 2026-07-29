@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "package_version": "3.3.0",
+  "package_version": "3.4.0",
   "scientific_contract": {
     "system_class": "one-degree-of-freedom autonomous conservative mechanics",
     "coordinate_contract": "state column 1 is canonical q; state column 2 is canonical p",
