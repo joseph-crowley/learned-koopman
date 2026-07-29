@@ -213,7 +213,7 @@ def train_invariant_model(
     """Train from a tensor of grouped state trajectories, with no labels."""
 
     _set_seed(seed)
-    model = LearnedInvariant(hidden_dim)
+    model = LearnedInvariant(hidden_dim, input_dim=int(trajectories.shape[-1]))
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=learning_rate,
@@ -393,7 +393,11 @@ def run_invariant_experiment(
             "evaluation_oracle": "physical energy is used only after training",
             "phase_coverage": "trajectory segments begin at staggered, nonzero-velocity states",
             "held_out_structure": "complete evaluation shells are absent from training",
-            "identifiability": "the scalar coordinate is defined up to orientation and scale",
+            "identifiability": (
+                "the conserved scalar is fundamentally defined up to a smooth "
+                "monotone reparameterization; this objective fixes centering "
+                "and variance but not a unique nonlinear gauge"
+            ),
         },
         "config": asdict(selected),
         "seeds": list(selected_seeds),

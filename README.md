@@ -8,17 +8,15 @@
 **Learn the invariants, local laws, and transitions that organize nonlinear
 dynamics—without assuming one global linearization exists.**
 
-Learned Koopman is a small, inspectable PyTorch research lab built around the
-nonlinear pendulum. Four connected experiments ask what kind of learned object
-is useful for a different scientific question:
+Learned Koopman is a small, inspectable PyTorch project built around the
+question of when nonlinear dynamics become simple in learned coordinates. It
+now has two surfaces:
 
-- a **local operator atlas** for autonomous motion near a coordinate
-  singularity;
-- a **learned invariant** trained without physical-energy labels;
-- a **simplex transfer operator** for probability flow under genuine process
-  noise;
-- an **actuator-gain identification experiment** for torque-driven separatrix
-  crossings.
+- a **mechanics workbench** that analyzes trajectory CSVs, discovers a
+  candidate invariant, fits an invariant-conditioned Koopman family, certifies
+  it on complete held-out trials, and exports a predictor;
+- a **pendulum research lab** with local atlases, label-free invariants,
+  stochastic transfer, and controlled crossings.
 
 Every cell is runnable on CPU, writes machine-readable evidence, and carries a
 direct physical check or matched falsifier. The point is not that pendulum
@@ -26,6 +24,59 @@ prediction is itself an unsolved application. The pendulum is small enough that
 learned structure can be checked against known physics.
 
 ![Four connected nonlinear-dynamics experiments](results/research-lab/overview.png)
+
+## Koopman mechanics workbench
+
+The first engineer-facing path works on uniformly sampled, low-dimensional,
+near-conservative mechanical trajectories:
+
+```bash
+uv run learned-koopman generate-example \
+  --output examples/my-duffing.csv
+
+uv run learned-koopman analyze examples/my-duffing.csv \
+  --state-columns position velocity \
+  --reference-column energy \
+  --quick \
+  --output results/my-duffing
+```
+
+The optional `energy` column is withheld from training and used only for a
+post-hoc scientific check. For a real dataset, omit it:
+
+```bash
+uv run learned-koopman analyze measurements.csv \
+  --trajectory-column trial_id \
+  --time-column time \
+  --state-columns position velocity \
+  --output results/my-rig
+```
+
+The committed 30-trajectory, deterministic seed-7 Duffing run learns a stable scalar coordinate
+(held-out normalized drift **0.0024**) that perfectly ranks the unseen energy
+levels. Its invariant-conditioned quadratic Koopman family reaches held-out
+recursive rollout RMSE **0.076**, versus **0.424** for global quadratic EDMD and **1.564**
+for persistence. Those are complete held-out trajectories, conditioned only on
+each initial state—not shuffled one-step pairs or future trajectory averages.
+
+![Mechanics workbench report](results/mechanics-workbench/overview.png)
+
+The committed [human report](results/mechanics-workbench/report.html),
+[machine-readable manifest](results/mechanics-workbench/manifest.json), and
+loadable model come from the public command above. Prediction requires a
+positive fit certificate and checks both the fitted invariant range and
+nearest-sampled-state distance before rollout:
+
+```bash
+uv run learned-koopman predict results/my-duffing/model.pt \
+  --initial 1.2 0.0 \
+  --steps 300 \
+  --output results/my-duffing/prediction.csv
+```
+
+The mathematical theory, data contract, current-source landscape, product
+architecture, and next research stages are in
+[`PHYSICS_WORKBENCH.md`](PHYSICS_WORKBENCH.md).
 
 ## One-command demonstration
 
@@ -192,8 +243,9 @@ amplitude ordering, phase, and frequency never enter training.
 
 The exact Hamiltonian is used only after optimization to ask whether the
 learned quotient coordinate organizes held-out shells. The coordinate is
-identified only up to orientation and scale, so the evaluation reports rank
-and post-hoc affine alignment as well as within-trajectory drift.
+fundamentally identifiable only up to a smooth monotone reparameterization, so
+the evaluation reports rank and post-hoc affine alignment as well as
+within-trajectory drift.
 
 ### Stochastic simplex transfer operator
 
@@ -341,6 +393,7 @@ state-independent Koopman matrix. That boundary is important.
   ```bash
   uv run ruff check .
   uv run pytest
+  uv run python scripts/check_workbench.py
   uv run python scripts/check_research_lab.py
   uv run python scripts/check_portfolio_results.py
   uv run python scripts/check_atlas_results.py
@@ -348,9 +401,9 @@ state-independent Koopman matrix. That boundary is important.
   uv run python scripts/check_atlas_run_health.py results/atlas/metrics.json
   ```
 
-The committed v3 overview and manifest were produced by the repository's `lab`
-command. See [Scientific scope](SCIENTIFIC_SCOPE.md) for the exact claim
-boundary and [Architecture](ARCHITECTURE.md) for the implementation map.
+The committed workbench and research-lab artifacts were produced by their
+public CLI commands. See [Scientific scope](SCIENTIFIC_SCOPE.md) for the exact
+claim boundary and [Architecture](ARCHITECTURE.md) for the implementation map.
 
 ## Project structure
 
@@ -359,6 +412,9 @@ src/learned_koopman/
 ├── physics.py               # autonomous simulator and physical metrics
 ├── control.py               # controlled simulator and action model
 ├── data.py                  # deterministic trajectory windows
+├── trajectory.py            # external trajectory CSV contract
+├── operator_family.py       # invariant-conditioned Koopman regressions
+├── workbench.py             # fit, certificate, report, export, predict
 ├── models/
 │   ├── baselines.py         # transparent prediction baselines
 │   ├── fixed_koopman.py     # one fixed latent operator

@@ -1,5 +1,57 @@
 # Architecture
 
+## Mechanics-workbench flow
+
+```text
+trajectory CSV
+  └─> complete, uniform TrajectoryDataset
+       ├─> complete-run train / held-out split
+       ├─> training-only state normalization
+       └─> label-free scalar invariant I_theta(x)
+            ├─> orbit coordinate c_j = mean_t I_theta(x_j,t)
+            └─> transparent observables psi(x)
+                 ├─> fibered family K(c) = sum_r c^r K_r
+                 ├─> global quadratic EDMD + persistence falsifiers
+                 └─> recursive held-out rollouts + local spectra
+                      └─> certificate + report + loadable model
+```
+
+`TrajectoryDataset` preserves trial identity, timestamps, state-column names,
+the original run lengths, and a SHA-256 fingerprint of the source CSV. It
+rejects missing values, non-finite states, non-monotone time, irregular
+sampling, and inconsistent sampling intervals rather than silently cleaning
+experimental data.
+
+The split happens by complete trajectory ID. State normalization is fit on the
+training runs only. If a reference column such as known energy is supplied, it
+is retained solely for post-training evaluation.
+
+`LearnedInvariant` accepts an arbitrary state dimension in the workbench while
+retaining the original three-input default. Its scalar trajectory means index
+a polynomial field of finite Koopman regressions:
+
+\[
+\psi(x_{k+1}) \approx \psi(x_k)
+\left(K_0 + \hat c K_1 + \hat c^2 K_2\right).
+\]
+
+The observables are explicit constant, state, and optional quadratic terms.
+Physical state is always directly decodable from the linear entries. The
+workbench compares recursive rollouts with the same observable dictionary fit
+as one global quadratic EDMD model and with persistence.
+
+The current certificate is empirical. It requires a noncollapsed,
+approximately trajectory-constant coordinate; every held-out initial state
+inside the fitted invariant range and near sampled training states; and rollout
+wins over both baselines. The loadable bundle also carries the fit certificate
+and refuses negative fits or unsupported initial states unless the caller
+explicitly overrides it.
+
+This first family is not exactly symplectic and does not claim a rigorous
+spectral certificate. Exact local symplectic maps, residual calibration,
+phase/frequency falsifiers, and chart gluing are the next architecture layer.
+See `PHYSICS_WORKBENCH.md`.
+
 ## Research-lab flow
 
 ```text

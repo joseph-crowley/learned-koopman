@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.1.0 — 2026-07-28
+
+This release turns the research lab into the first useful local instrument for
+nonlinear-mechanics trajectory data.
+
+### Added
+
+- trajectory CSV ingestion with complete-trial identity, strict sampling
+  checks, optional post-training reference values, and source fingerprints;
+- a dimension-general label-free invariant learner;
+- a transparent polynomial observable library and
+  invariant-conditioned Koopman operator family;
+- complete held-out recursive comparison with global quadratic EDMD and persistence;
+- an empirical support certificate that incorporates invariant drift,
+  invariant-range coverage, sampled training-state distance, and baseline wins;
+- `generate-example`, `analyze`, and `predict` commands;
+- a weights-only model bundle with a Python load/rollout API, the fit verdict,
+  and default refusal of uncertified fits or unsupported initial states;
+- an HTML engineering report, overview figure, manifest validator, and
+  committed 30-trajectory Duffing actual run;
+- artifact SHA-256 binding and independent held-out metric reconstruction from
+  the source CSV plus exported model;
+- a source-backed mathematical and product blueprint for invariant-first,
+  structure-preserving local Koopman atlases.
+
+### Changed
+
+- broadened `LearnedInvariant` from a fixed three-state input to arbitrary
+  measured state dimension while preserving the pendulum default;
+- promoted the project from built-in simulations alone to an external-data
+  workbench without weakening the v3 scientific boundaries.
+
 ## 3.0.0 — 2026-07-28
 
 This release recovers the original project's broader idea and turns it into a

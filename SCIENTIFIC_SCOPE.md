@@ -2,14 +2,40 @@
 
 ## What is demonstrated
 
-The repository contains three generations of committed actual-run evidence:
+The repository contains four generations of committed actual-run evidence:
 
 - a broad-libration portfolio benchmark at seed 7, with a sensitivity sweep at
   seeds 7, 17, and 29;
 - a near-separatrix atlas benchmark at seed 7, with a five-seed sweep at seeds
   7, 17, 29, 41, and 53;
 - a connected v3 research-lab run covering autonomous local charts, label-free
-  invariant discovery, stochastic transfer, and controlled crossings.
+  invariant discovery, stochastic transfer, and controlled crossings;
+- a non-pendulum mechanics-workbench run on 30 conservative Duffing
+  trajectories at one deterministic seed-7 split, split by complete run.
+
+The mechanics workbench demonstrates that:
+
+- a general two-state trajectory CSV can be validated, fingerprinted, split,
+  analyzed, reported, exported, loaded, and recursively predicted without
+  pendulum-specific code;
+- one label-free coordinate has held-out normalized within-trajectory drift
+  0.0024 and perfectly ranks the unseen Duffing energy levels;
+- a quadratic observable dictionary evolved by the learned
+  invariant-conditioned family reaches normalized held-out rollout RMSE 0.076,
+  versus 0.424 for the same dictionary under one global quadratic EDMD model
+  and 1.564 for persistence;
+- the optional energy reference is excluded from invariant and operator
+  training and is used only for post-training evaluation;
+- the certificate rejects trajectory leakage, collapse, excessive invariant
+  drift, unsupported held-out initial states, stale baseline comparisons, and
+  silent prediction outside both the fitted invariant range and sampled
+  training-state neighborhood.
+
+This is an actual synthetic-mechanics tool path, not yet evidence on measured
+hardware or split/seed robustness. The polynomial operator family is not
+exactly symplectic and its
+local spectra are diagnostics rather than rigorously certified Koopman
+eigenvalues.
 
 The deterministic studies demonstrate that:
 
@@ -50,6 +76,14 @@ the stochastic transfer and controlled identification results currently use
 one seed each.
 
 ## What is supplied and what is learned
+
+The mechanics workbench receives numerical state trajectories, timestamps, and
+trajectory membership. It supplies state normalization, a constant/linear/
+quadratic observable dictionary, and a polynomial degree for the operator
+family. The neural scalar and operator matrices are learned. An optional
+reference column is never passed to either fit. The support verdict is empirical
+and dataset-specific; it is not a formal spectral, uncertainty, or safety
+guarantee.
 
 The energy-conditioned model receives conserved energy, exact phase targets,
 and the known elliptic frequency law. It is physics-guided rather than an

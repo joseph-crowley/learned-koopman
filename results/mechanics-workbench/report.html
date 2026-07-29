@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Koopman Mechanics Workbench</title>
+<style>
+body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; color: #172033;
+       background: #f5f7fb; line-height: 1.55; }
+main { max-width: 1050px; margin: 0 auto; padding: 42px 24px 80px; }
+h1 { font-size: 2.35rem; margin-bottom: .25rem; }
+h2 { margin-top: 2.2rem; }
+.lede { font-size: 1.15rem; color: #475569; max-width: 850px; }
+.status { display: inline-block; padding: 7px 12px; border-radius: 999px;
+           background: #ede9fe; color: #5b21b6; font-weight: 700; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr));
+          gap: 14px; margin: 24px 0; }
+.card { background: white; border: 1px solid #dde3ee; border-radius: 12px; padding: 17px; }
+.metric { font-size: 1.65rem; font-weight: 750; }
+img { width: 100%; background: white; border: 1px solid #dde3ee; border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+code { background: #e9eef7; padding: 2px 5px; border-radius: 4px; }
+</style>
+</head>
+<body><main>
+<p class="status">supported_on_held_out_trajectories</p>
+<h1>Koopman Mechanics Workbench</h1>
+<p class="lede">A label-free candidate invariant organizes complete mechanical
+trajectories, then indexes a polynomial family of local Koopman operators.
+Every promoted statement below comes from held-out complete runs.</p>
+<div class="cards">
+  <div class="card"><div class="metric">30</div>trajectories</div>
+  <div class="card"><div class="metric">0.0024</div>
+  held-out invariant drift</div>
+  <div class="card"><div class="metric">0.0755</div>
+  fibered rollout RMSE</div>
+  <div class="card"><div class="metric">0.4240</div>
+  global EDMD RMSE</div>
+</div>
+<img src="overview.png" alt="Invariant, rollout, trajectory, and spectrum diagnostics">
+<h2>What the model learned</h2>
+<p>The neural scalar <em>I</em><sub>θ</sub>(x) was optimized to remain constant
+inside each trajectory while remaining noncollapsed and smooth between nearby
+trajectory sets. A transparent observable dictionary ψ(x) then evolves under
+<strong>K(ĉ)=K₀+ĉK₁+ĉ²K₂</strong>, where ĉ is the normalized learned
+coordinate. This is a finite, testable operator family—not a claim of one exact
+global linearization.</p>
+<p>Optional post-training comparison to <code>energy</code>: held-out affine R² <strong>0.8155</strong>, absolute rank correlation <strong>1.0000</strong>. The reference was excluded from optimization.</p>
+<h2>Held-out model comparison</h2>
+<table><thead><tr><th>model</th><th>normalized rollout RMSE</th>
+<th>per-state RMSE in each column's native unit</th><th>mean valid time</th></tr></thead>
+<tbody><tr><td>fibered</td><td>0.07551</td><td><code>position</code>: 0.06322, <code>velocity</code>: 0.08439</td><td>8.9750</td></tr><tr><td>global_edmd</td><td>0.42400</td><td><code>position</code>: 0.36622, <code>velocity</code>: 0.46176</td><td>7.1438</td></tr><tr><td>persistence</td><td>1.56358</td><td><code>position</code>: 1.72271, <code>velocity</code>: 1.13762</td><td>0.6906</td></tr></tbody></table>
+<h2>Trust boundary</h2>
+<ul>
+<li>Training and evaluation are split by complete trajectory IDs.</li>
+<li>The optional reference column never enters invariant or operator training.</li>
+<li>The certificate is specific to this sampling interval, state definition,
+observed invariant range, and sampled training-state neighborhood.</li>
+<li>The exported model carries this fit verdict and refuses unsupported initial
+states by default.</li>
+<li>A negative certificate is useful evidence; it means this dictionary and
+operator family should not be used as a surrogate for the supplied data.</li>
+</ul>
+<p>Machine-readable evidence: <code>manifest.json</code>. Loadable model:
+<code>model.pt</code>.</p>
+</main></body></html>

@@ -1,0 +1,838 @@
+{
+  "schema_version": 1,
+  "tool": "koopman_mechanics_workbench",
+  "learned_koopman_version": "3.1.0",
+  "profile": "full",
+  "environment": {
+    "python": "3.12.13",
+    "numpy": "2.5.1",
+    "torch": "2.13.0",
+    "platform": "macOS-26.6-arm64-arm-64bit"
+  },
+  "source_revision": {
+    "git_commit": "f002b7b512b93c7a554091295e14d8fcb15c0f36",
+    "git_worktree_clean": false
+  },
+  "dataset": {
+    "source": "examples/duffing-trajectories.csv",
+    "source_sha256": "d6f3e513f61d49d31a807d32069c8df8845a6d04e164d32a456bc137768b2949",
+    "trajectory_count": 30,
+    "samples_per_trajectory": 360,
+    "state_columns": [
+      "position",
+      "velocity"
+    ],
+    "trajectory_column": "trajectory_id",
+    "time_column": "time",
+    "state_dimension": 2,
+    "sampling_interval": 0.025000000000000022,
+    "original_lengths": [
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360,
+      360
+    ]
+  },
+  "split": {
+    "seed": 7,
+    "training_trajectory_ids": [
+      "run-000",
+      "run-001",
+      "run-002",
+      "run-005",
+      "run-006",
+      "run-007",
+      "run-008",
+      "run-009",
+      "run-010",
+      "run-011",
+      "run-013",
+      "run-015",
+      "run-016",
+      "run-018",
+      "run-019",
+      "run-020",
+      "run-021",
+      "run-023",
+      "run-025",
+      "run-026",
+      "run-027",
+      "run-029"
+    ],
+    "held_out_trajectory_ids": [
+      "run-003",
+      "run-004",
+      "run-012",
+      "run-014",
+      "run-017",
+      "run-022",
+      "run-024",
+      "run-028"
+    ]
+  },
+  "scientific_contract": {
+    "training_inputs": [
+      "state trajectories",
+      "time samples",
+      "trajectory membership"
+    ],
+    "training_excludes": [
+      "reference column",
+      "known energy or Hamiltonian",
+      "trajectory ordering labels",
+      "future held-out trajectories"
+    ],
+    "candidate_invariant": "I_theta is approximately constant on observed trajectories and is generally identifiable only up to a smooth monotone reparameterization",
+    "operator_family": "psi(x_next) is regressed against a polynomial family K(I); finite residuals do not imply an exact Koopman-invariant subspace",
+    "held_out_conditioning": "recursive forecasts use I_theta(x[0]) from the initial held-out state only; future held-out samples never condition a forecast"
+  },
+  "config": {
+    "profile": "full",
+    "seed": 7,
+    "train_fraction": 0.75,
+    "hidden_dim": 48,
+    "epochs": 500,
+    "learning_rate": 0.002,
+    "graph_neighbors": 2,
+    "constancy_weight": 10.0,
+    "graph_weight": 0.12,
+    "variance_weight": 1.0,
+    "centering_weight": 0.02,
+    "family_degree": 2,
+    "observable_degree": 2,
+    "ridge": 1e-06
+  },
+  "normalization": {
+    "state_mean": [
+      -0.06148333041810142,
+      -0.1717347669495421
+    ],
+    "state_scale": [
+      0.8919193202429556,
+      1.0566922150344655
+    ]
+  },
+  "invariant": {
+    "training_coordinate_std": 0.9970986843109131,
+    "held_out_mean_normalized_drift": 0.002364528365433216,
+    "held_out_max_normalized_drift": 0.00420643575489521,
+    "held_out_interpolation_coverage": 1.0,
+    "training": {
+      "initial_loss": 1.0133252143859863,
+      "final_loss": 0.0029046759009361267,
+      "final_constancy": 6.523358479171293e-06,
+      "final_orbit_std": 0.9970797896385193
+    },
+    "per_trajectory": [
+      {
+        "trajectory_id": "run-000",
+        "split": "train",
+        "mean": 1.7006758451461792,
+        "standard_deviation": 0.0017470073653385043
+      },
+      {
+        "trajectory_id": "run-001",
+        "split": "train",
+        "mean": 1.620719075202942,
+        "standard_deviation": 0.0017848071875050664
+      },
+      {
+        "trajectory_id": "run-002",
+        "split": "train",
+        "mean": 1.5247883796691895,
+        "standard_deviation": 0.0016712519573047757
+      },
+      {
+        "trajectory_id": "run-003",
+        "split": "held_out",
+        "mean": 1.4143153429031372,
+        "standard_deviation": 0.0014901009853929281
+      },
+      {
+        "trajectory_id": "run-004",
+        "split": "held_out",
+        "mean": 1.2910465002059937,
+        "standard_deviation": 0.0013769349316135049
+      },
+      {
+        "trajectory_id": "run-005",
+        "split": "train",
+        "mean": 1.1570136547088623,
+        "standard_deviation": 0.001455138437449932
+      },
+      {
+        "trajectory_id": "run-006",
+        "split": "train",
+        "mean": 1.0144726037979126,
+        "standard_deviation": 0.0017107946332544088
+      },
+      {
+        "trajectory_id": "run-007",
+        "split": "train",
+        "mean": 0.8658151626586914,
+        "standard_deviation": 0.002029669936746359
+      },
+      {
+        "trajectory_id": "run-008",
+        "split": "train",
+        "mean": 0.7134621739387512,
+        "standard_deviation": 0.002314253943040967
+      },
+      {
+        "trajectory_id": "run-009",
+        "split": "train",
+        "mean": 0.5597542524337769,
+        "standard_deviation": 0.002509170677512884
+      },
+      {
+        "trajectory_id": "run-010",
+        "split": "train",
+        "mean": 0.4068519175052643,
+        "standard_deviation": 0.002589009003713727
+      },
+      {
+        "trajectory_id": "run-011",
+        "split": "train",
+        "mean": 0.2566582262516022,
+        "standard_deviation": 0.0025488908868283033
+      },
+      {
+        "trajectory_id": "run-012",
+        "split": "held_out",
+        "mean": 0.11076872050762177,
+        "standard_deviation": 0.0024017018731683493
+      },
+      {
+        "trajectory_id": "run-013",
+        "split": "train",
+        "mean": -0.029550880193710327,
+        "standard_deviation": 0.002180180512368679
+      },
+      {
+        "trajectory_id": "run-014",
+        "split": "held_out",
+        "mean": -0.16336236894130707,
+        "standard_deviation": 0.001942461240105331
+      },
+      {
+        "trajectory_id": "run-015",
+        "split": "train",
+        "mean": -0.2900297939777374,
+        "standard_deviation": 0.0017856343183666468
+      },
+      {
+        "trajectory_id": "run-016",
+        "split": "train",
+        "mean": -0.40917375683784485,
+        "standard_deviation": 0.0018288008868694305
+      },
+      {
+        "trajectory_id": "run-017",
+        "split": "held_out",
+        "mean": -0.520616888999939,
+        "standard_deviation": 0.0020868019200861454
+      },
+      {
+        "trajectory_id": "run-018",
+        "split": "train",
+        "mean": -0.6243438124656677,
+        "standard_deviation": 0.002441723830997944
+      },
+      {
+        "trajectory_id": "run-019",
+        "split": "train",
+        "mean": -0.7204822897911072,
+        "standard_deviation": 0.0027876917738467455
+      },
+      {
+        "trajectory_id": "run-020",
+        "split": "train",
+        "mean": -0.8092854022979736,
+        "standard_deviation": 0.0030513221863657236
+      },
+      {
+        "trajectory_id": "run-021",
+        "split": "train",
+        "mean": -0.8910929560661316,
+        "standard_deviation": 0.003160938387736678
+      },
+      {
+        "trajectory_id": "run-022",
+        "split": "held_out",
+        "mean": -0.9662887454032898,
+        "standard_deviation": 0.0030685795936733484
+      },
+      {
+        "trajectory_id": "run-023",
+        "split": "train",
+        "mean": -1.0352718830108643,
+        "standard_deviation": 0.0027670133858919144
+      },
+      {
+        "trajectory_id": "run-024",
+        "split": "held_out",
+        "mean": -1.0984456539154053,
+        "standard_deviation": 0.002300532767549157
+      },
+      {
+        "trajectory_id": "run-025",
+        "split": "train",
+        "mean": -1.1562143564224243,
+        "standard_deviation": 0.0018453770317137241
+      },
+      {
+        "trajectory_id": "run-026",
+        "split": "train",
+        "mean": -1.2089686393737793,
+        "standard_deviation": 0.001894911751151085
+      },
+      {
+        "trajectory_id": "run-027",
+        "split": "train",
+        "mean": -1.2570571899414062,
+        "standard_deviation": 0.0027676988393068314
+      },
+      {
+        "trajectory_id": "run-028",
+        "split": "held_out",
+        "mean": -1.300775408744812,
+        "standard_deviation": 0.004194231703877449
+      },
+      {
+        "trajectory_id": "run-029",
+        "split": "train",
+        "mean": -1.3404024839401245,
+        "standard_deviation": 0.006048624403774738
+      }
+    ]
+  },
+  "state_support": {
+    "method": "nearest sampled training state in normalized coordinates; radius is 1.2 times the 99.5th percentile of interleaved training calibration distances",
+    "sample_count": 1980,
+    "radius": 0.1989474402412223,
+    "held_out_initial_coverage": 1.0,
+    "held_out_initial_max_distance": 0.07152340127874224,
+    "held_out_initial_distances": {
+      "run-003": 0.07152340127649992,
+      "run-004": 0.07152340127649981,
+      "run-012": 0.07152340127762136,
+      "run-014": 0.07152340126753076,
+      "run-017": 0.07152340127874224,
+      "run-022": 0.07152340127874224,
+      "run-024": 0.07152340127874202,
+      "run-028": 0.0715234012787418
+    }
+  },
+  "operator_family": {
+    "equation": "psi(x[k+1]) = psi(x[k]) @ sum_r c_hat^r K_r",
+    "held_out_conditioning": "initial_state_only",
+    "model": {
+      "family_degree": 2,
+      "observable_degree": 2,
+      "observable_dim": 6,
+      "state_dim": 2,
+      "dt": 0.025000000000000022,
+      "ridge": 1e-06,
+      "invariant_center": 0.0021971748633818193,
+      "invariant_scale": 0.9970986923682892,
+      "matrices": [
+        [
+          [
+            0.9999991454929815,
+            -0.004505139103657774,
+            0.020167201478300836,
+            -0.005401488535721305,
+            -0.18211988152366534,
+            0.0435788743908824
+          ],
+          [
+            -8.294235510650942e-08,
+            0.9996664841671784,
+            -0.022587384825473383,
+            -0.010104581810440709,
+            -0.015956239548087985,
+            0.0036725058507624934
+          ],
+          [
+            -2.441068279604008e-07,
+            0.029698729824320154,
+            1.0048467431447257,
+            -0.0018497687867878104,
+            -0.05731548421429106,
+            0.01570908597320384
+          ],
+          [
+            6.005947738506377e-07,
+            -0.00020027430350134297,
+            -0.0129982076417427,
+            1.0031265533011973,
+            0.10483995532906167,
+            -0.03027027405098455
+          ],
+          [
+            4.68693640957848e-10,
+            -7.450081653483433e-06,
+            -0.0004955850291484555,
+            0.059218147618779984,
+            0.9986159973455805,
+            -0.04648071673549531
+          ],
+          [
+            7.48787934408749e-07,
+            -0.0002518079233782896,
+            -0.016378141435739537,
+            0.005695160016538369,
+            0.19135714918156593,
+            0.9607007082364661
+          ]
+        ],
+        [
+          [
+            -5.305937359709283e-08,
+            -6.14637771701821e-05,
+            -0.003933650077723264,
+            0.0019256546914109302,
+            0.0646938823627309,
+            -0.01292869350652693
+          ],
+          [
+            -7.994957647564068e-08,
+            8.459981269063696e-05,
+            0.005660941342379232,
+            -0.00029199579856074663,
+            -0.009819043877187498,
+            0.0030019451982643136
+          ],
+          [
+            -2.587352924896146e-07,
+            6.528899701102416e-05,
+            0.004333014382216976,
+            -0.0009812477889145474,
+            -0.03293616781436921,
+            0.008311098047744723
+          ],
+          [
+            5.792347957559823e-07,
+            -0.00013886654004001812,
+            -0.009079496654106248,
+            0.0021891061489616274,
+            0.07347641706650801,
+            -0.01876516479642124
+          ],
+          [
+            -1.5909414563404473e-09,
+            5.0990024466567135e-06,
+            0.00033270658398810917,
+            3.576456596778897e-06,
+            0.00025638073296825636,
+            0.004684817579968485
+          ],
+          [
+            7.99005452653627e-07,
+            -0.0001947330928943101,
+            -0.012708529303147609,
+            0.003023499765914657,
+            0.10147681521743919,
+            -0.02621547896750765
+          ]
+        ],
+        [
+          [
+            2.970801101142302e-07,
+            -5.5233572403472926e-05,
+            -0.003624890959011164,
+            0.0006474738716599172,
+            0.021710904780093205,
+            -0.0066375398405776505
+          ],
+          [
+            -1.6472988673343525e-08,
+            -3.754734370050733e-05,
+            -0.0025294478100532734,
+            4.658664397449821e-06,
+            0.00018797098402921703,
+            0.0004147350237351243
+          ],
+          [
+            -6.405525677985986e-08,
+            1.0267851183397868e-05,
+            0.0006404798399606962,
+            -7.934853071253059e-05,
+            -0.0026463344021609957,
+            0.0014581835595897355
+          ],
+          [
+            1.2087234476069242e-07,
+            -1.564403792086667e-05,
+            -0.0010352458309727227,
+            -6.601159241705662e-05,
+            -0.00224356041151752,
+            -0.0008757574535313372
+          ],
+          [
+            -1.3067726525983479e-09,
+            7.238053422204012e-06,
+            0.0004885074742942052,
+            -2.9967642465921933e-06,
+            -0.00025071921990339703,
+            -0.0049249120697195305
+          ],
+          [
+            2.0171342662756577e-07,
+            -2.986240243635847e-05,
+            -0.0019557893019140965,
+            0.00024591889915458946,
+            0.008241956855230442,
+            -0.0029210991606318606
+          ]
+        ]
+      ]
+    },
+    "observable_features": [
+      "1",
+      "position",
+      "velocity",
+      "position*position",
+      "position*velocity",
+      "velocity*velocity"
+    ],
+    "held_out_errors": {
+      "fibered": {
+        "normalized_rollout_rmse": 0.07550566023791262,
+        "per_state_rmse": {
+          "position": 0.06322415476951034,
+          "velocity": 0.08438634539805275
+        },
+        "mean_valid_time": 8.975000000000009,
+        "normalized_one_step_rmse": 0.0026510849026722284
+      },
+      "global_edmd": {
+        "normalized_rollout_rmse": 0.4239974748377345,
+        "per_state_rmse": {
+          "position": 0.36621975644060845,
+          "velocity": 0.46176058196181347
+        },
+        "mean_valid_time": 7.143750000000007,
+        "normalized_one_step_rmse": 0.003896472461316595
+      },
+      "persistence": {
+        "normalized_rollout_rmse": 1.5635814073964527,
+        "per_state_rmse": {
+          "position": 1.7227056305450887,
+          "velocity": 1.1376211303947847
+        },
+        "mean_valid_time": 0.6906250000000006
+      }
+    },
+    "local_spectrum": [
+      {
+        "invariant": -1.2546527624130248,
+        "spectral_radius": 1.0000000081755587,
+        "lowest_nonzero_principal_frequency_hz": 0.20274620006491298,
+        "eigenvalues": [
+          {
+            "real": 1.0000000081755587,
+            "imag": 0.0,
+            "magnitude": 1.0000000081755587,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": 3.270223456429929e-07
+          },
+          {
+            "real": 0.9994109881080016,
+            "imag": 0.031839305266677206,
+            "magnitude": 0.9999180288958074,
+            "frequency_hz": 0.20274620006491298,
+            "continuous_damping_rate": -0.003278978560287224
+          },
+          {
+            "real": 0.9994109881080016,
+            "imag": -0.031839305266677206,
+            "magnitude": 0.9999180288958074,
+            "frequency_hz": 0.20274620006491298,
+            "continuous_damping_rate": -0.003278978560287224
+          },
+          {
+            "real": 0.9974461241454373,
+            "imag": 0.06393263810218532,
+            "magnitude": 0.999492947842785,
+            "frequency_hz": 0.4074924948434603,
+            "continuous_damping_rate": -0.02028723006525263
+          },
+          {
+            "real": 0.9974461241454373,
+            "imag": -0.06393263810218532,
+            "magnitude": 0.999492947842785,
+            "frequency_hz": 0.4074924948434603,
+            "continuous_damping_rate": -0.02028723006525263
+          },
+          {
+            "real": 0.9934492160595775,
+            "imag": 0.0,
+            "magnitude": 0.9934492160595775,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -0.2628933796974919
+          }
+        ]
+      },
+      {
+        "invariant": -0.8706410676240921,
+        "spectral_radius": 1.0000000072184825,
+        "lowest_nonzero_principal_frequency_hz": 0.19100731195989157,
+        "eigenvalues": [
+          {
+            "real": 1.0000000072184825,
+            "imag": 0.0,
+            "magnitude": 1.0000000072184825,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": 2.887392980947342e-07
+          },
+          {
+            "real": 0.9994689387065991,
+            "imag": 0.02999642626245361,
+            "magnitude": 0.9999189692309144,
+            "frequency_hz": 0.19100731195989157,
+            "continuous_damping_rate": -0.003241362090229577
+          },
+          {
+            "real": 0.9994689387065991,
+            "imag": -0.02999642626245361,
+            "magnitude": 0.9999189692309144,
+            "frequency_hz": 0.19100731195989157,
+            "continuous_damping_rate": -0.003241362090229577
+          },
+          {
+            "real": 0.9975679063881226,
+            "imag": 0.05990933764910435,
+            "magnitude": 0.9993652268280784,
+            "frequency_hz": 0.3818658930928972,
+            "continuous_damping_rate": -0.025398989028399516
+          },
+          {
+            "real": 0.9975679063881226,
+            "imag": -0.05990933764910435,
+            "magnitude": 0.9993652268280784,
+            "frequency_hz": 0.3818658930928972,
+            "continuous_damping_rate": -0.025398989028399516
+          },
+          {
+            "real": 0.9878037672411569,
+            "imag": 0.0,
+            "magnitude": 0.9878037672411569,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -0.4908486845497815
+          }
+        ]
+      },
+      {
+        "invariant": -0.15979033708572388,
+        "spectral_radius": 1.000493204761546,
+        "lowest_nonzero_principal_frequency_hz": 0.17400316779486466,
+        "eigenvalues": [
+          {
+            "real": 0.9990969679761652,
+            "imag": 0.0528384458028639,
+            "magnitude": 1.000493204761546,
+            "frequency_hz": 0.336370659381104,
+            "continuous_damping_rate": 0.019723327042146587
+          },
+          {
+            "real": 0.9990969679761652,
+            "imag": -0.0528384458028639,
+            "magnitude": 1.000493204761546,
+            "frequency_hz": 0.336370659381104,
+            "continuous_damping_rate": 0.019723327042146587
+          },
+          {
+            "real": 0.9999999901181013,
+            "imag": 0.0,
+            "magnitude": 0.9999999901181013,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -3.952759517024566e-07
+          },
+          {
+            "real": 0.9995486871890573,
+            "imag": 0.0273268234831874,
+            "magnitude": 0.9999221636422754,
+            "frequency_hz": 0.17400316779486466,
+            "continuous_damping_rate": -0.0031135754852446803
+          },
+          {
+            "real": 0.9995486871890573,
+            "imag": -0.0273268234831874,
+            "magnitude": 0.9999221636422754,
+            "frequency_hz": 0.17400316779486466,
+            "continuous_damping_rate": -0.0031135754852446803
+          },
+          {
+            "real": 0.9727387703234223,
+            "imag": 0.0,
+            "magnitude": 0.9727387703234223,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -1.1055884576682715
+          }
+        ]
+      },
+      {
+        "invariant": 0.8277269154787064,
+        "spectral_radius": 1.0000000083777552,
+        "lowest_nonzero_principal_frequency_hz": 0.16439991393359113,
+        "eigenvalues": [
+          {
+            "real": 1.0000000083777552,
+            "imag": 0.0,
+            "magnitude": 1.0000000083777552,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": 3.3511020484725216e-07
+          },
+          {
+            "real": 0.9996610329183959,
+            "imag": 0.025820864646897052,
+            "magnitude": 0.9999944488778864,
+            "frequency_hz": 0.16439991393359113,
+            "continuous_damping_rate": -0.00022204550084721728
+          },
+          {
+            "real": 0.9996610329183959,
+            "imag": -0.025820864646897052,
+            "magnitude": 0.9999944488778864,
+            "frequency_hz": 0.16439991393359113,
+            "continuous_damping_rate": -0.00022204550084721728
+          },
+          {
+            "real": 0.9967680094739724,
+            "imag": 0.05526488246607605,
+            "magnitude": 0.9982988890831714,
+            "frequency_hz": 0.352606943804699,
+            "continuous_damping_rate": -0.06810237795919578
+          },
+          {
+            "real": 0.9967680094739724,
+            "imag": -0.05526488246607605,
+            "magnitude": 0.9982988890831714,
+            "frequency_hz": 0.352606943804699,
+            "continuous_damping_rate": -0.06810237795919578
+          },
+          {
+            "real": 0.9562691025882459,
+            "imag": 0.0,
+            "magnitude": 0.9562691025882459,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -1.7886366991219491
+          }
+        ]
+      },
+      {
+        "invariant": 1.6159225404262543,
+        "spectral_radius": 1.0001782087320041,
+        "lowest_nonzero_principal_frequency_hz": 0.17060999179971903,
+        "eigenvalues": [
+          {
+            "real": 0.9998190635225306,
+            "imag": 0.026800922358950537,
+            "magnitude": 1.0001782087320041,
+            "frequency_hz": 0.17060999179971903,
+            "continuous_damping_rate": 0.007127714188573681
+          },
+          {
+            "real": 0.9998190635225306,
+            "imag": -0.026800922358950537,
+            "magnitude": 1.0001782087320041,
+            "frequency_hz": 0.17060999179971903,
+            "continuous_damping_rate": 0.007127714188573681
+          },
+          {
+            "real": 0.9999999957751099,
+            "imag": 0.0,
+            "magnitude": 0.9999999957751099,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -1.6899560453426265e-07
+          },
+          {
+            "real": 0.9824554886074317,
+            "imag": 0.07414031193390122,
+            "magnitude": 0.9852489903311363,
+            "frequency_hz": 0.4795117577378181,
+            "continuous_damping_rate": -0.5944355076793253
+          },
+          {
+            "real": 0.9824554886074317,
+            "imag": -0.07414031193390122,
+            "magnitude": 0.9852489903311363,
+            "frequency_hz": 0.4795117577378181,
+            "continuous_damping_rate": -0.5944355076793253
+          },
+          {
+            "real": 0.9641853803821746,
+            "imag": 0.0,
+            "magnitude": 0.9641853803821746,
+            "frequency_hz": 0.0,
+            "continuous_damping_rate": -1.4588679823396016
+          }
+        ]
+      }
+    ]
+  },
+  "reference_evaluation": {
+    "column": "energy",
+    "reference_max_relative_drift": 0.0003084774616664239,
+    "fit_uses_training_trajectories_only": true,
+    "held_out_affine_r2": 0.8154500604299673,
+    "held_out_absolute_rank_correlation": 1.0,
+    "orientation": -1.0,
+    "slope": -0.8737052774467021,
+    "intercept": 1.0616503320186226
+  },
+  "certificate": {
+    "status": "supported_on_held_out_trajectories",
+    "decisive_comparisons": {
+      "invariant_is_stable": true,
+      "held_out_coordinates_are_in_range": true,
+      "held_out_initial_states_are_near_training_data": true,
+      "beats_global_edmd_rollout": true,
+      "beats_persistence_rollout": true
+    },
+    "scope": "complete held-out trajectories at the supplied state definition, sampling interval, observed invariant range, and sampled-state support radius",
+    "warnings": []
+  },
+  "artifacts": {
+    "report": "report.html",
+    "overview": "overview.png",
+    "model": "model.pt",
+    "manifest": "manifest.json",
+    "model_sha256": "95a266e13c22fa5b6906e5ecaf76ce46a8886fb04da2c3d67c1ade91b461800f",
+    "overview_sha256": "541874bcc1bc9dc99e8d0d37833cff98a6ddf39f21ebd3a8be9b4cfbb093e471",
+    "report_sha256": "b2ae86b068af4035757384406fdd5e9f6c04c25cb74978354d7bd255ab37fe14"
+  },
+  "validation_checks": [
+    "training and held-out trajectories are disjoint",
+    "all held-out initial states pass invariant and sampled-state support gates",
+    "candidate invariant is noncollapsed and trajectory-stable on every held-out run",
+    "fibered operator verdict is supported_on_held_out_trajectories"
+  ]
+}

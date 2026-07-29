@@ -1,6 +1,6 @@
-"""Structured latent dynamics for the nonlinear pendulum."""
+"""Learned invariants and local operator structure for nonlinear dynamics."""
 
 from learned_koopman.config import ExperimentConfig
 
 __all__ = ["ExperimentConfig"]
-__version__ = "3.0.0"
+__version__ = "3.1.0"

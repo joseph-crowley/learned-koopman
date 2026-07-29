@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from dataclasses import replace
 from pathlib import Path
+
+import numpy as np
 
 from learned_koopman import __version__
 from learned_koopman.config import ExperimentConfig
@@ -14,7 +17,13 @@ from learned_koopman.control_experiment import (
 from learned_koopman.experiment import run_experiment, run_robustness_sweep
 from learned_koopman.invariant_experiment import run_invariant_experiment
 from learned_koopman.research_lab import run_research_lab
+from learned_koopman.trajectory import load_trajectory_csv, write_duffing_example
 from learned_koopman.transfer_experiment import run_transfer_experiment
+from learned_koopman.workbench import (
+    WorkbenchConfig,
+    load_mechanics_model,
+    run_mechanics_workbench,
+)
 
 
 def _write_json(path: Path, result: dict[str, object]) -> None:
@@ -115,16 +124,151 @@ def build_parser() -> argparse.ArgumentParser:
     transfer.add_argument("--quick", action="store_true")
     control = subparsers.add_parser(
         "control",
-        help="Learn torque-conditioned prediction across separatrix crossings.",
+        help="Identify actuator gain across torque-driven separatrix crossings.",
     )
     control.add_argument("--output", type=Path, default=Path("results/control"))
     control.add_argument("--seed", type=int, default=7)
     control.add_argument("--quick", action="store_true")
+    example = subparsers.add_parser(
+        "generate-example",
+        help="Write conservative Duffing-oscillator trajectories as CSV.",
+    )
+    example.add_argument(
+        "--output",
+        type=Path,
+        default=Path("examples/duffing-trajectories.csv"),
+    )
+    example.add_argument("--trajectories", type=int, default=30)
+    example.add_argument("--steps", type=int, default=360)
+    example.add_argument("--dt", type=float, default=0.025)
+    analyze = subparsers.add_parser(
+        "analyze",
+        help="Discover an invariant and fit a fibered Koopman model to trajectory CSV.",
+    )
+    analyze.add_argument("input", type=Path)
+    analyze.add_argument("--state-columns", nargs="+", required=True)
+    analyze.add_argument("--trajectory-column", default="trajectory_id")
+    analyze.add_argument("--time-column", default="time")
+    analyze.add_argument("--reference-column")
+    analyze.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/mechanics-workbench"),
+    )
+    analyze.add_argument("--seed", type=int, default=7)
+    analyze.add_argument("--quick", action="store_true")
+    analyze.add_argument("--epochs", type=int)
+    analyze.add_argument("--family-degree", type=int, choices=(0, 1, 2, 3))
+    analyze.add_argument("--observable-degree", type=int, choices=(1, 2))
+    predict = subparsers.add_parser(
+        "predict",
+        help="Roll out a saved mechanics-workbench model.",
+    )
+    predict.add_argument("model", type=Path)
+    predict.add_argument("--initial", type=float, nargs="+", required=True)
+    predict.add_argument("--steps", type=int, default=200)
+    predict.add_argument(
+        "--allow-unsupported",
+        "--allow-extrapolation",
+        dest="allow_unsupported",
+        action="store_true",
+        help="Override a negative fit certificate or out-of-support initial state.",
+    )
+    predict.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/mechanics-prediction.csv"),
+    )
     return parser
 
 
 def main() -> None:
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
+    if args.command == "generate-example":
+        target = write_duffing_example(
+            args.output,
+            trajectories=args.trajectories,
+            steps=args.steps,
+            dt=args.dt,
+        )
+        print(f"Duffing trajectories: {target}")
+        print(
+            "Next: learned-koopman analyze "
+            f"{target} --state-columns position velocity --reference-column energy --quick"
+        )
+        return
+    if args.command == "analyze":
+        if args.epochs is not None and args.epochs < 1:
+            parser.error("--epochs must be positive")
+        dataset = load_trajectory_csv(
+            args.input,
+            state_columns=tuple(args.state_columns),
+            trajectory_column=args.trajectory_column,
+            time_column=args.time_column,
+            reference_column=args.reference_column,
+        )
+        config = (
+            WorkbenchConfig.quick(args.seed)
+            if args.quick
+            else WorkbenchConfig.full(args.seed)
+        )
+        updates = {
+            key: value
+            for key, value in (
+                ("epochs", args.epochs),
+                ("family_degree", args.family_degree),
+                ("observable_degree", args.observable_degree),
+            )
+            if value is not None
+        }
+        if updates:
+            config = replace(config, **updates)
+        print(
+            f"Analyzing {dataset.trajectory_count} complete trajectories "
+            f"with {dataset.state_dim} state variables…"
+        )
+        result = run_mechanics_workbench(dataset, args.output, config=config)
+        errors = result["operator_family"]["held_out_errors"]
+        print(f"Model status: {result['certificate']['status']}")
+        print(
+            "Held-out rollout RMSE: "
+            f"fibered {errors['fibered']['normalized_rollout_rmse']:.5f}, "
+            f"global EDMD {errors['global_edmd']['normalized_rollout_rmse']:.5f}"
+        )
+        print(f"Report: {args.output / 'report.html'}")
+        print(f"Model: {args.output / 'model.pt'}")
+        return
+    if args.command == "predict":
+        if args.steps < 1:
+            parser.error("--steps must be positive")
+        model = load_mechanics_model(args.model)
+        if len(args.initial) != len(model.state_columns):
+            parser.error(
+                f"expected {len(model.state_columns)} initial values for "
+                f"{', '.join(model.state_columns)}"
+            )
+        initial = np.asarray(args.initial, dtype=np.float64)
+        support = str(model.support_status(initial)[0])
+        if support != "supported" and not args.allow_unsupported:
+            parser.error(
+                f"prediction is unsupported ({support}); "
+                "pass --allow-unsupported to override"
+            )
+        prediction = model.rollout(
+            initial,
+            steps=args.steps,
+            allow_extrapolation=args.allow_unsupported,
+        )
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle, lineterminator="\n")
+            writer.writerow(("time", *model.state_columns))
+            for step, state in enumerate(prediction):
+                writer.writerow((step * model.operator.dt, *state))
+        print(f"Prediction support: {support}")
+        print(f"Prediction: {args.output}")
+        return
     if args.command in {"lab", "research-lab"}:
         output = args.output or (
             Path("results/research-lab-quick")

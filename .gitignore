@@ -151,6 +151,12 @@ results/atlas/*
 results/research-lab/*
 !results/research-lab/manifest.json
 !results/research-lab/overview.png
+!results/mechanics-workbench/
+results/mechanics-workbench/*
+!results/mechanics-workbench/manifest.json
+!results/mechanics-workbench/overview.png
+!results/mechanics-workbench/report.html
+!results/mechanics-workbench/model.pt
 
 # Spyder project settings
 .spyderproject

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "learned-koopman"
-version = "3.0.0"
-description = "A PyTorch lab for learned geometry, operator structure, stochastic transfer, and control in nonlinear dynamics."
+version = "3.1.0"
+description = "A PyTorch workbench for learned invariants and local Koopman laws in nonlinear mechanics."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
