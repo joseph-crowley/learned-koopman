@@ -10,8 +10,8 @@
     "platform": "macOS-26.6-arm64-arm-64bit"
   },
   "source_revision": {
-    "git_commit": "f002b7b512b93c7a554091295e14d8fcb15c0f36",
-    "git_worktree_clean": false
+    "git_commit": "45b92560f4e5be921810a15f917000d52ea252c8",
+    "git_worktree_clean": true
   },
   "dataset": {
     "source": "examples/duffing-trajectories.csv",
